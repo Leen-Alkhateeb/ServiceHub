@@ -15,7 +15,8 @@ return new class extends Migration
             $table->text('description');
             $table->date('completion_date')->nullable();
             $table->string('project_url')->nullable();
-            $table->timestamps();
+            $table->dateTime('created_at')->nullable();
+            $table->dateTime('updated_at')->nullable();
         });
     }
 

@@ -16,8 +16,9 @@ return new class extends Migration
             $table->unsignedTinyInteger('rating');
             $table->text('comment')->nullable();
             $table->string('image')->nullable();
-            $table->index(['reviewed_user_id', 'rating']);
-            $table->timestamps();
+
+            $table->unique(['booking_id', 'reviewer_id']);
+            $table->dateTime('created_at')->nullable();
         });
     }
 

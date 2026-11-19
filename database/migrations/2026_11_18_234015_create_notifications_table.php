@@ -13,10 +13,10 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
             $table->string('title');
             $table->text('message');
-            $table->enum('type', ['booking', 'payment', 'review', 'refund', 'application', 'system']);
+            $table->string('type');
             $table->boolean('is_read')->default(false);
-            $table->index(['user_id', 'is_read']);
-            $table->timestamps();
+
+            $table->dateTime('created_at')->nullable();
         });
     }
 

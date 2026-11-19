@@ -19,10 +19,7 @@ return new class extends Migration
             $table->string('service_name');
             $table->text('service_description');
             $table->decimal('original_price', 10, 2);
-            $table->enum('status', [
-                'pending', 'approved', 'awaiting_payment', 'confirmed',
-                'in_progress', 'completed', 'cancelled', 'rejected', 'disputed',
-            ])->default('pending');
+            $table->string('status');
             $table->dateTime('approved_at')->nullable();
             $table->dateTime('payment_deadline')->nullable();
             $table->dateTime('completed_at')->nullable();
@@ -30,8 +27,9 @@ return new class extends Migration
             $table->dateTime('cancelled_at')->nullable();
             $table->foreignId('cancelled_by')->nullable()->constrained('users')->nullOnDelete();
             $table->decimal('cancellation_penalty', 10, 2)->default(0);
-            $table->index(['booking_date', 'status']);
-            $table->timestamps();
+
+            $table->dateTime('created_at')->nullable();
+            $table->dateTime('updated_at')->nullable();
         });
     }
 

@@ -13,11 +13,11 @@ return new class extends Migration
             $table->foreignId('booking_id')->unique()->constrained('bookings')->restrictOnDelete();
             $table->foreignId('customer_id')->constrained('users')->restrictOnDelete();
             $table->text('reason');
-            $table->enum('status', ['pending', 'approved', 'rejected', 'processed'])->default('pending');
+            $table->string('status');
             $table->text('admin_response')->nullable();
             $table->decimal('refund_amount', 10, 2)->nullable();
             $table->dateTime('reviewed_at')->nullable();
-            $table->timestamps();
+            $table->dateTime('created_at')->nullable();
         });
     }
 

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->enum('payment_method', ['card', 'bank_transfer', 'e_wallet', 'cash'])->nullable();
             $table->enum('status', ['pending', 'paid', 'failed', 'refunded', 'partially_refunded'])->default('pending');
             $table->dateTime('paid_at')->nullable();
-            $table->dateTime('created_at')->useCurrent();
+            $table->timestamps();
         });
     }
 

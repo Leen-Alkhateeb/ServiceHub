@@ -13,11 +13,12 @@ return new class extends Migration
             $table->foreignId('category_id')->constrained('categories')->restrictOnDelete();
             $table->string('name');
             $table->text('description');
-            $table->string('image')->nullable();
-            $table->enum('approval_status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->string('image');
+            $table->string('approval_status');
             $table->text('rejection_reason')->nullable();
-            $table->softDeletes();
-            $table->timestamps();
+            $table->boolean('is_deleted')->default(false);
+            $table->dateTime('created_at')->nullable();
+            $table->dateTime('updated_at')->nullable();
         });
     }
 

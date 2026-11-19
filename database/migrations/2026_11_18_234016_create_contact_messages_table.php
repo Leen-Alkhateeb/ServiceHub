@@ -13,9 +13,9 @@ return new class extends Migration
             $table->foreignId('sender_id')->constrained('users')->restrictOnDelete();
             $table->string('subject');
             $table->text('message');
-            $table->enum('status', ['pending', 'in_progress', 'resolved'])->default('pending');
+            $table->string('status');
             $table->dateTime('reviewed_at')->nullable();
-            $table->timestamps();
+            $table->dateTime('created_at')->nullable();
         });
     }
 

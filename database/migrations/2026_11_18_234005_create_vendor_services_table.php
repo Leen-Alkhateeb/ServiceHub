@@ -14,10 +14,11 @@ return new class extends Migration
             $table->foreignId('service_id')->constrained('services')->restrictOnDelete();
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2);
-            $table->string('image')->nullable();
-            $table->boolean('is_active')->default(true);
-            $table->index(['vendor_id', 'service_id']);
-            $table->timestamps();
+            $table->string('image');
+            $table->string('status');
+
+            $table->dateTime('created_at')->nullable();
+            $table->dateTime('updated_at')->nullable();
         });
     }
 

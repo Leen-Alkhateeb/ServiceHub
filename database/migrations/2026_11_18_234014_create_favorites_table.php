@@ -13,7 +13,7 @@ return new class extends Migration
             $table->foreignId('customer_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('vendor_service_id')->constrained('vendor_services')->cascadeOnDelete();
             $table->unique(['customer_id', 'vendor_service_id']);
-            $table->timestamps();
+            $table->dateTime('created_at')->nullable();
         });
     }
 

@@ -11,15 +11,13 @@ return new class extends Migration
         Schema::create('recurring_availability', function (Blueprint $table) {
             $table->id();
             $table->foreignId('vendor_id')->constrained('users')->restrictOnDelete();
-            $table->enum('day_of_week', [
-                'sunday', 'monday', 'tuesday', 'wednesday',
-                'thursday', 'friday', 'saturday',
-            ]);
+            $table->string('day_of_week');
             $table->time('start_time');
             $table->time('end_time');
             $table->boolean('is_active')->default(true);
-            $table->index(['vendor_id', 'day_of_week']);
-            $table->timestamps();
+
+            $table->dateTime('created_at')->nullable();
+            $table->dateTime('updated_at')->nullable();
         });
     }
 

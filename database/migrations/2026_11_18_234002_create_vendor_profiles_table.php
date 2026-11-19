@@ -16,10 +16,11 @@ return new class extends Migration
             $table->string('work_type');
             $table->string('work_permit_path');
             $table->date('permit_expiry_date');
-            $table->enum('application_status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->string('application_status');
             $table->dateTime('applied_at')->nullable();
             $table->text('rejection_reason')->nullable();
-            $table->timestamps();
+            $table->dateTime('created_at')->nullable();
+            $table->dateTime('updated_at')->nullable();
         });
     }
 

@@ -12,10 +12,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('vendor_id')->constrained('users')->restrictOnDelete();
             $table->foreignId('booking_id')->constrained('bookings')->restrictOnDelete();
-            $table->enum('transaction_type', ['credit', 'debit', 'payout', 'penalty', 'adjustment']);
+            $table->string('transaction_type');
             $table->decimal('amount', 10, 2);
             $table->text('description')->nullable();
-            $table->timestamps();
+            $table->dateTime('created_at')->nullable();
         });
     }
 

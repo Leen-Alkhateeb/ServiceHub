@@ -12,10 +12,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('booking_id')->unique()->constrained('bookings')->restrictOnDelete();
             $table->decimal('amount', 10, 2);
-            $table->enum('payment_method', ['card', 'bank_transfer', 'e_wallet', 'cash'])->nullable();
-            $table->enum('status', ['pending', 'paid', 'failed', 'refunded', 'partially_refunded'])->default('pending');
+            $table->string('payment_method')->nullable();
+            $table->string('status');
             $table->dateTime('paid_at')->nullable();
-            $table->timestamps();
+            $table->dateTime('created_at')->nullable();
         });
     }
 

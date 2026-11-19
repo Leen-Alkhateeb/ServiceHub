@@ -15,8 +15,8 @@ return new class extends Migration
             $table->text('message');
             $table->enum('type', ['booking', 'payment', 'review', 'refund', 'application', 'system']);
             $table->boolean('is_read')->default(false);
+            $table->dateTime('created_at')->useCurrent();
             $table->index(['user_id', 'is_read']);
-            $table->timestamps();
         });
     }
 

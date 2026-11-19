@@ -18,8 +18,9 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('end_time');
             $table->boolean('is_active')->default(true);
+            $table->dateTime('created_at')->useCurrent();
+            $table->dateTime('updated_at')->useCurrent()->useCurrentOnUpdate();
             $table->index(['vendor_id', 'day_of_week']);
-            $table->timestamps();
         });
     }
 

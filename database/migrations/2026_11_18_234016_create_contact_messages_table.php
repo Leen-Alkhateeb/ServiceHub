@@ -15,7 +15,7 @@ return new class extends Migration
             $table->text('message');
             $table->enum('status', ['pending', 'in_progress', 'resolved'])->default('pending');
             $table->dateTime('reviewed_at')->nullable();
-            $table->timestamps();
+            $table->dateTime('created_at')->useCurrent();
         });
     }
 

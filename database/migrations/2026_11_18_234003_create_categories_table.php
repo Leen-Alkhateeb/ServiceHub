@@ -10,11 +10,12 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->unique();
-            $table->text('description');
+            $table->string('name');
+            $table->text('description')->nullable();
             $table->string('image')->nullable();
             $table->boolean('is_deleted')->default(false);
-            $table->timestamps();
+            $table->dateTime('created_at')->useCurrent();
+            $table->dateTime('updated_at')->useCurrent()->useCurrentOnUpdate();
         });
     }
 

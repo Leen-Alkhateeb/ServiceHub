@@ -1,45 +1,287 @@
+
 @extends('layouts.app')
-@section('title', 'نظرة عامة | ServiceHub')
+
+@section('title', 'لوحة الإدارة | ServiceHub')
 @section('page_id', 'admin-dashboard')
+
 @section('content')
-    @include('components.navbar')
-    <div class="container layout">@include('components.sidebars.admin')
-        <div>
-            <div class="dash-title">
-                <div><span class="small muted">لوحة الإدارة</span>
-                    <h1>نظرة عامة</h1>
-                </div><span class="demo">بيانات تجريبية</span>
-            </div>
-            <div class="stats">
-                <div class="stat"><strong>—</strong><span>المستخدمون</span></div>
-                <div class="stat"><strong>—</strong><span>طلبات الفنيين</span></div>
-                <div class="stat"><strong>—</strong><span>الحجوزات</span></div>
-                <div class="stat"><strong>—</strong><span>الاعتراضات</span></div>
-            </div>
-            <div class="panel">
-                <h3>نظرة عامة</h3>
-                <p>مؤشرات المستخدمين والفنيين والحجوزات والمدفوعات.</p>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>الرقم</th>
-                                <th>العنصر</th>
-                                <th>الحالة</th>
-                                <th>الإجراء</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>—</td>
-                                <td>لا توجد بيانات متصلة</td>
-                                <td><span class="pill yellow">نموذج واجهة</span></td>
-                                <td>—</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+@include('components.navbar')
+
+<div class="container layout">
+    @include('components.sidebars.admin')
+
+    <main class="admin-overview">
+        <div class="dash-title">
+            <div>
+                <span class="small muted">لوحة الإدارة</span>
+                <h1>إحصائيات المنصة</h1>
+                <p class="muted">متابعة نشاط ServiceHub وآخر التحديثات.</p>
             </div>
         </div>
-    </div>@include('components.footer')@include('components.mobile-nav-admin')
+
+        <!-- Statistics -->
+        <section class="admin-stat-grid">
+            <div class="admin-stat">
+                <span>إجمالي المستخدمين</span>
+                <strong>{{ number_format($stats['users']) }}</strong>
+                <small>جميع الحسابات</small>
+            </div>
+
+            <div class="admin-stat">
+                <span>الفنيون</span>
+                <strong>{{ number_format($stats['vendors']) }}</strong>
+                <small>حسابات الفنيين</small>
+            </div>
+
+            <div class="admin-stat">
+                <span>إجمالي الحجوزات</span>
+                <strong>{{ number_format($stats['bookings']) }}</strong>
+                <small>جميع حالات الحجز</small>
+            </div>
+
+            <div class="admin-stat">
+                <span>طلبات الفنيين المعلقة</span>
+                <strong>{{ number_format($stats['pendingVendors']) }}</strong>
+                <small>بانتظار المراجعة</small>
+            </div>
+
+            <div class="admin-stat">
+                <span>طلبات الاسترجاع المعلقة</span>
+                <strong>{{ number_format($stats['pendingRefunds']) }}</strong>
+                <small>تحتاج قرار الإدارة</small>
+            </div>
+
+            <div class="admin-stat">
+                <span>إجمالي المدفوعات المسجلة</span>
+                <strong>{{ number_format($stats['paidAmount'], 2) }}</strong>
+                <small>قيمة المدفوعات بحالة paid، وليست صافي ربح المنصة</small>
+            </div>
+        </section>
+
+        <!-- Charts -->
+        <section class="admin-chart-grid">
+            <div class="panel">
+                <h3>الحجوزات خلال آخر 7 أيام</h3>
+                <p class="muted">عدد الحجوزات الجديدة يوميًا</p>
+                <div class="chart-container">
+                    <canvas id="bookingsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h3>توزيع حالات الحجوزات</h3>
+                <p class="muted">عدد الحجوزات حسب الحالة</p>
+                <div class="chart-container">
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Latest Users -->
+        <section class="panel admin-section">
+            <div class="admin-section-heading">
+                <h3>أحدث المستخدمين</h3>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الاسم</th>
+                            <th>البريد الإلكتروني</th>
+                            <th>الدور</th>
+                            <th>تاريخ التسجيل</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($latestUsers as $user)
+                            <tr>
+                                <td>{{ $user->first_name }} {{ $user->last_name }}</td>
+                                <td>{{ $user->email }}</td>
+                                <td>{{ $user->role }}</td>
+                                <td>{{ $user->created_at?->format('Y-m-d') ?? '—' }}</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="4">لا يوجد مستخدمون بعد.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Latest Reviews and Refunds -->
+        <div class="admin-feed-grid">
+            <section class="panel admin-section">
+                <h3>أحدث التقييمات</h3>
+
+                @forelse($latestReviews as $review)
+                    <div class="admin-feed-item">
+                        <div class="admin-feed-top">
+                            <strong>
+                                {{ $review->reviewer?->first_name ?? 'مستخدم' }}
+                                {{ $review->reviewer?->last_name ?? '' }}
+                            </strong>
+                            <span class="admin-rating">
+                                ★ {{ $review->rating }}/5
+                            </span>
+                        </div>
+
+                        <p>{{ $review->comment ?: 'تقييم بدون تعليق' }}</p>
+
+                        <small class="muted">
+                            للمستخدم:
+                            {{ $review->reviewedUser?->first_name ?? '—' }}
+                            {{ $review->reviewedUser?->last_name ?? '' }}
+                            ·
+                            {{ $review->created_at?->format('Y-m-d') ?? '—' }}
+                        </small>
+                    </div>
+                @empty
+                    <p class="muted">لا توجد تقييمات بعد.</p>
+                @endforelse
+            </section>
+
+            <section class="panel admin-section">
+                <h3>أحدث طلبات الاسترجاع</h3>
+
+                @forelse($latestRefunds as $refund)
+                    <div class="admin-feed-item">
+                        <div class="admin-feed-top">
+                            <strong>طلب #{{ $refund->id }}</strong>
+                            <span class="admin-status">
+                                {{ $refund->status }}
+                            </span>
+                        </div>
+
+                        <p>{{ \Illuminate\Support\Str::limit($refund->reason, 90) }}</p>
+
+                        <small class="muted">
+                            {{ $refund->customer?->first_name ?? '—' }}
+                            {{ $refund->customer?->last_name ?? '' }}
+                            · الحجز #{{ $refund->booking_id }}
+                            · {{ $refund->created_at?->format('Y-m-d') ?? '—' }}
+                        </small>
+                    </div>
+                @empty
+                    <p class="muted">لا توجد طلبات استرجاع بعد.</p>
+                @endforelse
+            </section>
+        </div>
+
+        <!-- Vendor Applications -->
+        <section class="panel admin-section">
+            <h3>أحدث طلبات انضمام الفنيين</h3>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الفني</th>
+                            <th>نوع العمل</th>
+                            <th>الحالة</th>
+                            <th>تاريخ التقديم</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($latestVendorApplications as $application)
+                            <tr>
+                                <td>
+                                    {{ $application->user?->first_name ?? '—' }}
+                                    {{ $application->user?->last_name ?? '' }}
+                                </td>
+                                <td>{{ $application->work_type }}</td>
+                                <td>{{ $application->application_status }}</td>
+                                <td>
+                                    {{ $application->applied_at
+                                        ? \Carbon\Carbon::parse($application->applied_at)->format('Y-m-d')
+                                        : '—' }}
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="4">لا توجد طلبات انضمام بعد.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+
+@include('components.footer')
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const bookings = @json($bookingChart);
+    const statuses = @json($statusChart);
+
+    Chart.defaults.font.family = "'IBM Plex Sans Arabic', 'Cairo', sans-serif";
+
+    new Chart(document.getElementById('bookingsChart'), {
+        type: 'line',
+        data: {
+            labels: bookings.labels,
+            datasets: [{
+                label: 'الحجوزات',
+                data: bookings.values,
+                borderColor: '#202124',
+                backgroundColor: 'rgba(255,210,31,.20)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.35,
+                pointBackgroundColor: '#FFD21F'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { precision: 0 }
+                }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: statuses.labels,
+            datasets: [{
+                data: statuses.values,
+                backgroundColor: [
+                    '#FFD21F',
+                    '#202124',
+                    '#0B6B52',
+                    '#2457C5',
+                    '#B42318',
+                    '#7A4B00',
+                    '#9CA3AF',
+                    '#7C3AED'
+                ],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '65%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 16
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
 @endsection

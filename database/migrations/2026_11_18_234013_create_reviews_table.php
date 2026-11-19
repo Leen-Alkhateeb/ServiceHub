@@ -13,11 +13,11 @@ return new class extends Migration
             $table->foreignId('booking_id')->constrained('bookings')->restrictOnDelete();
             $table->foreignId('reviewer_id')->constrained('users')->restrictOnDelete();
             $table->foreignId('reviewed_user_id')->constrained('users')->restrictOnDelete();
-            $table->unsignedTinyInteger('rating'); // Validate 1..5 in Laravel request rules.
+            $table->unsignedTinyInteger('rating');
             $table->text('comment')->nullable();
             $table->string('image')->nullable();
-            $table->dateTime('created_at')->useCurrent();
             $table->index(['reviewed_user_id', 'rating']);
+            $table->timestamps();
         });
     }
 

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('admin_response')->nullable();
             $table->decimal('refund_amount', 10, 2)->nullable();
             $table->dateTime('reviewed_at')->nullable();
-            $table->dateTime('created_at')->useCurrent();
+            $table->timestamps();
         });
     }
 

@@ -10,9 +10,9 @@ return new class extends Migration
     {
         Schema::create('portfolio_images', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('project_id')->constrained('portfolio_projects')->cascadeOnDelete();
+            $table->foreignId('portfolio_project_id')->constrained('portfolio_projects')->cascadeOnDelete();
             $table->string('image');
-            $table->dateTime('created_at')->useCurrent();
+            $table->timestamps();
         });
     }
 

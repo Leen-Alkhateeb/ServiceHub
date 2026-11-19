@@ -2,5 +2,35 @@
 @section('title', 'الجدول الأسبوعي | ServiceHub')
 @section('page_id', 'vendor-availability')
 @section('content')
-@include('components.navbar')<div class="container layout">@include('components.sidebars.vendor')<div><div class="dash-title"><div><span class="small muted">لوحة الفني</span><h1>الجدول الأسبوعي</h1></div><span class="demo">بيانات تجريبية</span></div><div class="panel"><h3>حدد أوقات عملك المتكررة</h3><p class="muted">كل فترة تتكرر أسبوعيًا حتى تعطيلها. لا توجد فترات يدوية لمرة واحدة.</p><form data-demo=""><div class="form-row"><div class="field"><label>اليوم</label><select><option>السبت</option><option>الأحد</option><option>الإثنين</option><option>الثلاثاء</option><option>الأربعاء</option><option>الخميس</option><option>الجمعة</option></select></div><div class="field"><label>بداية الفترة</label><input required="" type="time"/></div></div><div class="field"><label>نهاية الفترة</label><input required="" type="time"/></div><button class="btn btn-yellow">إضافة فترة</button></form><div class="notice">منع تداخل الفترات والحجوزات المؤكدة يحتاج تحققًا خادميًا.</div></div></div></div>@include('components.footer')@include('components.mobile-nav-vendor')
+    @include('components.navbar')
+    <div class="container layout">@include('components.sidebars.vendor')
+        <div>
+            <div class="dash-title">
+                <div><span class="small muted">لوحة الفني</span>
+                    <h1>الجدول الأسبوعي</h1>
+                </div><span class="demo">بيانات تجريبية</span>
+            </div>
+            <div class="panel">
+                <h3>حدد أوقات عملك المتكررة</h3>
+                <p class="muted">كل فترة تتكرر أسبوعيًا حتى تعطيلها. لا توجد فترات يدوية لمرة واحدة.</p>
+                <form data-demo="">
+                    <div class="form-row">
+                        <div class="field"><label>اليوم</label><select>
+                                <option>السبت</option>
+                                <option>الأحد</option>
+                                <option>الإثنين</option>
+                                <option>الثلاثاء</option>
+                                <option>الأربعاء</option>
+                                <option>الخميس</option>
+                                <option>الجمعة</option>
+                            </select></div>
+                        <div class="field"><label>بداية الفترة</label><input required="" type="time" /></div>
+                    </div>
+                    <div class="field"><label>نهاية الفترة</label><input required="" type="time" /></div><button
+                        class="btn btn-yellow">إضافة فترة</button>
+                </form>
+                <div class="notice">منع تداخل الفترات والحجوزات المؤكدة يحتاج تحققًا خادميًا.</div>
+            </div>
+        </div>
+    </div>@include('components.footer')@include('components.mobile-nav-vendor')
 @endsection

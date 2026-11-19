@@ -25,43 +25,51 @@
                 <span>إجمالي المستخدمين</span>
                 <strong>{{ number_format($stats['users']) }}</strong>
                 <small>جميع الحسابات</small>
+                <a href="#" class="admin-card-link" data-page="users">عرض المستخدمين <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="admin-stat">
                 <span>الفنيون</span>
                 <strong>{{ number_format($stats['vendors']) }}</strong>
                 <small>حسابات الفنيين</small>
+                <a href="#" class="admin-card-link" data-page="vendors">عرض الفنيين <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="admin-stat">
                 <span>إجمالي الحجوزات</span>
                 <strong>{{ number_format($stats['bookings']) }}</strong>
                 <small>جميع حالات الحجز</small>
+                <a href="#" class="admin-card-link" data-page="bookings">عرض الحجوزات <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="admin-stat">
                 <span>طلبات الفنيين المعلقة</span>
                 <strong>{{ number_format($stats['pendingVendors']) }}</strong>
                 <small>بانتظار المراجعة</small>
+                <a href="#" class="admin-card-link" data-page="vendor-applications">مراجعة الطلبات <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="admin-stat">
                 <span>طلبات الاسترجاع المعلقة</span>
                 <strong>{{ number_format($stats['pendingRefunds']) }}</strong>
                 <small>تحتاج قرار الإدارة</small>
+                <a href="#" class="admin-card-link" data-page="refunds">عرض الاسترجاعات <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="admin-stat">
                 <span>إجمالي المدفوعات المسجلة</span>
                 <strong>{{ number_format($stats['paidAmount'], 2) }}</strong>
                 <small>قيمة المدفوعات بحالة paid، وليست صافي ربح المنصة</small>
+                <a href="#" class="admin-card-link" data-page="payments">عرض المدفوعات <span aria-hidden="true">←</span></a>
             </div>
         </section>
 
         <!-- Charts -->
         <section class="admin-chart-grid">
             <div class="panel">
-                <h3>الحجوزات خلال آخر 7 أيام</h3>
+                <div class="admin-section-heading">
+                    <h3>الحجوزات خلال آخر 7 أيام</h3>
+                </div>
                 <p class="muted">عدد الحجوزات الجديدة يوميًا</p>
                 <div class="chart-container">
                     <canvas id="bookingsChart"></canvas>
@@ -69,7 +77,9 @@
             </div>
 
             <div class="panel">
-                <h3>توزيع حالات الحجوزات</h3>
+                <div class="admin-section-heading">
+                    <h3>توزيع حالات الحجوزات</h3>
+                </div>
                 <p class="muted">عدد الحجوزات حسب الحالة</p>
                 <div class="chart-container">
                     <canvas id="statusChart"></canvas>
@@ -80,7 +90,8 @@
         <!-- Latest Users -->
         <section class="panel admin-section">
             <div class="admin-section-heading">
-                <h3>أحدث المستخدمين</h3>
+                    <h3>أحدث المستخدمين</h3>
+                    <a href="#" class="admin-section-link" data-page="users">عرض المستخدمين <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="table-wrap">
@@ -112,7 +123,10 @@
         <!-- Latest Reviews and Refunds -->
         <div class="admin-feed-grid">
             <section class="panel admin-section">
-                <h3>أحدث التقييمات</h3>
+                <div class="admin-section-heading">
+                    <h3>أحدث التقييمات</h3>
+                    <a href="#" class="admin-section-link" data-page="reviews">عرض التقييمات <span aria-hidden="true">←</span></a>
+                </div>
 
                 @forelse($latestReviews as $review)
                     <div class="admin-feed-item">
@@ -142,7 +156,10 @@
             </section>
 
             <section class="panel admin-section">
-                <h3>أحدث طلبات الاسترجاع</h3>
+                <div class="admin-section-heading">
+                    <h3>أحدث طلبات الاسترجاع</h3>
+                    <a href="#" class="admin-section-link" data-page="refunds">عرض الاسترجاعات <span aria-hidden="true">←</span></a>
+                </div>
 
                 @forelse($latestRefunds as $refund)
                     <div class="admin-feed-item">
@@ -170,7 +187,10 @@
 
         <!-- Vendor Applications -->
         <section class="panel admin-section">
-            <h3>أحدث طلبات انضمام الفنيين</h3>
+            <div class="admin-section-heading">
+                    <h3>أحدث طلبات انضمام الفنيين</h3>
+                    <a href="#" class="admin-section-link" data-page="vendor-applications">عرض الطلبات <span aria-hidden="true">←</span></a>
+                </div>
 
             <div class="table-wrap">
                 <table>

@@ -15,7 +15,7 @@ return new class extends Migration
             $table->enum('transaction_type', ['credit', 'debit', 'payout', 'penalty', 'adjustment']);
             $table->decimal('amount', 10, 2);
             $table->text('description')->nullable();
-            $table->dateTime('created_at')->useCurrent();
+            $table->timestamps();
         });
     }
 

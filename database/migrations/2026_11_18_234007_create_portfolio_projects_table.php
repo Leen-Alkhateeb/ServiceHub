@@ -12,10 +12,10 @@ return new class extends Migration
             $table->id();
             $table->foreignId('vendor_id')->constrained('users')->restrictOnDelete();
             $table->string('name');
-            $table->text('description')->nullable();
+            $table->text('description');
             $table->date('completion_date')->nullable();
             $table->string('project_url')->nullable();
-            $table->dateTime('created_at')->useCurrent();
+            $table->timestamps();
         });
     }
 

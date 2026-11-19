@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WalletTransaction extends Model
 {
+    const UPDATED_AT = null;
+
     protected $fillable = [
         'vendor_id',
         'booking_id',

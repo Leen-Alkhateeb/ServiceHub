@@ -926,3 +926,238 @@ tr:last-child td {
     align-items: flex-start;
   }
 }
+
+/* User Status */
+
+.user-status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px 13px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.status-active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+
+/* Action Buttons */
+
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+}
+
+.action-btn {
+    width: 36px;
+    height: 36px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background .2s, transform .2s;
+}
+
+.action-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+}
+
+.edit-btn {
+    background: #fff3bd;
+    color: #705600;
+}
+
+.edit-btn:hover {
+    background: #ffe58a;
+}
+
+.delete-btn {
+    background: #fee2e2;
+    color: #b42318;
+}
+
+.delete-btn:hover {
+    background: #fecaca;
+}
+
+.empty-users {
+    text-align: center;
+    padding: 30px;
+    color: #666b70;
+}
+
+
+/* Modal Overlay */
+
+.user-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(0, 0, 0, .55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.user-modal[hidden] {
+    display: none;
+}
+
+
+/* Modal Content */
+
+.user-modal-content {
+    background: #fff;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border-radius: 16px;
+    padding: 26px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+    direction: rtl;
+}
+
+.user-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.user-modal-header h3 {
+    margin: 0;
+    font-size: 20px;
+}
+
+.modal-close {
+    border: none;
+    background: #f3f4f6;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close:hover {
+    background: #e5e7eb;
+}
+
+
+/* Modal Form */
+
+.user-modal .field {
+    margin-bottom: 16px;
+}
+
+.user-modal .field input,
+.user-modal .field select {
+    width: 100%;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 24px;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 520px) {
+    .user-modal-content {
+        padding: 18px;
+    }
+
+    .modal-actions .btn {
+        flex: 1;
+    }
+}
+
+/* Admin Alert Messages */
+
+.admin-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px 18px;
+    margin: 18px 0;
+    border: 1px solid;
+    border-radius: 12px;
+    direction: rtl;
+}
+
+.admin-alert-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.admin-alert strong {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 4px;
+}
+
+.admin-alert p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.7;
+}
+
+.admin-alert ul {
+    margin: 8px 0 0;
+    padding-right: 20px;
+    line-height: 1.8;
+}
+
+.admin-alert-success {
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+    color: #166534;
+}
+
+.admin-alert-success .admin-alert-icon {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.admin-alert-error {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.admin-alert-error .admin-alert-icon {
+    background: #fee2e2;
+    color: #dc2626;
+}

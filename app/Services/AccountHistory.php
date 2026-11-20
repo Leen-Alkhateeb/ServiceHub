@@ -32,7 +32,7 @@ class AccountHistory
             $historyCategories = Category::orderBy('name')->get(['id', 'name']);
             $query = $account->bookingsAsCustomer()->with(['vendorService.vendor', 'vendorService.service.category', 'payment']);
             if ($tab === 'payments') {
-                $query->whereHas('payment', fn (Builder $payment) => $this->filterDates(
+                $query->withTrashed()->whereHas('payment', fn (Builder $payment) => $this->filterDates(
                     $payment, DB::raw('COALESCE(paid_at, created_at)'), $filters,
                 ))->withMax('payment', 'created_at')->orderByDesc('payment_max_created_at');
             } else {

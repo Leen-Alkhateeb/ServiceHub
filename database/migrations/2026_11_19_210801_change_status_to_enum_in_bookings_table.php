@@ -1,0 +1,32 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::table('bookings', function (Blueprint $table) {
+            $table->enum('status', [
+                'pending',
+                'approved',
+                'awaiting_payment',
+                'paid',
+                'in_progress',
+                'completed',
+                'cancelled',
+                'refunded',
+                'objection_pending',
+            ])->default('pending')->change();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('bookings', function (Blueprint $table) {
+            $table->string('status')->default('pending')->change();
+        });
+    }
+};

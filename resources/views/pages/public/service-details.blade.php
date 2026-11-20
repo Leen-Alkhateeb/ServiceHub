@@ -2,6 +2,7 @@
 @section('title', $vendorService->service->name)
 
 @section('content')
+
 @include('pages.partials.market-assets')
 
 @php
@@ -128,4 +129,5 @@
         </div>
     </div>
 @endif
+
 @endsection

@@ -2,6 +2,7 @@
 @section('title', 'إتمام الدفع')
 
 @section('content')
+
 @include('pages.partials.market-assets')
 
 <p class="muted"><a href="{{ route('customer.bookings') }}">← الرجوع لحجوزاتي</a></p>
@@ -43,4 +44,5 @@
         <button type="submit" class="btn btn-primary btn-block">ادفع {{ number_format($booking->original_price, 2) }} د.أ</button>
     </form>
 </div>
+
 @endsection

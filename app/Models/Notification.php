@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Notification extends Model
 {
+    const UPDATED_AT = null;
+
     protected $fillable = [
         'user_id',
         'title',

@@ -2,6 +2,7 @@
 @section('title', 'سوق الخدمات')
 
 @section('content')
+
 @include('pages.partials.market-assets')
 
 <div class="page-head">
@@ -148,4 +149,3 @@
         @endif
     </section>
 </div>
-@endsection

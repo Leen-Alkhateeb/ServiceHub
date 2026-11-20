@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Favorite extends Model
 {
+    const UPDATED_AT = null;
+
     protected $fillable = [
         'customer_id',
         'vendor_service_id',

@@ -17,7 +17,7 @@ class VendorService extends Model
         'description',
         'price',
         'image',
-        'is_active',
+        'status',
     ];
 
     public function vendor(): BelongsTo

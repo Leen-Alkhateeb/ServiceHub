@@ -2,6 +2,7 @@
 @section('title', 'نظرة عامة')
 
 @section('content')
+
 @include('pages.partials.market-assets')
 
 <div class="profile-layout">
@@ -16,4 +17,5 @@
         </div>
     </section>
 </div>
+
 @endsection

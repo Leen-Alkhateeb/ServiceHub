@@ -2,6 +2,7 @@
 @section('title', 'فاتورة ' . $booking->invoice_number)
 
 @section('content')
+
 @include('pages.partials.market-assets')
 
 <div class="row between no-print">
@@ -68,4 +69,5 @@
 
     <p class="muted center">فاتورة تجريبية — لم تتم أي عملية دفع حقيقية.</p>
 </div>
+
 @endsection

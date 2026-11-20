@@ -2,6 +2,7 @@
 @section('title', 'الإشعارات')
 
 @section('content')
+<<<<<<< HEAD
 @include('pages.partials.market-assets')
 
 <div class="profile-layout">
@@ -23,4 +24,5 @@
         @endforelse
     </section>
 </div>
+
 @endsection

@@ -2,6 +2,7 @@
 @section('title', 'حجوزاتي')
 
 @section('content')
+
 @include('pages.partials.market-assets')
 
 @php
@@ -119,3 +120,4 @@
     </section>
 </div>
 @endsection
+

@@ -12,47 +12,107 @@ use Illuminate\Support\Facades\DB;
 
 class BookingProfileController extends Controller
 {
-    // Statuses that keep a time slot occupied
     private const ACTIVE = ['pending', 'approved', 'confirmed', 'completed'];
 
-    /** Customer creates a booking request */
+    /** حجز الموعد والانتقال مباشرةً إلى الدفع */
     public function store(Request $request, VendorService $vendorService)
     {
         $customer = $request->user();
-        abort_unless($customer->role === 'customer' && $vendorService->status === 'active', 403);
 
-        $request->validate(
-            ['slot' => ['required', 'regex:/^\d{4}-\d{2}-\d{2}\|\d{2}:\d{2}\|\d+$/']],
-            ['slot.required' => 'Please choose a time slot.', 'slot.regex' => 'Invalid time slot.']
+        abort_unless(
+            $customer->role === 'customer'
+            && $vendorService->status === 'active',
+            403
         );
 
-        // slot format: date|start|availability_id
-        [$date, $start, $availabilityId] = explode('|', $request->slot);
-        $startAt = Carbon::parse("$date $start");
-        $endAt   = $startAt->copy()->addHour();
+        $request->validate(
+            [
+                'slot' => ['required', 'regex:/^\d{4}-\d{2}-\d{2}\|\d{2}:\d{2}\|\d+$/'],
+            ],
+            [
+                'slot.required' => 'يرجى اختيار موعد.',
+                'slot.regex' => 'الموعد المختار غير صالح.',
+            ]
+        );
 
-        $window = RecurringAvailability::where('id', $availabilityId)
+        [$date, $start, $availabilityId] = explode('|', $request->input('slot'));
+
+        $startAt = Carbon::parse("$date $start");
+        $durationMinutes = max(
+            5,
+            (int) ($vendorService->duration_minutes ?: 60)
+        );
+        $endAt = $startAt->copy()->addMinutes($durationMinutes);
+
+        $window = RecurringAvailability::query()
+            ->whereKey($availabilityId)
             ->where('vendor_id', $vendorService->vendor_id)
             ->where('is_active', true)
             ->first();
 
-        // The slot must really belong to the vendor's weekly schedule
         $valid = $window
             && $startAt->isFuture()
-            && $startAt->lte(now()->addDays(7)->endOfDay())
+            && $startAt->lte(now()->addDays(30)->endOfDay())
             && $startAt->dayOfWeek === (int) $window->day_of_week
-            && $start >= substr($window->start_time, 0, 5)
+            && $startAt->format('H:i') >= substr($window->start_time, 0, 5)
             && $endAt->format('H:i') <= substr($window->end_time, 0, 5);
 
         if (! $valid) {
-            return back()->withErrors(['slot' => 'This time slot is not available.']);
+            return back()->withErrors([
+                'slot' => 'هذا الموعد غير متاح. اختر موعدًا آخر.',
+            ])->withInput();
         }
 
-        $booking = DB::transaction(function () use ($vendorService, $customer, $date, $start, $startAt, $endAt, $window) {
-            // Re-check inside a transaction so two customers cannot take the same slot
-            $taken = Booking::whereHas('vendorService', fn ($q) => $q->where('vendor_id', $vendorService->vendor_id))
+        $booking = DB::transaction(function () use (
+            $vendorService,
+            $customer,
+            $date,
+            $startAt,
+            $endAt,
+            $window
+        ) {
+            $startTime = $startAt->format('H:i:s');
+            $endTime = $endAt->format('H:i:s');
+
+            // إذا أعاد العميل إرسال حجزه نفسه، نعيده إلى الدفع بدل إنشاء حجز مكرر.
+            $existingBooking = Booking::query()
+                ->where('customer_id', $customer->id)
+                ->where('vendor_service_id', $vendorService->id)
                 ->whereDate('booking_date', $date)
-                ->where('start_time', $start . ':00')
+                ->where('start_time', $startTime)
+                ->whereIn('status', ['pending', 'approved'])
+                ->whereDoesntHave('payment')
+                ->lockForUpdate()
+                ->first();
+
+            if ($existingBooking) {
+                if ($existingBooking->status === 'pending') {
+                    $existingBooking->update([
+                        'status' => 'approved',
+                        'approved_at' => now(),
+                        'payment_deadline' => now()->addMinutes(30),
+                    ]);
+                } elseif (! $existingBooking->payment_deadline) {
+                    $existingBooking->update([
+                        'payment_deadline' => now()->addMinutes(30),
+                    ]);
+                }
+
+                return $existingBooking;
+            }
+
+            // يمنع حجز وقت يتداخل مع حجز نشط آخر للفني.
+            $taken = Booking::query()
+                ->whereHas(
+                    'vendorService',
+                    fn ($query) => $query->where(
+                        'vendor_id',
+                        $vendorService->vendor_id
+                    )
+                )
+                ->whereDate('booking_date', $date)
+                ->where('start_time', '<', $endTime)
+                ->where('end_time', '>', $startTime)
                 ->whereIn('status', self::ACTIVE)
                 ->lockForUpdate()
                 ->exists();
@@ -61,60 +121,70 @@ class BookingProfileController extends Controller
                 return null;
             }
 
-            // Name, description and price are copied so later vendor edits do not change this booking
+            $vendorService->loadMissing('service');
+
             $booking = Booking::create([
-                'customer_id'         => $customer->id,
-                'vendor_service_id'   => $vendorService->id,
-                'availability_id'     => $window->id,
-                'booking_date'        => $date,
-                'start_time'          => $startAt->format('H:i:s'),
-                'end_time'            => $endAt->format('H:i:s'),
-                'service_name'        => $vendorService->service->name,
-                'service_description' => $vendorService->description ?? $vendorService->service->description,
-                'original_price'      => $vendorService->price,
-                'status'              => 'pending',
+                'customer_id' => $customer->id,
+                'vendor_service_id' => $vendorService->id,
+                'availability_id' => $window->id,
+                'booking_date' => $date,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'service_name' => $vendorService->service->name,
+                'service_description' =>
+                    $vendorService->description
+                    ?? $vendorService->service->description,
+                'original_price' => $vendorService->price,
+                'status' => 'approved',
+                'approved_at' => now(),
+                'payment_deadline' => now()->addMinutes(30),
             ]);
 
             Notification::create([
                 'user_id' => $vendorService->vendor_id,
-                'title'   => 'New booking request',
-                'message' => "{$customer->first_name} {$customer->last_name} requested {$booking->service_name} on {$startAt->format('D d M, H:i')}.",
-                'type'    => 'booking',
+                'title' => 'تم حجز موعد جديد',
+                'message' => "{$customer->first_name} {$customer->last_name} حجز {$booking->service_name} بتاريخ {$startAt->format('Y-m-d H:i')}، وبانتظار إتمام الدفع.",
+                'type' => 'booking',
             ]);
 
             return $booking;
         });
 
         if (! $booking) {
-            return back()->withErrors(['slot' => 'Sorry, this slot was just taken. Please pick another one.']);
+            return back()->withErrors([
+                'slot' => 'هذا الموعد محجوز بالفعل. اختر موعدًا آخر.',
+            ])->withInput();
         }
 
-        return redirect()->route('customer.bookings')
-            ->with('success', 'Booking request sent. We will notify you when the provider responds.');
+        return redirect()
+            ->route('payment.checkout', $booking)
+            ->with('success', 'تم حجز الموعد. أكمل الدفع خلال 30 دقيقة.');
     }
 
-    /** Customer cancels (only before paying) */
+    /** إلغاء الحجز قبل الدفع */
     public function cancel(Request $request, Booking $booking)
     {
         abort_unless(
             $booking->customer_id === $request->user()->id
-            && in_array($booking->status, ['pending', 'approved']),
+            && in_array($booking->status, ['pending', 'approved'], true),
             403
         );
 
         $booking->update([
-            'status'       => 'cancelled',
+            'status' => 'cancelled',
             'cancelled_at' => now(),
             'cancelled_by' => $request->user()->id,
         ]);
 
         Notification::create([
             'user_id' => $booking->vendorService->vendor_id,
-            'title'   => 'Booking cancelled',
-            'message' => "{$request->user()->first_name} cancelled {$booking->service_name}.",
-            'type'    => 'booking',
+            'title' => 'تم إلغاء الحجز',
+            'message' => "{$request->user()->first_name} ألغى حجز {$booking->service_name}.",
+            'type' => 'booking',
         ]);
 
-        return redirect()->route('customer.bookings')->with('success', 'Booking cancelled.');
+        return redirect()
+            ->route('customer.bookings')
+            ->with('success', 'تم إلغاء الحجز.');
     }
 }

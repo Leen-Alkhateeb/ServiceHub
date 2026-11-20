@@ -2,5 +2,11 @@
 @section('title', 'الأسئلة الشائعة | ServiceHub')
 @section('page_id', 'faq')
 @section('content')
-@include('components.navbar')<main><section class="section"><div class="container"><div class="section-head"><div><h2>عندك سؤال؟</h2><p class="muted"></p></div></div><div class="faq"><details><summary>كيف بحجز فني؟</summary><p>اختار خدمة أو اوصف المشكلة، قارن الفنيين، واختار نافذة التوفر الأسبوعية وأرسل طلب الحجز.</p></details><details><summary>متى بدفع؟</summary><p>بعد موافقة الفني، عندك 30 دقيقة لإتمام الدفع التجريبي، وإلا يُلغى الحجز تلقائيًا.</p></details><details><summary>شو سياسة الإلغاء؟</summary><p>الإلغاء مجاني خلال أول ساعتين بعد موافقة الفني. بعد الساعتين، تُطبّق غرامة 15% من السعر الأصلي على الطرف الذي يلغي. آلية التسوية المالية تحتاج اعتمادًا.</p></details><details><summary>كيف بقدم اعتراض؟</summary><p>بعد إعلان الفني إتمام الخدمة، أمام العميل 24 ساعة لتقديم اعتراض. الإدارة تراجع الطلب، وتُوقف دفعة الفني حتى القرار.</p></details><details><summary>شو بصير إذا انقبل الاعتراض؟</summary><p>يرجع للعميل 70% من قيمة الحجز الأصلية، ويحصل الفني على 15% والمنصة على 15%.</p></details><details><summary>كيف بنضم كفني؟</summary><p>أنشئ حسابًا وارفع تصريح العمل وتاريخ انتهائه، ثم تنتظر مراجعة الإدارة.</p></details></div></div></section></main>@include('components.footer')@include('components.mobile-nav-public')
+@include('components.navbar')
+<main class="container page-head">
+    <h1>الأسئلة الأكثر تكرارًا</h1>
+    @include('components.home-faq')
+</main>
+@include('components.footer')
+@include('components.mobile-nav-public')
 @endsection

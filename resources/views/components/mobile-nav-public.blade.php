@@ -1,1 +1,12 @@
-<div class="mobile-nav"><a href="/services">⌕<br/>اكتشف</a><a href="/customer-bookings">▤<br/>حجوزاتي</a><a href="/customer-favorites">♡<br/>المفضلة</a><a href="/customer-dashboard">♙<br/>حسابي</a></div>
+<nav class="mobile-nav" aria-label="روابط المنصة">
+    <a href="{{ route('home') }}">الرئيسية</a>
+    <a href="{{ route('categories.index') }}">أقسام الصيانة</a>
+    <a href="{{ route('vendors.index') }}">الفنيون</a>
+    @guest
+        <a href="{{ route('login') }}">تسجيل الدخول</a>
+    @else
+        @if (auth()->user()->role === 'customer' && auth()->user()->status === 'active')
+            <a href="{{ route('vendor.apply') }}">انضم كفني</a>
+        @endif
+    @endguest
+</nav>

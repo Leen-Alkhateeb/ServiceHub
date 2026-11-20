@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 /**
  * @extends Factory<User>
@@ -24,22 +23,28 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
+        $gender = fake()->randomElement(['female', 'male']);
+
         return [
-            'name' => fake()->name(),
+            'first_name' => fake()->firstName($gender),
+            'last_name' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'phone' => fake()->numerify('07########'),
+            'location' => fake()->randomElement(['عمّان', 'الزرقاء', 'إربد', 'مادبا']),
+            'gender' => $gender,
+            'role' => 'customer',
+            'status' => 'active',
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
+    public function vendor(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
+        return $this->state(['role' => 'vendor']);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(['role' => 'admin']);
     }
 }

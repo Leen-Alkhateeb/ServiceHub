@@ -5,19 +5,24 @@ namespace App\Models;
 use App\Models\Booking;
 use App\Models\Favorite;
 use App\Models\Service;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class VendorService extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'vendor_id',
         'service_id',
         'description',
         'price',
         'image',
-        'is_active',
+        'status',
+        'duration_minutes',
+        'rejection_reason',
     ];
 
     public function vendor(): BelongsTo

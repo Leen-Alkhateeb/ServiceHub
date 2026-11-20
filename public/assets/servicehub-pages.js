@@ -182,8 +182,7 @@ gallery?.addEventListener('click', (event) => {
     button.setAttribute('aria-pressed', 'true');
 });
 
-const notificationMenu = document.querySelector('.notification-dropdown');
-if (notificationMenu) {
+for (const notificationMenu of document.querySelectorAll('.notification-dropdown, .account-dropdown')) {
     document.addEventListener('click', (event) => {
         if (notificationMenu.open && !notificationMenu.contains(event.target)) notificationMenu.open = false;
     });
@@ -192,4 +191,52 @@ if (notificationMenu) {
         notificationMenu.open = false;
         notificationMenu.querySelector('summary').focus();
     });
+}
+
+const registration = document.querySelector('[data-registration]');
+if (registration) {
+    const type = registration.querySelector('#account-type');
+    const personal = registration.querySelector('[data-registration-personal]');
+    const profession = registration.querySelector('[data-registration-vendor]');
+    const next = registration.querySelector('[data-registration-next]');
+    const back = registration.querySelector('[data-registration-back]');
+    const submit = registration.querySelector('[data-registration-submit]');
+    const progress = registration.querySelector('[data-registration-progress]');
+    let showProfession = false;
+
+    const render = () => {
+        const vendor = type.value === 'vendor';
+        personal.hidden = showProfession;
+        profession.hidden = !showProfession;
+        next.hidden = !vendor || showProfession;
+        back.hidden = !showProfession;
+        submit.hidden = vendor && !showProfession;
+        progress.textContent = vendor ? (showProfession ? 'الخطوة ٢ من ٢ · بيانات المهنة' : 'الخطوة ١ من ٢ · بيانات الحساب') : '';
+        profession.querySelectorAll('[data-vendor-required]').forEach((field) => {
+            field.disabled = !showProfession;
+            field.required = showProfession;
+        });
+    };
+    const advance = () => {
+        for (const field of personal.querySelectorAll('input, select')) {
+            if (!field.reportValidity()) return;
+        }
+        showProfession = true;
+        render();
+        profession.querySelector('input').focus();
+    };
+    type.addEventListener('change', render);
+    next.addEventListener('click', advance);
+    back.addEventListener('click', () => {
+        showProfession = false;
+        render();
+        type.focus();
+    });
+    registration.addEventListener('submit', (event) => {
+        if (type.value === 'vendor' && !showProfession) {
+            event.preventDefault();
+            advance();
+        }
+    });
+    render();
 }

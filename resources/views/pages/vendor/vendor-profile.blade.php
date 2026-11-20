@@ -14,6 +14,9 @@
             @if ($profile->application_status === 'approved')<span class="pill yellow">فني معتمد</span>@endif
             <h1>{{ $profile->first_name }} {{ $profile->last_name }}</h1>
             <p class="technician-trade">{{ $profile->work_type }}</p>
+            @if ($ownProfile && $profile->application_status !== 'approved')
+                <a class="btn btn-outline btn-sm" href="{{ route('vendor.apply') }}">حالة طلب الانضمام</a>
+            @endif
             <p>{{ $profile->bio }}</p>
             <ul class="profile-facts">
                 <li>{{ $profile->location }}</li>
@@ -31,15 +34,16 @@
             @endif
         </div>
     </header>
+    @if ($ownProfile)
+        <x-account-tabs :tab="$tab" :tabs="['services' => 'خدماتي', 'portfolio' => 'أعمالي', 'bookings' => 'طلباتي', 'payments' => 'مدفوعاتي', 'income' => 'مستحقاتي']" route-name="vendor.profile" />
+    @else
     <nav class="profile-nav" aria-label="أقسام الملف">
         <a href="#services">الخدمات</a>
         <a href="#portfolio">معرض الأعمال</a>
-        @if ($ownProfile)
-            <a href="{{ route('vendor.wallet') }}">السجل المالي</a>
-            <a href="{{ route('vendor.reviews') }}">تقييم العملاء</a>
-        @endif
     </nav>
+    @endif
 
+    @if (! $ownProfile || $tab === 'services')
     <section class="section" id="services">
         <div class="section-head">
             <h2>الخدمات المتاحة</h2>
@@ -93,7 +97,9 @@
             </section>
         @endif
     </section>
+    @endif
 
+    @if (! $ownProfile || $tab === 'portfolio')
     <section class="section" id="portfolio">
         <div class="section-head">
             <h2>معرض الأعمال</h2>
@@ -121,6 +127,10 @@
         </div>
         {{ $projects->fragment('portfolio')->onEachSide(1)->links('components.pager') }}
     </section>
+    @endif
+    @if ($entries)
+        <x-account-history :tab="$tab" :entries="$entries" />
+    @endif
     </div>
 </main>
 
@@ -141,9 +151,11 @@
     </div>
 </dialog>
 
-@if ($ownProfile)
+@if ($ownProfile && $tab === 'services')
     @include('pages.vendor.partials.service-request-dialog')
     @include('pages.vendor.partials.service-suggestion-dialog')
+@endif
+@if ($ownProfile && $tab === 'portfolio')
     <dialog class="hub-dialog" id="project-form" aria-labelledby="project-form-title" @if ($errors->portfolio->any()) data-auto-dialog @endif>
         <div class="dialog-head">
             <h2 id="project-form-title">إضافة مشروع إلى معرض الأعمال</h2>

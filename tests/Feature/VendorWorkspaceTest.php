@@ -12,6 +12,7 @@ use App\Models\Service;
 use App\Models\User;
 use App\Models\VendorProfile;
 use App\Models\VendorService;
+use App\Models\WalletTransaction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -51,7 +52,7 @@ class VendorWorkspaceTest extends TestCase
         $this->get(route('account.profile'))->assertRedirect(route('vendor.profile'));
         $this->get(route('vendor.profile'))->assertOk()->assertSee(route('vendor.service.reviews', $offer))
             ->assertSeeInOrder([$vendor->first_name.' '.$vendor->last_name, $vendor->vendorProfile->work_type])
-            ->assertSee('vendor-profile-layout')->assertSee(route('vendor.profile').'#portfolio');
+            ->assertSee('vendor-profile-layout')->assertSee(route('vendor.profile', ['tab' => 'portfolio']).'#portfolio');
         $this->get(route('vendor.wallet', ['status' => 'released', 'q' => $offer->service->name, 'to' => now()->toDateString()]))
             ->assertOk()->assertSee('40.00')->assertSee('حالة الدفع')->assertSee('page=2')
             ->assertSee('balance-cards')->assertSee('السابق')->assertSee('التالي')->assertSee('dialog-date-time')
@@ -175,12 +176,12 @@ class VendorWorkspaceTest extends TestCase
                 UploadedFile::fake()->createWithContent('before.png', $png),
                 UploadedFile::fake()->createWithContent('after.png', $png),
             ],
-        ])->assertRedirect(route('vendor.profile').'#portfolio');
+        ])->assertRedirect(route('vendor.profile', ['tab' => 'portfolio']).'#portfolio');
 
         $project = PortfolioProject::latest('id')->firstOrFail();
         $this->assertSame($vendor->id, $project->vendor_id);
         $this->assertCount(2, $project->images);
-        $this->get(route('vendor.profile'))->assertSeeInOrder(['Newest portfolio project', 'مشروع كشف وإصلاح تسريبات المياه']);
+        $this->get(route('vendor.profile', ['tab' => 'portfolio']))->assertSeeInOrder(['Newest portfolio project', 'مشروع كشف وإصلاح تسريبات المياه']);
         $this->get(route('vendor.portfolio.show', $project))->assertOk()->assertSee($project->description)
             ->assertSee('87.50')->assertSee('project-thumbnails');
         foreach ($project->images as $image) {
@@ -311,5 +312,60 @@ class VendorWorkspaceTest extends TestCase
         $this->postJson(route('maintenance.assistant'), ['problem' => 'Leaking pipe'])
             ->assertOk()->assertJsonPath('message', 'السباكة');
         Http::assertSent(fn ($request) => $request->hasHeader('x-goog-api-key', 'fake-key'));
+    }
+
+    public function test_vendor_registration_creates_a_pending_profile_and_stores_the_permit_privately(): void
+    {
+        $disk = Storage::fake('local');
+        $this->get(route('register'))->assertOk()->assertSee('بيانات المهنة')->assertSee('account_type');
+        $data = [
+            'account_type' => 'vendor', 'first_name' => 'New', 'last_name' => 'Technician',
+            'email' => 'new-technician@example.test', 'phone' => '0700000000', 'location' => 'Amman',
+            'gender' => 'male', 'password' => 'servicehub-test-password', 'password_confirmation' => 'servicehub-test-password',
+            'work_type' => 'Plumbing', 'experience_years' => 5, 'bio' => 'Home plumbing and inspection.',
+            'permit_expiry_date' => now()->addYear()->format('Y-m-d'),
+        ];
+        $this->post(route('register'), $data)->assertSessionHasErrors('work_permit');
+        $this->assertDatabaseMissing('users', ['email' => $data['email']]);
+        $this->post(route('register'), $data + [
+            'work_permit' => UploadedFile::fake()->create('permit.pdf', 10, 'application/pdf'),
+        ])->assertRedirect(route('vendor.dashboard'));
+        $vendor = User::whereEmail($data['email'])->firstOrFail();
+        $this->assertAuthenticatedAs($vendor);
+        $this->assertSame('vendor', $vendor->role);
+        $this->assertSame('pending', $vendor->vendorProfile->application_status);
+        $disk->assertExists($vendor->vendorProfile->work_permit_path);
+        $this->get(route('vendor.dashboard'))->assertOk()->assertSee('حالة طلب الانضمام');
+    }
+
+    public function test_a_vendor_and_admin_can_book_and_each_profile_shows_only_its_own_history(): void
+    {
+        $seller = VendorProfile::factory()->create()->user;
+        $buyer = VendorProfile::factory()->create()->user;
+        $offer = VendorService::factory()->for($seller, 'vendor')->create();
+        $tomorrow = now()->addDay()->startOfDay();
+        $window = $seller->recurringAvailabilities()->create([
+            'day_of_week' => $tomorrow->dayOfWeek, 'start_time' => '09:00:00', 'end_time' => '12:00:00',
+        ]);
+        $slot = fn (string $hour) => ['slot' => $tomorrow->format('Y-m-d').'|'.$hour.'|'.$window->id];
+        $store = route('booking.store', $offer);
+        $this->actingAs($seller)->post($store, $slot('09:00'))->assertForbidden();
+        $this->actingAs($buyer)->get(route('market.show', $offer))->assertOk()->assertSee('احجز الآن');
+        $this->post($store, $slot('09:00'))->assertRedirect(route('account.profile', ['tab' => 'bookings']));
+        $ownBooking = $buyer->bookingsAsCustomer()->firstOrFail();
+        Payment::factory()->for($ownBooking)->create(['amount' => 77.55]);
+        $this->get(route('vendor.profile', ['tab' => 'payments']))->assertOk()
+            ->assertSee('77.55')->assertDontSee('طلب إضافة خدمة');
+        $this->get(route('vendor.profile', ['tab' => 'bookings']))->assertOk()->assertSee($ownBooking->service_name);
+        $incoming = Booking::factory()->for(VendorService::factory()->for($buyer, 'vendor'))->create();
+        WalletTransaction::factory()->for($incoming)->create(['amount' => 46.25]);
+        $this->get(route('vendor.profile', ['tab' => 'income']))->assertOk()->assertSee('46.25')->assertDontSee('77.55');
+        $this->get(route('home'))->assertSee(route('vendor.dashboard'))->assertSee('قائمة الحساب');
+
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin)->post($store, $slot('10:00'))->assertRedirect();
+        $this->get(route('account.profile', ['tab' => 'payments']))->assertOk()->assertDontSee('77.55');
+        $this->get(route('home'))->assertSee(route('admin.dashboard'));
+        $this->actingAs(User::factory()->create())->get(route('home'))->assertDontSee('لوحة التحكم');
     }
 }

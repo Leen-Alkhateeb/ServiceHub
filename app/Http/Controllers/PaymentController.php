@@ -20,7 +20,7 @@ class PaymentController extends Controller
         if ($booking->payment_deadline && Carbon::parse($booking->payment_deadline)->isPast()) {
             $booking->update(['status' => 'expired']);
 
-            return redirect()->route('customer.bookings')
+            return redirect()->route('account.profile', ['tab' => 'bookings'])
                 ->with('error', 'The payment deadline has passed and the booking expired.');
         }
 

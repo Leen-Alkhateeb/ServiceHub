@@ -9,6 +9,7 @@
     $cover      = $vendorService->image ? asset('storage/' . $vendorService->image) : null;
     $hasSlots   = collect($days)->contains(fn ($day) => count($day['slots']) > 0);
     $isCustomer = auth()->check() && auth()->user()->role === 'customer';
+    $canBook = auth()->check() && auth()->user()->status === 'active' && (int) auth()->id() !== (int) $vendor->id;
 @endphp
 
 <p class="muted"><a href="{{ route('market.index') }}">← الرجوع لسوق الخدمات</a></p>
@@ -48,15 +49,17 @@
 
             @guest
                 <a href="{{ url('/login') }}" class="btn btn-primary btn-block">سجّل دخول للحجز</a>
-            @elseif ($isCustomer)
+            @elseif ($canBook)
                 <button type="button" class="btn btn-primary btn-block" data-open="booking-modal">احجز الآن</button>
 
+                @if ($isCustomer)
                 <form method="POST" action="{{ route('favorites.toggle', $vendorService) }}" class="mt">
                     @csrf
                     <button type="submit" class="btn btn-outline btn-block">{{ $isFavorite ? '♥ إزالة من المفضلة' : '♡ إضافة للمفضلة' }}</button>
                 </form>
+                @endif
             @else
-                <p class="muted">الحجز متاح للعملاء فقط.</p>
+                <p class="muted">الحجز غير متاح من هذا الحساب لهذه الخدمة.</p>
             @endguest
         </div>
 
@@ -85,7 +88,7 @@
 </div>
 
 {{-- نافذة الحجز --}}
-@if ($isCustomer)
+@if ($canBook)
     <div class="modal" id="booking-modal" role="dialog" aria-modal="true">
         <div class="modal-backdrop" data-close></div>
         <div class="modal-dialog">

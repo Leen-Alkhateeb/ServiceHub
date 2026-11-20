@@ -95,7 +95,7 @@ class PortfolioController extends Controller
 
         return $project
             ? redirect()->route('vendor.portfolio.show', $project)->with('status', 'تم تعديل المشروع.')
-            : redirect(route('vendor.profile').'#portfolio')->with('status', 'تمت إضافة المشروع.');
+            : redirect(route('vendor.profile', ['tab' => 'portfolio']).'#portfolio')->with('status', 'تمت إضافة المشروع.');
     }
 
     public function destroy(Request $request, PortfolioProject $project): RedirectResponse
@@ -103,7 +103,7 @@ class PortfolioController extends Controller
         $this->authorizeOwner($request, $project);
         $project->update(['is_active' => false]);
 
-        return redirect(route('vendor.profile').'#portfolio')->with('status', 'تم حذف المشروع من معرض الأعمال.');
+        return redirect(route('vendor.profile', ['tab' => 'portfolio']).'#portfolio')->with('status', 'تم حذف المشروع من معرض الأعمال.');
     }
 
     public function destroyImage(Request $request, PortfolioImage $image): RedirectResponse

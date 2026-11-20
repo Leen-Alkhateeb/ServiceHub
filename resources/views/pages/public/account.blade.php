@@ -12,6 +12,10 @@
             @include('components.account-details-editor')
         </div>
     </header>
+    <x-account-tabs :tab="$tab" :tabs="['overview' => 'معلوماتي', 'bookings' => 'طلباتي', 'payments' => 'مدفوعاتي']" route-name="account.profile" />
+    @if ($entries)
+        <x-account-history :tab="$tab" :entries="$entries" />
+    @else
     <section class="section">
         <div class="panel">
             <h2>معلومات الحساب</h2>
@@ -21,6 +25,7 @@
             </dl>
         </div>
     </section>
+    @endif
 </main>
 @include('components.footer')
 @include('components.mobile-nav-public')

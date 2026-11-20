@@ -212,3 +212,24 @@ a.btn-dark, .btn-dark { color: #fff; background: #202124; }
 @media (max-width: 900px) {
     .balance-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+.account-tabs { gap: .35rem; overflow-x: auto; flex-wrap: nowrap; }
+.auth-shell { display: flex; flex-direction: column; min-height: 100vh; min-height: 100svh; }
+.auth-content { flex: 1 0 auto; }
+.password-page { width: min(100% - 26px, 550px); margin-inline: auto; padding-block: clamp(1.5rem, 6vw, 4rem); }
+.password-page h1 { font-size: clamp(1.55rem, 5vw, 2.1rem); margin-block-end: .7rem; }
+.password-page form + p { margin-block-start: 1rem; }
+.account-tabs a { flex: 0 0 auto; padding: .55rem .7rem; border-radius: 8px; }
+.account-tabs a[aria-current="page"] { background: #e0eee8; color: #204e43; }
+.history-provider { display: block; color: #5b6964; margin-block-start: .25rem; }
+.account-dropdown { position: relative; }
+.account-dropdown > summary { cursor: pointer; list-style: none; }
+.account-dropdown > summary::-webkit-details-marker { display: none; }
+.account-menu { position: absolute; inset-block-start: calc(100% + 10px); inset-inline-end: 0; z-index: 62; width: min(200px, calc(100vw - 24px)); padding: .5rem; border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 16px 45px #16232b30; background: #fff; }
+.account-menu a, .account-menu button { display: block; width: 100%; padding: .5rem .65rem; border: 0; border-radius: 7px; background: #fff; color: #202124; text-align: start; font-weight: 700; }
+.account-menu a:hover, .account-menu button:hover { background: #edf6f2; }
+[data-registration] [hidden] { display: none !important; }
+@media (max-width: 760px) {
+    .account-dropdown { position: static; }
+    .account-menu { inset-block-start: 100%; inset-inline-end: 12px; }
+}

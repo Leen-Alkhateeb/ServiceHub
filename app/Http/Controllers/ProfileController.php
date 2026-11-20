@@ -19,8 +19,8 @@ class ProfileController extends Controller
 
         return view('pages.customer.customer-dashboard', [
             'stats' => [
-                'حجوزات قادمة'  => $user->bookings()->whereIn('status', ['pending', 'approved', 'confirmed'])->count(),
-                'حجوزات مكتملة' => $user->bookings()->where('status', 'completed')->count(),
+                'حجوزات قادمة'  => $user->bookingsAsCustomer()->whereIn('status', ['pending', 'approved', 'confirmed'])->count(),
+                'حجوزات مكتملة' => $user->bookingsAsCustomer()->where('status', 'completed')->count(),
                 'المفضلة'        => $user->favorites()->count(),
             ],
         ]);
@@ -29,7 +29,7 @@ class ProfileController extends Controller
     public function bookings(Request $request)
     {
         $user = $this->customer($request);
-        $base = fn () => $user->bookings()->with(['vendorService.vendor', 'payment'])->latest('id');
+        $base = fn () => $user->bookingsAsCustomer()->with(['vendorService.vendor', 'payment'])->latest('id');
 
         return view('pages.customer.customer-bookings', [
             'current' => $base()->whereIn('status', ['pending', 'approved', 'confirmed'])->get(),

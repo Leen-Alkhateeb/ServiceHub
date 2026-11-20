@@ -7,6 +7,7 @@ use App\Models\RefundRequest;
 use App\Models\Review;
 use App\Models\VendorService;
 use App\Models\WalletTransaction;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Booking extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'customer_id',
         'vendor_service_id',
@@ -32,6 +35,15 @@ class Booking extends Model
         'cancelled_at',
         'cancelled_by',
         'cancellation_penalty',
+    ];
+
+    protected $casts = [
+        'booking_date' => 'date',
+        'approved_at' => 'datetime',
+        'payment_deadline' => 'datetime',
+        'completed_at' => 'datetime',
+        'objection_deadline' => 'datetime',
+        'cancelled_at' => 'datetime',
     ];
 
     public function customer(): BelongsTo

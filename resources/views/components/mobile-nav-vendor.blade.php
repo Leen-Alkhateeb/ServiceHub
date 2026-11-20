@@ -1,6 +1,6 @@
-<div class="mobile-nav">
-<a href="/services">⌕<br />اكتشف</a>
-<a href="/customer-bookings">▤<br />حجوزاتي</a>
-<a href="/customer-favorites">♡<br />المفضلة</a>
-<a href="/customer-dashboard">♙<br />حسابي</a>
-</div>
+<nav class="mobile-nav" aria-label="لوحة الفني">
+    <a href="{{ route('vendor.profile') }}">ملف الفني</a>
+    <a href="{{ route('vendor.wallet') }}">السجل المالي</a>
+    <a href="{{ route('vendor.reviews') }}">تقييم العملاء</a>
+    <a href="{{ route('vendor.profile', ['tab' => 'portfolio']) }}#portfolio">معرض الأعمال</a>
+</nav>

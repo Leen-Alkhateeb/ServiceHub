@@ -19,6 +19,10 @@ return new class extends Migration
                 'cancelled',
                 'refunded',
                 'objection_pending',
+                'confirmed',
+                'rejected',
+                'expired',
+                'closed',
             ])->default('pending')->change();
         });
     }

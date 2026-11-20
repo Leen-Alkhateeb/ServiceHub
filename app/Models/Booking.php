@@ -37,6 +37,15 @@ class Booking extends Model
         'cancellation_penalty',
     ];
 
+    protected $casts = [
+        'booking_date' => 'date',
+        'approved_at' => 'datetime',
+        'payment_deadline' => 'datetime',
+        'completed_at' => 'datetime',
+        'objection_deadline' => 'datetime',
+        'cancelled_at' => 'datetime',
+    ];
+
     public function customer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'customer_id');

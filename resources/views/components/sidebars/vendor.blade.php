@@ -1,6 +1,6 @@
 <aside class="sidebar">
     <div class="brand"><span class="brandmark">✓</span>ServiceHub</div>
-    <a href="/vendor-dashboard">نظرة عامة</a>
+    <a href="{{ route('vendor.dashboard') }}">نظرة عامة</a>
     <a href="/vendor-bookings">طلبات الحجز</a>
     <a href="/vendor-availability">الجدول الأسبوعي</a>
     <a href="{{ route('vendor.profile') }}#services">خدماتي</a>

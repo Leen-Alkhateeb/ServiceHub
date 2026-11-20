@@ -3,7 +3,9 @@
 use App\Http\Controllers\AccountDetailsController;
 use App\Http\Controllers\AccountPictureController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingProfileController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MaintenanceAssistantController;
@@ -13,6 +15,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VendorApplicationController;
+use App\Http\Controllers\VendorAvailabilityController;
 use App\Http\Controllers\VendorPagesController;
 use App\Http\Controllers\VendorReviewController;
 use App\Http\Controllers\VendorServiceRequestController;
@@ -71,6 +74,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/bookings/{booking}/invoice', [PaymentController::class, 'invoice'])->name('payment.invoice');
     Route::get('/AdminDashboard', [AdminDashboardController::class, 'index'])->middleware(ActiveAdmin::class)->name('admin.dashboard');
 
+    Route::middleware(['auth', ActiveVendor::class])
+    ->name('vendor.')
+    ->group(function () {
+        Route::get('/vendor-dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/vendor-availability', [VendorAvailabilityController::class, 'index'])->name('availability.index');
+        Route::post('/vendor-availability', [VendorAvailabilityController::class, 'store'])->name('availability.store');
+        Route::patch('/vendor-availability/{availability}', [VendorAvailabilityController::class, 'update'])->name('availability.update');
+        Route::delete('/vendor-availability/{availability}', [VendorAvailabilityController::class, 'destroy'])->name('availability.destroy');
+        Route::resource('vendor-bookings', BookingController::class)->only(['index', 'update'])->parameters(['vendor-bookings' => 'booking']);
+    });
+
     Route::patch('/my-profile', AccountDetailsController::class)->name('account.details.update');
     Route::post('/my-profile/photo', [AccountPictureController::class, 'update'])->middleware('throttle:10,1')->name('account.picture.update');
     Route::delete('/my-profile/photo', [AccountPictureController::class, 'destroy'])->middleware('throttle:10,1')->name('account.picture.destroy');
@@ -112,3 +126,4 @@ Route::middleware('auth')->group(function () {
         Route::post('/vendor-service-requests/{offer}', [VendorServiceRequestController::class, 'decide'])->name('service-requests.decide');
     });
 });
+

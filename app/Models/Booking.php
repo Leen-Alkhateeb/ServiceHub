@@ -7,6 +7,7 @@ use App\Models\RefundRequest;
 use App\Models\Review;
 use App\Models\VendorService;
 use App\Models\WalletTransaction;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,6 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Booking extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'customer_id',
         'vendor_service_id',

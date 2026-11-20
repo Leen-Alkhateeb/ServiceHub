@@ -61,7 +61,7 @@ class MarketController extends Controller
             default      => $query->latest('id'),
         };
 
-        return view('market.index', [
+        return view('pages.public.services', [
             'services'    => $query->paginate(9)->withQueryString(),
             'categories'  => Category::where('is_deleted', false)->orderBy('name')->get(),
             'locations'   => User::where('role', 'vendor')->whereNotNull('location')->distinct()->orderBy('location')->pluck('location'),
@@ -77,7 +77,7 @@ class MarketController extends Controller
         $vendorService->load(['service.category', 'vendor.vendorProfile']);
         $vendor = $vendorService->vendor;
 
-        return view('market.show', [
+        return view('pages.public.service-details', [
             'vendorService' => $vendorService,
             'vendor'        => $vendor,
             'rating'        => round((float) $vendor->reviewsReceived()->avg('rating'), 1),
@@ -109,7 +109,7 @@ class MarketController extends Controller
             $date  = today()->addDays($i);
             $slots = [];
 
-            foreach ($windows->get(strtolower($date->englishDayOfWeek), []) as $window) {
+            foreach ($windows->get($date->dayOfWeek, []) as $window) {
                 $cursor = $date->copy()->setTimeFromTimeString($window->start_time);
                 $end    = $date->copy()->setTimeFromTimeString($window->end_time);
 

@@ -6,6 +6,7 @@ use App\Models\Booking;
 use App\Models\Notification;
 use App\Models\Payment;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
@@ -16,10 +17,10 @@ class PaymentController extends Controller
         abort_unless($booking->customer_id === $request->user()->id && $booking->status === 'approved', 403);
 
         // Deadline passed → booking expires
-        if ($booking->payment_deadline && $booking->payment_deadline->isPast()) {
+        if ($booking->payment_deadline && Carbon::parse($booking->payment_deadline)->isPast()) {
             $booking->update(['status' => 'expired']);
 
-            return redirect()->route('myprofile', ['tab' => 'bookings'])
+            return redirect()->route('customer.bookings')
                 ->with('error', 'The payment deadline has passed and the booking expired.');
         }
 

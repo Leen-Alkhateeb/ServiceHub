@@ -40,7 +40,7 @@ class BookingProfileController extends Controller
         $valid = $window
             && $startAt->isFuture()
             && $startAt->lte(now()->addDays(7)->endOfDay())
-            && strtolower($startAt->englishDayOfWeek) === $window->day_of_week
+            && $startAt->dayOfWeek === (int) $window->day_of_week
             && $start >= substr($window->start_time, 0, 5)
             && $endAt->format('H:i') <= substr($window->end_time, 0, 5);
 
@@ -89,7 +89,7 @@ class BookingProfileController extends Controller
             return back()->withErrors(['slot' => 'Sorry, this slot was just taken. Please pick another one.']);
         }
 
-        return redirect()->route('myprofile', ['tab' => 'bookings'])
+        return redirect()->route('customer.bookings')
             ->with('success', 'Booking request sent. We will notify you when the provider responds.');
     }
 
@@ -115,6 +115,6 @@ class BookingProfileController extends Controller
             'type'    => 'booking',
         ]);
 
-        return redirect()->route('myprofile', ['tab' => 'bookings'])->with('success', 'Booking cancelled.');
+        return redirect()->route('customer.bookings')->with('success', 'Booking cancelled.');
     }
 }

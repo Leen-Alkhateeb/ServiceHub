@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use App\Models\Booking;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Review extends Model
 {
-    const UPDATED_AT = null;
+    use HasFactory;
+
+    public const UPDATED_AT = null;
 
     protected $fillable = [
         'booking_id',
@@ -17,6 +20,7 @@ class Review extends Model
         'rating',
         'comment',
         'image',
+        'is_active',
     ];
 
     public function booking(): BelongsTo

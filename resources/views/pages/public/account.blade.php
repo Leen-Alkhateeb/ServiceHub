@@ -14,7 +14,7 @@
     </header>
     <x-account-tabs :tab="$tab" :tabs="['overview' => 'معلوماتي', 'bookings' => 'طلباتي', 'payments' => 'مدفوعاتي']" route-name="account.profile" />
     @if ($entries)
-        <x-account-history :tab="$tab" :entries="$entries" />
+        <x-account-history :tab="$tab" :entries="$entries" :filters="$filters" :categories="$historyCategories" route-name="account.profile" />
     @else
     <section class="section">
         <div class="panel">

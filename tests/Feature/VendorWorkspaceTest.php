@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Booking;
+use App\Models\Category;
 use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\PortfolioProject;
@@ -23,6 +24,22 @@ use Tests\TestCase;
 class VendorWorkspaceTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_visitors_switch_between_services_and_portfolio_without_seeing_private_tabs(): void
+    {
+        $vendor = VendorProfile::factory()->create()->user;
+        $offer = VendorService::factory()->for($vendor, 'vendor')->create();
+        $project = PortfolioProject::factory()->for($vendor, 'vendor')->create(['name' => 'Portfolio sample']);
+        $public = ['vendor' => $vendor->id];
+        $portfolio = ['tab' => 'portfolio'] + $public;
+
+        $this->actingAs(User::factory()->create())->get(route('vendor.profile', $public))->assertOk()
+            ->assertSee($offer->service->name)->assertDontSee($project->name)->assertSee(route('vendor.profile', $portfolio));
+        $this->get(route('vendor.profile', $portfolio))->assertOk()
+            ->assertSee($project->name)->assertDontSee($offer->service->name)->assertDontSee('مدفوعاتي');
+        $this->get(route('vendor.profile', ['tab' => 'income'] + $public))->assertNotFound();
+        $this->get(route('vendor.portfolio.show', $project))->assertOk()->assertSee(route('vendor.profile', $portfolio).'#portfolio');
+    }
 
     public function test_demo_seed_has_at_least_fifteen_rows_per_business_table_and_can_be_rerun(): void
     {
@@ -303,14 +320,19 @@ class VendorWorkspaceTest extends TestCase
 
     public function test_assistant_handles_missing_configuration_and_accepts_a_provider_response(): void
     {
-        config(['services.gemini.key' => null, 'services.gemini.model' => null]);
-        $this->postJson(route('maintenance.assistant'), ['problem' => 'Leaking pipe'])->assertServiceUnavailable();
+        $plumbing = Category::factory()->create(['name' => 'السباكة']);
         config(['services.gemini.key' => 'fake-key', 'services.gemini.model' => 'test-model']);
         Http::fake(['https://generativelanguage.googleapis.com/*' => Http::response([
-            'candidates' => [['content' => ['parts' => [['text' => 'السباكة']]]]],
+            'candidates' => [['content' => ['parts' => [['text' => json_encode(['category_id' => $plumbing->id])]]]]],
         ])]);
-        $this->postJson(route('maintenance.assistant'), ['problem' => 'Leaking pipe'])
-            ->assertOk()->assertJsonPath('message', 'السباكة');
+        $url = route('categories.show', $plumbing);
+        $this->postJson(route('maintenance.assistant'), ['problem' => 'الحنفية بتسرّب مي'])
+            ->assertOk()->assertJsonPath('category_url', $url);
+        $this->postJson(route('maintenance.assistant'), ['problem' => 'اكتب كود PHP لتصليح المشروع'])
+            ->assertOk()->assertJsonMissingPath('category_url');
+        Http::assertNothingSent();
+        $this->postJson(route('maintenance.assistant'), ['problem' => 'في رطوبة داخل الجدار تحت المغسلة'])
+            ->assertOk()->assertJsonPath('category_url', $url);
         Http::assertSent(fn ($request) => $request->hasHeader('x-goog-api-key', 'fake-key'));
     }
 
@@ -353,10 +375,20 @@ class VendorWorkspaceTest extends TestCase
         $this->actingAs($buyer)->get(route('market.show', $offer))->assertOk()->assertSee('احجز الآن');
         $this->post($store, $slot('09:00'))->assertRedirect(route('account.profile', ['tab' => 'bookings']));
         $ownBooking = $buyer->bookingsAsCustomer()->firstOrFail();
-        Payment::factory()->for($ownBooking)->create(['amount' => 77.55]);
+        Payment::factory()->for($ownBooking)->create(['amount' => 77.55, 'paid_at' => now()->subDay()]);
         $this->get(route('vendor.profile', ['tab' => 'payments']))->assertOk()
             ->assertSee('77.55')->assertDontSee('طلب إضافة خدمة');
         $this->get(route('vendor.profile', ['tab' => 'bookings']))->assertOk()->assertSee($ownBooking->service_name);
+        $this->get(route('vendor.profile', [
+            'tab' => 'bookings', 'q' => $ownBooking->service_name, 'category' => $offer->service->category_id,
+            'from' => $tomorrow->toDateString(), 'to' => $tomorrow->toDateString(),
+        ]))->assertOk()->assertSee('تفاصيل الطلب')->assertSee('data-open-dialog="history-'.$ownBooking->id.'"', false);
+        $this->get(route('vendor.profile', [
+            'tab' => 'payments', 'q' => $seller->first_name.' '.$seller->last_name,
+            'from' => now()->subDay()->toDateString(), 'to' => now()->subDay()->toDateString(),
+        ]))->assertOk()->assertSee('تفاصيل الدفعة')->assertSee('77.55')->assertDontSee('الفاتورة');
+        $this->get(route('vendor.profile', ['tab' => 'payments', 'from' => $tomorrow->toDateString()]))
+            ->assertOk()->assertDontSee('77.55');
         $incoming = Booking::factory()->for(VendorService::factory()->for($buyer, 'vendor'))->create();
         WalletTransaction::factory()->for($incoming)->create(['amount' => 46.25]);
         $this->get(route('vendor.profile', ['tab' => 'income']))->assertOk()->assertSee('46.25')->assertDontSee('77.55');

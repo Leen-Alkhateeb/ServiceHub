@@ -9,131 +9,220 @@ use App\Models\Review;
 use App\Models\User;
 use App\Models\VendorService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 
 class MarketController extends Controller
 {
-    /** Service Market: search + filters (price, category, location, rating) */
+    /** قائمة الخدمات مع البحث والفلاتر */
     public function index(Request $request)
     {
+        $activeReviews = fn ($reviews) => $reviews->where('is_active', true);
+
         $query = VendorService::query()
             ->where('status', 'active')
             ->with([
                 'service.category',
-                'vendor' => fn ($q) => $q->withAvg('reviewsReceived', 'rating')->withCount('reviewsReceived'),
+                'vendor' => fn ($q) => $q
+                    ->withAvg(['reviewsReceived' => $activeReviews], 'rating')
+                    ->withCount(['reviewsReceived' => $activeReviews]),
             ])
-            ->whereHas('service', fn ($q) => $q->where('approval_status', 'approved')->where('is_deleted', false))
-            ->whereHas('vendor', fn ($q) => $q->where('status', 'active')
-                ->whereHas('vendorProfile', fn ($profile) => $profile->where('application_status', 'approved')));
+            ->whereHas('service', fn ($q) => $q
+                ->where('approval_status', 'approved')
+                ->where('is_deleted', false))
+            ->whereHas('vendor', fn ($q) => $q->where('status', 'active'));
 
         if ($request->filled('q')) {
             $term = '%' . $request->q . '%';
+
             $query->where(function ($w) use ($term) {
-                $w->whereHas('service', fn ($s) => $s->where('name', 'like', $term))
-                  ->orWhereHas('vendor', fn ($v) => $v->where('first_name', 'like', $term)
-                                                       ->orWhere('last_name', 'like', $term));
+                $w->whereHas('service', fn ($s) =>
+                    $s->where('name', 'like', $term))
+                    ->orWhereHas('vendor', fn ($v) => $v
+                        ->where('first_name', 'like', $term)
+                        ->orWhere('last_name', 'like', $term));
             });
         }
 
         if ($request->filled('category')) {
-            $query->whereHas('service', fn ($s) => $s->where('category_id', $request->category));
+            $query->whereHas('service', fn ($s) =>
+                $s->where('category_id', $request->category));
         }
 
         if ($request->filled('location')) {
-            $query->whereHas('vendor', fn ($v) => $v->where('location', $request->location));
+            $query->whereHas('vendor', fn ($v) =>
+                $v->where('location', $request->location));
         }
 
         if ($request->filled('min_price')) {
             $query->where('price', '>=', (float) $request->min_price);
         }
+
         if ($request->filled('max_price')) {
             $query->where('price', '<=', (float) $request->max_price);
         }
 
         if ($request->filled('rating')) {
             $query->whereHas('vendor', fn ($v) => $v->whereRaw(
-                '(select avg(rating) from reviews where reviews.reviewed_user_id = users.id) >= ?',
+                '(select avg(rating) from reviews
+                 where reviews.reviewed_user_id = users.id
+                 and reviews.is_active = 1) >= ?',
                 [(float) $request->rating]
             ));
         }
 
         match ($request->sort) {
-            'price_asc'  => $query->orderBy('price'),
+            'price_asc' => $query->orderBy('price'),
             'price_desc' => $query->orderByDesc('price'),
-            default      => $query->latest('id'),
+            default => $query->latest('id'),
         };
 
         return view('pages.public.services', [
-            'services'    => $query->paginate(9)->withQueryString(),
-            'categories'  => Category::where('is_deleted', false)->orderBy('name')->get(),
-            'locations'   => User::where('role', 'vendor')->whereNotNull('location')->distinct()->orderBy('location')->pluck('location'),
-            'favoriteIds' => auth()->check() ? auth()->user()->favorites()->pluck('vendor_service_id')->all() : [],
+            'services' => $query->paginate(9)->withQueryString(),
+            'categories' => Category::where('is_deleted', false)
+                ->orderBy('name')
+                ->get(),
+            'locations' => User::where('role', 'vendor')
+                ->whereNotNull('location')
+                ->distinct()
+                ->orderBy('location')
+                ->pluck('location'),
+            'favoriteIds' => auth()->check()
+                ? auth()->user()->favorites()->pluck('vendor_service_id')->all()
+                : [],
         ]);
     }
 
-    /** Service Details + booking popup */
+    /** تفاصيل الخدمة والتقييمات والمواعيد المتاحة */
     public function show(VendorService $vendorService)
     {
         abort_unless($vendorService->status === 'active', 404);
 
         $vendorService->load(['service.category', 'vendor.vendorProfile']);
         $vendor = $vendorService->vendor;
-        abort_unless($vendor->status === 'active' && $vendor->vendorProfile?->application_status === 'approved'
-            && $vendorService->service->approval_status === 'approved' && ! $vendorService->service->is_deleted
-            && ! $vendorService->service->category->is_deleted, 404);
+
+        abort_unless(
+            $vendor->status === 'active'
+            && $vendor->vendorProfile?->application_status === 'approved'
+            && $vendorService->service->approval_status === 'approved'
+            && ! $vendorService->service->is_deleted
+            && ! $vendorService->service->category->is_deleted,
+            404
+        );
+
+        $activeReviews = Review::query()
+            ->where('reviewed_user_id', $vendor->id)
+            ->where('is_active', true);
+
+        $rating = round((float) (clone $activeReviews)->avg('rating'), 1);
+        $reviewsCount = (clone $activeReviews)->count();
+
+        $reviews = (clone $activeReviews)
+            ->with('reviewer')
+            ->latest('id')
+            ->paginate(10)
+            ->withQueryString();
 
         return view('pages.public.service-details', [
             'vendorService' => $vendorService,
-            'vendor'        => $vendor,
-            'rating'        => round((float) $vendor->reviewsReceived()->avg('rating'), 1),
-            'reviewsCount'  => $vendor->reviewsReceived()->count(),
-            'reviews'       => Review::with('reviewer')->where('reviewed_user_id', $vendor->id)->latest('id')->take(5)->get(),
-            'days'          => $this->availableDays($vendorService),
-            'isFavorite'    => auth()->check()
-                                && auth()->user()->favorites()->where('vendor_service_id', $vendorService->id)->exists(),
+            'vendor' => $vendor,
+            'rating' => $rating,
+            'reviewsCount' => $reviewsCount,
+            'reviews' => $reviews,
+            'days' => $this->availableDays($vendorService),
+            'isFavorite' => auth()->check()
+                && auth()->user()->favorites()
+                    ->where('vendor_service_id', $vendorService->id)
+                    ->exists(),
         ]);
     }
 
-    /** Next 7 days with hourly slots from the vendor's weekly schedule, minus booked ones */
+    /** المواعيد المتاحة خلال الثلاثين يومًا القادمة */
     private function availableDays(VendorService $vendorService): array
     {
+        $daysToShow = 30;
+        $durationMinutes = max(
+            5,
+            (int) ($vendorService->duration_minutes ?: 60)
+        );
+
+        $firstDate = today();
+        $lastDate = today()->addDays($daysToShow - 1);
+
         $windows = RecurringAvailability::where('vendor_id', $vendorService->vendor_id)
             ->where('is_active', true)
             ->get()
             ->groupBy('day_of_week');
 
-        $taken = Booking::whereHas('vendorService', fn ($q) => $q->where('vendor_id', $vendorService->vendor_id))
-            ->whereBetween('booking_date', [today(), today()->addDays(7)])
+        $taken = Booking::whereHas(
+                'vendorService',
+                fn ($q) => $q->where('vendor_id', $vendorService->vendor_id)
+            )
+            ->whereBetween('booking_date', [$firstDate, $lastDate])
             ->whereIn('status', ['pending', 'approved', 'confirmed', 'completed'])
             ->get()
-            ->groupBy(fn ($b) => $b->booking_date->toDateString());
+            ->groupBy(fn ($booking) =>
+                Carbon::parse($booking->booking_date)->toDateString()
+            );
 
         $days = [];
 
-        for ($i = 0; $i < 7; $i++) {
-            $date  = today()->addDays($i);
+        for ($i = 0; $i < $daysToShow; $i++) {
+            $date = $firstDate->copy()->addDays($i);
             $slots = [];
 
             foreach ($windows->get($date->dayOfWeek, []) as $window) {
-                $cursor = $date->copy()->setTimeFromTimeString($window->start_time);
-                $end    = $date->copy()->setTimeFromTimeString($window->end_time);
+                $cursor = $date->copy()
+                    ->setTimeFromTimeString($window->start_time);
 
-                while ($cursor->copy()->addHour()->lte($end)) {
-                    $start   = $cursor->format('H:i');
-                    $isTaken = $taken->get($date->toDateString(), collect())
-                        ->contains(fn ($b) => substr($b->start_time, 0, 5) === $start);
+                $windowEnd = $date->copy()
+                    ->setTimeFromTimeString($window->end_time);
 
-                    if (! $isTaken && $cursor->isFuture()) {
+                while (
+                    $cursor->copy()
+                        ->addMinutes($durationMinutes)
+                        ->lte($windowEnd)
+                ) {
+                    $slotStart = $cursor->copy();
+                    $slotEnd = $slotStart->copy()
+                        ->addMinutes($durationMinutes);
+
+                    $isTaken = $taken
+                        ->get($date->toDateString(), collect())
+                        ->contains(function ($booking) use (
+                            $date,
+                            $slotStart,
+                            $slotEnd
+                        ) {
+                            $bookingStart = Carbon::parse(
+                                $date->toDateString() . ' ' . $booking->start_time
+                            );
+
+                            $bookingEnd = Carbon::parse(
+                                $date->toDateString() . ' ' . $booking->end_time
+                            );
+
+                            return $slotStart->lt($bookingEnd)
+                                && $slotEnd->gt($bookingStart);
+                        });
+
+                    if (! $isTaken && $slotStart->isFuture()) {
                         $slots[] = [
-                            'value' => $date->toDateString() . '|' . $start . '|' . $window->id,
-                            'start' => $start,
-                            'end'   => $cursor->copy()->addHour()->format('H:i'),
+                            'value' => $date->toDateString()
+                                . '|' . $slotStart->format('H:i')
+                                . '|' . $window->id,
+                            'start' => $slotStart->format('H:i'),
+                            'end' => $slotEnd->format('H:i'),
                         ];
                     }
-                    $cursor->addHour();
+
+                    $cursor->addMinutes(30);
                 }
             }
 
-            $days[] = ['date' => $date, 'slots' => $slots];
+            $days[] = [
+                'date' => $date,
+                'slots' => $slots,
+            ];
         }
 
         return $days;

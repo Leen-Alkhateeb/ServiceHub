@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -25,21 +26,12 @@ class HomeController extends Controller
         ]);
     }
 
-    public function category(Category $category): View
+    public function category(Category $category): RedirectResponse
     {
         abort_if($category->is_deleted, 404);
-        $vendors = $this->visibleVendors()
-            ->whereExists(fn (Builder $offers) => $offers->selectRaw('1')
-                ->from('vendor_services')
-                ->join('services', 'services.id', '=', 'vendor_services.service_id')
-                ->whereColumn('vendor_services.vendor_id', 'users.id')
-                ->where('vendor_services.status', 'active')
-                ->where('services.category_id', $category->id)
-                ->where('services.is_deleted', false)
-                ->where('services.approval_status', 'approved'))
-            ->paginate(12);
-
-        return view('pages.public.category', compact('category', 'vendors'));
+        return redirect()->route('market.index', [
+            'category' => $category->id,
+        ]);
     }
 
     public function vendors(): View

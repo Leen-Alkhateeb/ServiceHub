@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'الخدمات | ServiceHub')
+@section('title', isset($selectedCategory) && $selectedCategory ? $selectedCategory->name.' | الخدمات | ServiceHub' : 'الخدمات | ServiceHub')
 @section('page_id', 'services')
 
 @section('content')
@@ -414,8 +414,8 @@
 <main class="services-page">
     <section class="services-hero">
         <div class="services-wrap">
-            <h1>خدمات الصيانة</h1>
-            <p>اختار الخدمة المناسبة وقارن بين الفنيين والأسعار والتقييمات.</p>
+            <h1>{{ $selectedCategory ? 'خدمات قسم '.$selectedCategory->name : 'خدمات الصيانة' }}</h1>
+            <p>{{ $selectedCategory ? 'تصفح خدمات هذا القسم، واستخدم الفلاتر لتحديد الموقع والسعر والتقييم المناسب.' : 'اختار الخدمة المناسبة وقارن بين الفنيين والأسعار والتقييمات.' }}</p>
 
             <form class="services-search" method="GET" action="{{ route('market.index') }}">
                 <input
@@ -425,6 +425,9 @@
                     placeholder="ابحث باسم الخدمة أو الفني"
                     aria-label="ابحث باسم الخدمة أو الفني"
                 >
+                @if ($selectedCategory)
+                    <input type="hidden" name="category" value="{{ $selectedCategory->id }}">
+                @endif
                 <button type="submit">بحث</button>
             </form>
         </div>
@@ -504,14 +507,14 @@
                 <input type="hidden" name="sort" value="{{ request('sort', 'latest') }}">
 
                 <button class="filter-submit" type="submit">تطبيق الفلاتر</button>
-                <a class="clear-filters" href="{{ route('market.index') }}">مسح الفلاتر</a>
+                <a class="clear-filters" href="{{ route('market.index', $selectedCategory ? ['category' => $selectedCategory->id] : []) }}">مسح الفلاتر</a>
             </form>
         </aside>
 
         <section>
             <div class="results-heading">
                 <div>
-                    <h2>الخدمات المتاحة</h2>
+                    <h2>{{ $selectedCategory ? 'خدمات '.$selectedCategory->name : 'الخدمات المتاحة' }}</h2>
                     <p>{{ $services->total() }} خدمة متاحة</p>
                 </div>
 

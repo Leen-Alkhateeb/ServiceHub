@@ -214,6 +214,7 @@ a.btn-dark, .btn-dark { color: #fff; background: #202124; }
 }
 
 .account-tabs { gap: .35rem; overflow-x: auto; flex-wrap: nowrap; }
+[data-assistant-category][hidden] { display: none; }
 .auth-shell { display: flex; flex-direction: column; min-height: 100vh; min-height: 100svh; }
 .auth-content { flex: 1 0 auto; }
 .password-page { width: min(100% - 26px, 550px); margin-inline: auto; padding-block: clamp(1.5rem, 6vw, 4rem); }

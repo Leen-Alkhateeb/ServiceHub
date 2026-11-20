@@ -42,22 +42,23 @@ class VendorPagesController extends Controller
         ]);
         abort_unless($profile, 404);
         $tab = $request->query('tab', 'services');
-        if ($ownProfile) {
-            abort_unless(in_array($tab, ['services', 'portfolio', 'bookings', 'payments', 'income'], true), 404);
-        }
-        $entries = $ownProfile ? $history->forTab($user, $tab) : null;
+        $tabs = $ownProfile
+            ? ['services' => 'خدماتي', 'portfolio' => 'أعمالي', 'bookings' => 'طلباتي', 'payments' => 'مدفوعاتي', 'income' => 'مستحقاتي']
+            : ['services' => 'الخدمات', 'portfolio' => 'معرض الأعمال'];
+        abort_unless(is_string($tab) && isset($tabs[$tab]), 404);
+        $historyData = $ownProfile ? $history->forTab($user, $tab, $request) : ['entries' => null];
 
         $rating = Review::where('reviewed_user_id', $vendorId)->where('is_active', true)->avg('rating');
-        $projects = PortfolioProject::with('coverImage')->where('vendor_id', $vendorId)->where('is_active', true)->latest('id')
-            ->paginate(8, ['*'], 'projects_page')->withQueryString();
-        $services = $this->visibleOffers()->where('offers.vendor_id', $vendorId)->latest('offers.id')
+        $projects = $tab === 'portfolio' ? PortfolioProject::with('coverImage')->where('vendor_id', $vendorId)->where('is_active', true)->latest('id')
+            ->paginate(8, ['*'], 'projects_page')->withQueryString() : null;
+        $services = $tab === 'services' ? $this->visibleOffers()->where('offers.vendor_id', $vendorId)->latest('offers.id')
             ->paginate(8, ['offers.id', 'offers.status', 'services.name', 'offers.price', 'offers.description', 'offers.duration_minutes',
                 'offers.image', 'services.image as catalog_image', 'services.description as default_description'], 'services_page')
             ->withQueryString()->through(function ($service) {
                 $service->image_url = $this->resolveImage($service->id, $service->image, $service->catalog_image)[0] ?? null;
 
                 return $service;
-            });
+            }) : null;
 
         $catalog = $ownProfile ? DB::table('services')
             ->join('categories', 'categories.id', '=', 'services.category_id')
@@ -74,7 +75,7 @@ class VendorPagesController extends Controller
 
         $categories = $ownProfile ? DB::table('categories')->where('is_deleted', false)->orderBy('name')->get(['id', 'name']) : collect();
 
-        return view('pages.vendor.vendor-profile', compact('profile', 'ownProfile', 'rating', 'projects', 'services', 'catalog', 'requests', 'categories', 'tab', 'entries'));
+        return view('pages.vendor.vendor-profile', compact('profile', 'ownProfile', 'rating', 'projects', 'services', 'catalog', 'requests', 'categories', 'tab', 'tabs') + $historyData);
     }
 
     public function dashboard(Request $request): View

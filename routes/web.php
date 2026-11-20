@@ -80,13 +80,13 @@ Route::middleware('auth')->group(function () {
         $tab = $request->query('tab', 'overview');
 
         if ($account->role === 'vendor' && $account->status === 'active' && $account->vendorProfile()->exists()) {
-            return redirect()->route('vendor.profile', $request->has('tab') && is_string($tab) ? ['tab' => $tab] : []);
+            return redirect()->route('vendor.profile', $request->has('tab') && is_string($tab)
+                ? ['tab' => $tab] + $request->only(['q', 'category', 'from', 'to', 'page']) : []);
         }
 
         abort_unless(in_array($tab, ['overview', 'bookings', 'payments'], true), 404);
-        $entries = $history->forTab($account, $tab);
 
-        return view('pages.public.account', compact('account', 'tab', 'entries'));
+        return view('pages.public.account', compact('account', 'tab') + $history->forTab($account, $tab, $request));
     })->name('account.profile');
 
     Route::post('/become-vendor', [VendorApplicationController::class, 'store'])->middleware('throttle:10,1');

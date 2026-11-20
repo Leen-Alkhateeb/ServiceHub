@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Review extends Model
 {
+    const UPDATED_AT = null;
+
     protected $fillable = [
         'booking_id',
         'reviewer_id',

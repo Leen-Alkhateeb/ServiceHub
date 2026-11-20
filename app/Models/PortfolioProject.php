@@ -24,6 +24,6 @@ class PortfolioProject extends Model
 
     public function images(): HasMany
     {
-        return $this->hasMany(PortfolioImage::class, 'portfolio_project_id');
+        return $this->hasMany(PortfolioImage::class, 'project_id');
     }
 }

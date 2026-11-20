@@ -81,6 +81,9 @@ class MarketController extends Controller
             'categories' => Category::where('is_deleted', false)
                 ->orderBy('name')
                 ->get(),
+            'selectedCategory' => $request->filled('category')
+                ? Category::where('is_deleted', false)->find($request->integer('category'))
+                : null,
             'locations' => User::where('role', 'vendor')
                 ->whereNotNull('location')
                 ->distinct()

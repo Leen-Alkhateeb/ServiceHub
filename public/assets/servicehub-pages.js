@@ -146,6 +146,8 @@ const assistant = document.querySelector('[data-maintenance-assistant]');
 assistant?.addEventListener('submit', async (event) => {
     event.preventDefault();
     const result = document.querySelector('[data-assistant-result]');
+    const category = document.querySelector('[data-assistant-category]');
+    category.hidden = true;
     const button = assistant.querySelector('button');
     result.textContent = 'جارٍ البحث عن القسم المناسب…';
     button.disabled = true;
@@ -157,6 +159,10 @@ assistant?.addEventListener('submit', async (event) => {
         });
         const body = await response.json();
         result.textContent = body.message || 'تعذر عرض اقتراح الآن.';
+        if (response.ok && body.category_url) {
+            category.href = body.category_url;
+            category.hidden = false;
+        }
     } catch {
         result.textContent = 'تعذر الاتصال بالمساعد. تفقد اتصالك وحاول مرة أخرى.';
     } finally {

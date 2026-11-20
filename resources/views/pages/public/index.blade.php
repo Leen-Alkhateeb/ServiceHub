@@ -34,6 +34,7 @@
                 <button class="btn btn-dark" type="submit">جرّب المساعد</button>
             </form>
             <p data-assistant-result role="status" aria-live="polite"></p>
+            <a class="btn btn-outline btn-sm" data-assistant-category hidden>عرض الفنيين في القسم</a>
         </section>
     </div>
 

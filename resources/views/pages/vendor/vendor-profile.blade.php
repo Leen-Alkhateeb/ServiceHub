@@ -34,16 +34,9 @@
             @endif
         </div>
     </header>
-    @if ($ownProfile)
-        <x-account-tabs :tab="$tab" :tabs="['services' => 'خدماتي', 'portfolio' => 'أعمالي', 'bookings' => 'طلباتي', 'payments' => 'مدفوعاتي', 'income' => 'مستحقاتي']" route-name="vendor.profile" />
-    @else
-    <nav class="profile-nav" aria-label="أقسام الملف">
-        <a href="#services">الخدمات</a>
-        <a href="#portfolio">معرض الأعمال</a>
-    </nav>
-    @endif
+    <x-account-tabs :tab="$tab" :tabs="$tabs" route-name="vendor.profile" :route-params="$ownProfile ? [] : ['vendor' => $profile->id]" />
 
-    @if (! $ownProfile || $tab === 'services')
+    @if ($tab === 'services')
     <section class="section" id="services">
         <div class="section-head">
             <h2>الخدمات المتاحة</h2>
@@ -99,7 +92,7 @@
     </section>
     @endif
 
-    @if (! $ownProfile || $tab === 'portfolio')
+    @if ($tab === 'portfolio')
     <section class="section" id="portfolio">
         <div class="section-head">
             <h2>معرض الأعمال</h2>
@@ -129,7 +122,7 @@
     </section>
     @endif
     @if ($entries)
-        <x-account-history :tab="$tab" :entries="$entries" />
+        <x-account-history :tab="$tab" :entries="$entries" :filters="$filters" :categories="$historyCategories" route-name="vendor.profile" />
     @endif
     </div>
 </main>

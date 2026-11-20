@@ -19,7 +19,12 @@ class BookingProfileController extends Controller
     public function store(Request $request, VendorService $vendorService)
     {
         $customer = $request->user();
-        abort_unless($customer->role === 'customer' && $vendorService->status === 'active', 403);
+        $vendorService->loadMissing(['service.category', 'vendor.vendorProfile']);
+        abort_unless($customer->status === 'active' && $vendorService->status === 'active'
+            && $vendorService->vendor->status === 'active' && $vendorService->vendor->vendorProfile?->application_status === 'approved'
+            && $vendorService->service->approval_status === 'approved' && ! $vendorService->service->is_deleted
+            && ! $vendorService->service->category->is_deleted
+            && (int) $vendorService->vendor_id !== (int) $customer->id, 403);
 
         $request->validate(
             ['slot' => ['required', 'regex:/^\d{4}-\d{2}-\d{2}\|\d{2}:\d{2}\|\d+$/']],
@@ -89,7 +94,7 @@ class BookingProfileController extends Controller
             return back()->withErrors(['slot' => 'Sorry, this slot was just taken. Please pick another one.']);
         }
 
-        return redirect()->route('customer.bookings')
+        return redirect()->route('account.profile', ['tab' => 'bookings'])
             ->with('success', 'Booking request sent. We will notify you when the provider responds.');
     }
 
@@ -115,6 +120,6 @@ class BookingProfileController extends Controller
             'type'    => 'booking',
         ]);
 
-        return redirect()->route('customer.bookings')->with('success', 'Booking cancelled.');
+        return redirect()->route('account.profile', ['tab' => 'bookings'])->with('success', 'تم إلغاء الحجز.');
     }
 }

@@ -6,7 +6,7 @@
 @include('pages.partials.market-assets')
 
 <div class="row between no-print">
-    <a href="{{ route('customer.bookings') }}">← الرجوع لحجوزاتي</a>
+    <a href="{{ route('account.profile', ['tab' => 'bookings']) }}">← الرجوع لحجوزاتي</a>
     <button type="button" class="btn btn-dark btn-sm" onclick="window.print()">طباعة الفاتورة</button>
 </div>
 

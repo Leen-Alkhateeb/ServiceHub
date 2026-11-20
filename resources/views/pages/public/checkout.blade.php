@@ -5,7 +5,7 @@
 
 @include('pages.partials.market-assets')
 
-<p class="muted"><a href="{{ route('customer.bookings') }}">← الرجوع لحجوزاتي</a></p>
+<p class="muted"><a href="{{ route('account.profile', ['tab' => 'bookings']) }}">← الرجوع لحجوزاتي</a></p>
 
 <div class="card" style="max-width:560px;margin:auto">
     <h2>إتمام الدفع</h2>

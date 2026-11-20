@@ -22,7 +22,8 @@ class MarketController extends Controller
                 'vendor' => fn ($q) => $q->withAvg('reviewsReceived', 'rating')->withCount('reviewsReceived'),
             ])
             ->whereHas('service', fn ($q) => $q->where('approval_status', 'approved')->where('is_deleted', false))
-            ->whereHas('vendor', fn ($q) => $q->where('status', 'active'));
+            ->whereHas('vendor', fn ($q) => $q->where('status', 'active')
+                ->whereHas('vendorProfile', fn ($profile) => $profile->where('application_status', 'approved')));
 
         if ($request->filled('q')) {
             $term = '%' . $request->q . '%';
@@ -76,6 +77,9 @@ class MarketController extends Controller
 
         $vendorService->load(['service.category', 'vendor.vendorProfile']);
         $vendor = $vendorService->vendor;
+        abort_unless($vendor->status === 'active' && $vendor->vendorProfile?->application_status === 'approved'
+            && $vendorService->service->approval_status === 'approved' && ! $vendorService->service->is_deleted
+            && ! $vendorService->service->category->is_deleted, 404);
 
         return view('pages.public.service-details', [
             'vendorService' => $vendorService,

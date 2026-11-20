@@ -2,5 +2,5 @@
     <a href="{{ route('vendor.profile') }}">ملف الفني</a>
     <a href="{{ route('vendor.wallet') }}">السجل المالي</a>
     <a href="{{ route('vendor.reviews') }}">تقييم العملاء</a>
-    <a href="{{ route('vendor.profile') }}#portfolio">معرض الأعمال</a>
+    <a href="{{ route('vendor.profile', ['tab' => 'portfolio']) }}#portfolio">معرض الأعمال</a>
 </nav>

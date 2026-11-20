@@ -13,10 +13,27 @@
                     $account = auth()->user();
                     $unread = $account->notifications()->where('is_read', false)->count();
                     $recentNotifications = $account->notifications()->latest('id')->limit(5)->get();
+                    $dashboard = match ($account->role) {
+                        'vendor' => 'vendor.dashboard',
+                        'admin' => 'admin.dashboard',
+                        default => null,
+                    };
                 @endphp
-                <a class="account-picture-link" href="{{ route('account.profile') }}" aria-label="فتح ملفي الشخصي">
-                    <x-account-picture :account="$account" />
-                </a>
+                @if ($dashboard && $account->status === 'active')
+                    <a class="btn btn-yellow btn-sm" href="{{ route($dashboard) }}">لوحة التحكم</a>
+                @endif
+                <details class="account-dropdown">
+                    <summary class="account-picture-link" aria-label="قائمة الحساب">
+                        <x-account-picture :account="$account" />
+                    </summary>
+                    <div class="account-menu">
+                        <a href="{{ route('account.profile') }}">ملفي الشخصي</a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit">تسجيل الخروج</button>
+                        </form>
+                    </div>
+                </details>
                 <details class="notification-dropdown">
                     <summary class="notification-link" aria-label="الإشعارات، {{ $unread }} غير مقروءة">
                         <svg viewBox="0 0 24 24" width="23" height="23" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 6-3 7-3 9h18c0-2-3-3-3-9M10 21h4" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -43,10 +60,6 @@
                 @elseif ($account->role === 'admin' && $account->status === 'active')
                     <a class="btn btn-yellow btn-sm" href="{{ route('admin.service-requests.index') }}">طلبات الخدمات</a>
                 @endif
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="btn btn-outline btn-sm" type="submit">تسجيل الخروج</button>
-                </form>
             @else
                 <a class="btn btn-outline btn-sm" href="{{ route('login') }}">تسجيل الدخول</a>
                 <a class="btn btn-yellow btn-sm" href="{{ route('register') }}">إنشاء حساب</a>

@@ -1,21 +1,26 @@
 @extends('layouts.app')
-@section('title', 'الإشعارات | ServiceHub')
-@section('page_id', 'customer-notifications')
+@section('title', 'الإشعارات')
+
 @section('content')
-    @include('components.navbar')<div class="container layout">@include('components.sidebars.customer')<div>
-            <div class="dash-title">
-                <div><span class="small muted">لوحة العميل</span>
-                    <h1>الإشعارات</h1>
-                </div><span class="demo">بيانات تجريبية</span>
+@include('pages.partials.market-assets')
+
+<div class="profile-layout">
+    @include('pages.customer.menu')
+
+    <section class="stack">
+        <h2>الإشعارات</h2>
+
+        @forelse ($notifications as $notification)
+            <div class="card notice {{ $notification->is_read ? '' : 'unread' }}">
+                <div>
+                    <strong>{{ $notification->title }}</strong>
+                    <p class="muted">{{ $notification->message }}</p>
+                </div>
+                <span class="muted">{{ $notification->created_at->locale('ar')->diffForHumans() }}</span>
             </div>
-            <div class="panel">
-                <h3>الإشعارات</h3>
-                <p>إشعارات حالة الحجوزات والمدفوعات والاعتراضات.</p>
-                <form data-demo="">
-                    <div class="field"><label>عنوان الإشعار</label><input name="f0" placeholder="عنوان الإشعار"
-                            required="" type="text" /></div><button class="btn btn-yellow">حفظ تجريبي</button>
-                </form>
-            </div>
-        </div>
-    </div>@include('components.footer')@include('components.mobile-nav-customer')
+        @empty
+            <div class="card empty"><p class="muted">ما عندك إشعارات.</p></div>
+        @endforelse
+    </section>
+</div>
 @endsection

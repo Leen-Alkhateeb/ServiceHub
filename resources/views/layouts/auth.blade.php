@@ -7,8 +7,10 @@
 @endpush
 
 @section('content')
-    @include('components.navbar')
-    @yield('auth-content')
-    @include('components.footer')
+    <div class="auth-shell">
+        @include('components.navbar')
+        <div class="auth-content">@yield('auth-content')</div>
+        @include('components.footer')
+    </div>
     @include('components.mobile-nav-public')
 @endsection

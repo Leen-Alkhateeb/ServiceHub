@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Booking;
+use App\Models\Category;
 use App\Models\Notification;
 use App\Models\Payment;
 use App\Models\PortfolioProject;
@@ -12,6 +13,7 @@ use App\Models\Service;
 use App\Models\User;
 use App\Models\VendorProfile;
 use App\Models\VendorService;
+use App\Models\WalletTransaction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -22,6 +24,22 @@ use Tests\TestCase;
 class VendorWorkspaceTest extends TestCase
 {
     use RefreshDatabase;
+
+    public function test_visitors_switch_between_services_and_portfolio_without_seeing_private_tabs(): void
+    {
+        $vendor = VendorProfile::factory()->create()->user;
+        $offer = VendorService::factory()->for($vendor, 'vendor')->create();
+        $project = PortfolioProject::factory()->for($vendor, 'vendor')->create(['name' => 'Portfolio sample']);
+        $public = ['vendor' => $vendor->id];
+        $portfolio = ['tab' => 'portfolio'] + $public;
+
+        $this->actingAs(User::factory()->create())->get(route('vendor.profile', $public))->assertOk()
+            ->assertSee($offer->service->name)->assertDontSee($project->name)->assertSee(route('vendor.profile', $portfolio));
+        $this->get(route('vendor.profile', $portfolio))->assertOk()
+            ->assertSee($project->name)->assertDontSee($offer->service->name)->assertDontSee('مدفوعاتي');
+        $this->get(route('vendor.profile', ['tab' => 'income'] + $public))->assertNotFound();
+        $this->get(route('vendor.portfolio.show', $project))->assertOk()->assertSee(route('vendor.profile', $portfolio).'#portfolio');
+    }
 
     public function test_demo_seed_has_at_least_fifteen_rows_per_business_table_and_can_be_rerun(): void
     {
@@ -51,7 +69,7 @@ class VendorWorkspaceTest extends TestCase
         $this->get(route('account.profile'))->assertRedirect(route('vendor.profile'));
         $this->get(route('vendor.profile'))->assertOk()->assertSee(route('vendor.service.reviews', $offer))
             ->assertSeeInOrder([$vendor->first_name.' '.$vendor->last_name, $vendor->vendorProfile->work_type])
-            ->assertSee('vendor-profile-layout')->assertSee(route('vendor.profile').'#portfolio');
+            ->assertSee('vendor-profile-layout')->assertSee(route('vendor.profile', ['tab' => 'portfolio']).'#portfolio');
         $this->get(route('vendor.wallet', ['status' => 'released', 'q' => $offer->service->name, 'to' => now()->toDateString()]))
             ->assertOk()->assertSee('40.00')->assertSee('حالة الدفع')->assertSee('page=2')
             ->assertSee('balance-cards')->assertSee('السابق')->assertSee('التالي')->assertSee('dialog-date-time')
@@ -175,12 +193,12 @@ class VendorWorkspaceTest extends TestCase
                 UploadedFile::fake()->createWithContent('before.png', $png),
                 UploadedFile::fake()->createWithContent('after.png', $png),
             ],
-        ])->assertRedirect(route('vendor.profile').'#portfolio');
+        ])->assertRedirect(route('vendor.profile', ['tab' => 'portfolio']).'#portfolio');
 
         $project = PortfolioProject::latest('id')->firstOrFail();
         $this->assertSame($vendor->id, $project->vendor_id);
         $this->assertCount(2, $project->images);
-        $this->get(route('vendor.profile'))->assertSeeInOrder(['Newest portfolio project', 'مشروع كشف وإصلاح تسريبات المياه']);
+        $this->get(route('vendor.profile', ['tab' => 'portfolio']))->assertSeeInOrder(['Newest portfolio project', 'مشروع كشف وإصلاح تسريبات المياه']);
         $this->get(route('vendor.portfolio.show', $project))->assertOk()->assertSee($project->description)
             ->assertSee('87.50')->assertSee('project-thumbnails');
         foreach ($project->images as $image) {
@@ -302,14 +320,84 @@ class VendorWorkspaceTest extends TestCase
 
     public function test_assistant_handles_missing_configuration_and_accepts_a_provider_response(): void
     {
-        config(['services.gemini.key' => null, 'services.gemini.model' => null]);
-        $this->postJson(route('maintenance.assistant'), ['problem' => 'Leaking pipe'])->assertServiceUnavailable();
+        $plumbing = Category::factory()->create(['name' => 'السباكة']);
         config(['services.gemini.key' => 'fake-key', 'services.gemini.model' => 'test-model']);
         Http::fake(['https://generativelanguage.googleapis.com/*' => Http::response([
-            'candidates' => [['content' => ['parts' => [['text' => 'السباكة']]]]],
+            'candidates' => [['content' => ['parts' => [['text' => json_encode(['category_id' => $plumbing->id])]]]]],
         ])]);
-        $this->postJson(route('maintenance.assistant'), ['problem' => 'Leaking pipe'])
-            ->assertOk()->assertJsonPath('message', 'السباكة');
+        $url = route('categories.show', $plumbing);
+        $this->postJson(route('maintenance.assistant'), ['problem' => 'الحنفية بتسرّب مي'])
+            ->assertOk()->assertJsonPath('category_url', $url);
+        $this->postJson(route('maintenance.assistant'), ['problem' => 'اكتب كود PHP لتصليح المشروع'])
+            ->assertOk()->assertJsonMissingPath('category_url');
+        Http::assertNothingSent();
+        $this->postJson(route('maintenance.assistant'), ['problem' => 'في رطوبة داخل الجدار تحت المغسلة'])
+            ->assertOk()->assertJsonPath('category_url', $url);
         Http::assertSent(fn ($request) => $request->hasHeader('x-goog-api-key', 'fake-key'));
+    }
+
+    public function test_vendor_registration_creates_a_pending_profile_and_stores_the_permit_privately(): void
+    {
+        $disk = Storage::fake('local');
+        $this->get(route('register'))->assertOk()->assertSee('بيانات المهنة')->assertSee('account_type');
+        $data = [
+            'account_type' => 'vendor', 'first_name' => 'New', 'last_name' => 'Technician',
+            'email' => 'new-technician@example.test', 'phone' => '0700000000', 'location' => 'Amman',
+            'gender' => 'male', 'password' => 'servicehub-test-password', 'password_confirmation' => 'servicehub-test-password',
+            'work_type' => 'Plumbing', 'experience_years' => 5, 'bio' => 'Home plumbing and inspection.',
+            'permit_expiry_date' => now()->addYear()->format('Y-m-d'),
+        ];
+        $this->post(route('register'), $data)->assertSessionHasErrors('work_permit');
+        $this->assertDatabaseMissing('users', ['email' => $data['email']]);
+        $this->post(route('register'), $data + [
+            'work_permit' => UploadedFile::fake()->create('permit.pdf', 10, 'application/pdf'),
+        ])->assertRedirect(route('vendor.dashboard'));
+        $vendor = User::whereEmail($data['email'])->firstOrFail();
+        $this->assertAuthenticatedAs($vendor);
+        $this->assertSame('vendor', $vendor->role);
+        $this->assertSame('pending', $vendor->vendorProfile->application_status);
+        $disk->assertExists($vendor->vendorProfile->work_permit_path);
+        $this->get(route('vendor.dashboard'))->assertOk()->assertSee('حالة طلب الانضمام');
+    }
+
+    public function test_a_vendor_and_admin_can_book_and_each_profile_shows_only_its_own_history(): void
+    {
+        $seller = VendorProfile::factory()->create()->user;
+        $buyer = VendorProfile::factory()->create()->user;
+        $offer = VendorService::factory()->for($seller, 'vendor')->create();
+        $tomorrow = now()->addDay()->startOfDay();
+        $window = $seller->recurringAvailabilities()->create([
+            'day_of_week' => $tomorrow->dayOfWeek, 'start_time' => '09:00:00', 'end_time' => '12:00:00',
+        ]);
+        $slot = fn (string $hour) => ['slot' => $tomorrow->format('Y-m-d').'|'.$hour.'|'.$window->id];
+        $store = route('booking.store', $offer);
+        $this->actingAs($seller)->post($store, $slot('09:00'))->assertForbidden();
+        $this->actingAs($buyer)->get(route('market.show', $offer))->assertOk()->assertSee('احجز الآن');
+        $this->post($store, $slot('09:00'))->assertRedirect(route('account.profile', ['tab' => 'bookings']));
+        $ownBooking = $buyer->bookingsAsCustomer()->firstOrFail();
+        Payment::factory()->for($ownBooking)->create(['amount' => 77.55, 'paid_at' => now()->subDay()]);
+        $this->get(route('vendor.profile', ['tab' => 'payments']))->assertOk()
+            ->assertSee('77.55')->assertDontSee('طلب إضافة خدمة');
+        $this->get(route('vendor.profile', ['tab' => 'bookings']))->assertOk()->assertSee($ownBooking->service_name);
+        $this->get(route('vendor.profile', [
+            'tab' => 'bookings', 'q' => $ownBooking->service_name, 'category' => $offer->service->category_id,
+            'from' => $tomorrow->toDateString(), 'to' => $tomorrow->toDateString(),
+        ]))->assertOk()->assertSee('تفاصيل الطلب')->assertSee('data-open-dialog="history-'.$ownBooking->id.'"', false);
+        $this->get(route('vendor.profile', [
+            'tab' => 'payments', 'q' => $seller->first_name.' '.$seller->last_name,
+            'from' => now()->subDay()->toDateString(), 'to' => now()->subDay()->toDateString(),
+        ]))->assertOk()->assertSee('تفاصيل الدفعة')->assertSee('77.55')->assertDontSee('الفاتورة');
+        $this->get(route('vendor.profile', ['tab' => 'payments', 'from' => $tomorrow->toDateString()]))
+            ->assertOk()->assertDontSee('77.55');
+        $incoming = Booking::factory()->for(VendorService::factory()->for($buyer, 'vendor'))->create();
+        WalletTransaction::factory()->for($incoming)->create(['amount' => 46.25]);
+        $this->get(route('vendor.profile', ['tab' => 'income']))->assertOk()->assertSee('46.25')->assertDontSee('77.55');
+        $this->get(route('home'))->assertSee(route('vendor.dashboard'))->assertSee('قائمة الحساب');
+
+        $admin = User::factory()->admin()->create();
+        $this->actingAs($admin)->post($store, $slot('10:00'))->assertRedirect();
+        $this->get(route('account.profile', ['tab' => 'payments']))->assertOk()->assertDontSee('77.55');
+        $this->get(route('home'))->assertSee(route('admin.dashboard'));
+        $this->actingAs(User::factory()->create())->get(route('home'))->assertDontSee('لوحة التحكم');
     }
 }

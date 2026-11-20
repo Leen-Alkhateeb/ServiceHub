@@ -40,13 +40,14 @@
                                 @csrf
                                 @method('PATCH')
                                 <input type="hidden" name="status" value="approved">
-                                <button class="btn btn-yellow btn-sm" type="submit">موافقة</button>
+                                <button class="btn btn-yellow btn-sm" style="width:50px"  type="submit">موافقة</button>
                             </form>
+                            
                             <form method="POST" action="{{ route('vendor.vendor-bookings.update', $booking) }}">
                                 @csrf
                                 @method('PATCH')
                                 <input type="hidden" name="status" value="rejected">
-                                <button class="btn btn-outline btn-sm" type="submit">رفض</button>
+                                <button class="btn btn-outline btn-sm" style="width:50px; margin-top:10px;"   type="submit">رفض</button>
                             </form>
                         </div>
                     </article>
@@ -54,7 +55,6 @@
                     <p class="muted">ما عندك طلبات جديدة بانتظار الرد.</p>
                 @endforelse
             </section>
-
             <section class="panel">
                 <h2>حجوزات أخرى</h2>
                 @forelse ($otherBookings as $booking)

@@ -183,7 +183,6 @@ Route::middleware('auth')->group(function () {
     Route::middleware(['auth', ActiveVendor::class])
     ->name('vendor.')
     ->group(function () {
-        Route::get('/vendor-dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::get('/vendor-availability', [VendorAvailabilityController::class, 'index'])->name('availability.index');
         Route::post('/vendor-availability', [VendorAvailabilityController::class, 'store'])->name('availability.store');
         Route::patch('/vendor-availability/{availability}', [VendorAvailabilityController::class, 'update'])->name('availability.update');
@@ -217,13 +216,9 @@ Route::middleware('auth')->group(function () {
             404
         );
 
-        $entries = $history->forTab($account, $tab);
+        $historyData = $history->forTab($account, $tab, $request);
 
-        return view('pages.public.account', compact(
-            'account',
-            'tab',
-            'entries'
-        ));
+        return view('pages.public.account', compact('account', 'tab') + $historyData);
 
     })->name('account.profile');
 

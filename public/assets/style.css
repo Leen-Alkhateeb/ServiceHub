@@ -376,6 +376,7 @@ button:disabled {
   padding: 12px 15px;
   font-size: 13px;
   margin: 16px 0;
+  list-style: none;
 }
 .steps {
   display: flex;
@@ -593,6 +594,10 @@ tr:last-child td {
 }
 .item-row:last-child {
   border: 0;
+}
+
+.item-row.row:last-child{
+  margin-top: 20px;
 }
 .toolbar {
   display: flex;

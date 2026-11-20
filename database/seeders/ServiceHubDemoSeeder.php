@@ -83,7 +83,7 @@ class ServiceHubDemoSeeder extends Seeder
                     'description' => $description, 'price' => $price,
                 ]);
                 $slot = $this->seed(RecurringAvailability::factory(), [
-                    'vendor_id' => $vendor->id, 'day_of_week' => 'monday', 'start_time' => '09:00:00',
+                    'vendor_id' => $vendor->id, 'day_of_week' => 1, 'start_time' => '09:00:00',
                 ]);
                 $project = $this->seed(PortfolioProject::factory(), [
                     'vendor_id' => $vendor->id, 'name' => "مشروع $name",
@@ -194,7 +194,7 @@ class ServiceHubDemoSeeder extends Seeder
         ], [
             'availability_id' => fn () => $this->seed(RecurringAvailability::factory(), [
                 'vendor_id' => $offer->vendor_id,
-                'day_of_week' => strtolower($start->englishDayOfWeek),
+                'day_of_week' => $start->dayOfWeek,
                 'start_time' => $start->toTimeString(),
                 'end_time' => $recent->toTimeString(),
             ])->id,

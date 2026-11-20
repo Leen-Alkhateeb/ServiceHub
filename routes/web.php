@@ -2,10 +2,16 @@
 
 use App\Http\Controllers\AccountDetailsController;
 use App\Http\Controllers\AccountPictureController;
+use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\BookingProfileController;
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MaintenanceAssistantController;
+use App\Http\Controllers\MarketController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PortfolioController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\VendorApplicationController;
 use App\Http\Controllers\VendorPagesController;
 use App\Http\Controllers\VendorReviewController;
@@ -13,6 +19,7 @@ use App\Http\Controllers\VendorServiceRequestController;
 use App\Http\Controllers\VendorWalletController;
 use App\Http\Middleware\ActiveAdmin;
 use App\Http\Middleware\ActiveVendor;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -23,6 +30,9 @@ Route::group([], function () {
     Route::get('/categories', [HomeController::class, 'categories'])->name('categories.index');
     Route::get('/categories/{category}', [HomeController::class, 'category'])->name('categories.show');
     Route::get('/vendors', [HomeController::class, 'vendors'])->name('vendors.index');
+    Route::get('/services', [MarketController::class, 'index'])->name('market.index');
+    Route::get('/services/{vendorService}', [MarketController::class, 'show'])->name('market.show');
+    Route::get('/providers/{vendor}', fn (User $vendor) => redirect()->route('vendor.profile', ['vendor' => $vendor->id]))->name('provider.show');
     Route::view('/faq', 'pages.public.faq')->name('faq');
     Route::get('/profile-pictures/{account}', [AccountPictureController::class, 'show'])->name('account.picture.show');
     Route::post('/maintenance-assistant', MaintenanceAssistantController::class)
@@ -41,6 +51,26 @@ Route::name('vendor.')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    Route::name('customer.')->group(function () {
+        Route::get('/dashboard', [ProfileController::class, 'dashboard'])->name('dashboard');
+        Route::get('/bookings', [ProfileController::class, 'bookings'])->name('bookings');
+        Route::get('/favorites', [ProfileController::class, 'favorites'])->name('favorites');
+        Route::get('/customer-notifications', [ProfileController::class, 'notifications'])->name('notifications');
+        Route::get('/settings', [ProfileController::class, 'settings'])->name('settings');
+        Route::put('/settings', [ProfileController::class, 'updateSettings'])->name('settings.update');
+    });
+    Route::redirect('/customer-dashboard', '/dashboard');
+    Route::redirect('/customer-bookings', '/bookings');
+    Route::redirect('/customer-favorites', '/favorites');
+    Route::redirect('/customer-settings', '/settings');
+    Route::post('/services/{vendorService}/favorite', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+    Route::post('/services/{vendorService}/book', [BookingProfileController::class, 'store'])->name('booking.store');
+    Route::post('/bookings/{booking}/cancel', [BookingProfileController::class, 'cancel'])->name('booking.cancel');
+    Route::post('/bookings/{booking}/payment', [PaymentController::class, 'store'])->name('payment.store');
+    Route::get('/bookings/{booking}/checkout', [PaymentController::class, 'checkout'])->name('payment.checkout');
+    Route::get('/bookings/{booking}/invoice', [PaymentController::class, 'invoice'])->name('payment.invoice');
+    Route::get('/AdminDashboard', [AdminDashboardController::class, 'index'])->middleware(ActiveAdmin::class)->name('admin.dashboard');
+
     Route::patch('/my-profile', AccountDetailsController::class)->name('account.details.update');
     Route::post('/my-profile/photo', [AccountPictureController::class, 'update'])->middleware('throttle:10,1')->name('account.picture.update');
     Route::delete('/my-profile/photo', [AccountPictureController::class, 'destroy'])->middleware('throttle:10,1')->name('account.picture.destroy');

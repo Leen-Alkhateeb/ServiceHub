@@ -15,7 +15,7 @@ class RecurringAvailabilityFactory extends Factory
     {
         return [
             'vendor_id' => User::factory()->vendor(),
-            'day_of_week' => 'monday',
+            'day_of_week' => 1,
             'start_time' => '09:00:00',
             'end_time' => '12:00:00',
             'is_active' => true,

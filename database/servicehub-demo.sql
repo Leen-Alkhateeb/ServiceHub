@@ -36,7 +36,7 @@ INSERT INTO portfolio_projects (vendor_id, name, description, completion_date, c
 VALUES (@demo_vendor_id, 'إصلاح تسريب في مبنى سكني', 'استبدال الوصلات التالفة واختبار ضغط الشبكة.', '2026-11-08', NOW(), NOW());
 
 INSERT INTO recurring_availability (vendor_id, day_of_week, start_time, end_time, created_at, updated_at)
-VALUES (@demo_vendor_id, 'monday', '09:00:00', '12:00:00', NOW(), NOW());
+VALUES (@demo_vendor_id, 1, '09:00:00', '12:00:00', NOW(), NOW());
 SET @demo_availability_id = LAST_INSERT_ID();
 
 INSERT INTO bookings (customer_id, vendor_service_id, availability_id, booking_date, start_time, end_time, service_name, service_description, original_price, status, completed_at, created_at, updated_at)

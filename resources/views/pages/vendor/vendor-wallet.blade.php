@@ -44,7 +44,7 @@
                     <tbody>
                         @forelse ($bookings as $booking)
                             @php
-                                $released = $booking->walletTransactions->contains('transaction_type', 'credit');
+                                $released = $booking->walletTransactions->contains(fn ($entry) => in_array($entry->transaction_type, ['credit', 'payout'], true));
                                 $paymentIssue = $booking->payment?->status !== 'paid';
                                 $complaint = $booking->refundRequest && $booking->refundRequest->status !== 'rejected';
                                 $releaseAt = \Illuminate\Support\Carbon::parse($booking->completed_at)->addHours(24);

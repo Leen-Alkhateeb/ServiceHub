@@ -16,7 +16,7 @@ class VendorSettlement
 
     public function statusQuery(Builder $query, string $status): Builder
     {
-        $credit = fn (Builder $entries) => $entries->where('transaction_type', 'credit');
+        $credit = fn (Builder $entries) => $entries->whereIn('transaction_type', ['credit', 'payout']);
         if ($status === 'released') {
             return $query->whereHas('walletTransactions', $credit);
         }

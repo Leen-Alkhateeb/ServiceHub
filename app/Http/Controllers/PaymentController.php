@@ -24,9 +24,11 @@ class PaymentController extends Controller
             && Carbon::parse($booking->payment_deadline)->isPast()) {
             $booking->update(['status' => 'expired']);
 
+
             return redirect()
                 ->route('customer.bookings')
                 ->with('error', 'انتهت مهلة الدفع وأُلغي الحجز.');
+
         }
 
         // الدفع الحالي هو عربون بالبطاقة؛ لا تُحفظ بيانات البطاقة.

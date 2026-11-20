@@ -4,7 +4,7 @@
 @section('content')
 @include('components.navbar')
 <main class="container project-page">
-    <a class="project-back" href="{{ route('vendor.profile', ['vendor' => $project->vendor_id]) }}#portfolio">→ العودة إلى معرض الأعمال</a>
+    <a class="project-back" href="{{ route('vendor.profile', ['tab' => 'portfolio'] + ($isOwner ? [] : ['vendor' => $project->vendor_id])) }}#portfolio">→ العودة إلى معرض الأعمال</a>
     @if (session('status'))<p class="notice" role="status">{{ session('status') }}</p>@endif
     <div class="product-project">
         <section class="project-media" aria-label="صور المشروع" data-project-gallery>

@@ -19,6 +19,8 @@ class BookingProfileController extends Controller
     {
         $customer = $request->user();
 
+       
+
         abort_unless(
             $customer->role === 'customer'
             && $vendorService->status === 'active',
@@ -159,6 +161,7 @@ class BookingProfileController extends Controller
         return redirect()
             ->route('payment.checkout', $booking)
             ->with('success', 'تم حجز الموعد. أكمل الدفع خلال 30 دقيقة.');
+
     }
 
     /** إلغاء الحجز قبل الدفع */
@@ -183,8 +186,10 @@ class BookingProfileController extends Controller
             'type' => 'booking',
         ]);
 
+
         return redirect()
             ->route('customer.bookings')
             ->with('success', 'تم إلغاء الحجز.');
+
     }
 }

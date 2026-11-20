@@ -7,6 +7,7 @@
 @include('components.navbar')
 
 @php
+
     $imagePath = $vendorService->image ?: $vendorService->service->image;
     $categoryName = $vendorService->service->category->name ?? '';
 
@@ -42,6 +43,7 @@
     $hasSlots = collect($days)->contains(
         fn ($day) => count($day['slots']) > 0
     );
+
 @endphp
 
 <style>
@@ -100,6 +102,7 @@
         background: #fff;
         box-shadow: 0 8px 25px #18342e08;
     }
+
 
     .sd-cover {
         height: 340px;
@@ -465,6 +468,7 @@
                     @elseif ($isCustomer)
                         <a class="sd-button" href="#booking">اختر موعدًا</a>
 
+
                         <form method="POST"
                               action="{{ route('favorites.toggle', $vendorService) }}">
                             @csrf
@@ -476,6 +480,7 @@
                         <p class="sd-muted">الحجز متاح للعملاء فقط.</p>
                     @endguest
                 </section>
+
 
                 <section class="sd-card sd-aside-card">
                     <h2 class="sd-heading">مقدّم الخدمة</h2>

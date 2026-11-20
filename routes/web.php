@@ -20,6 +20,7 @@ use App\Http\Controllers\VendorWalletController;
 use App\Http\Middleware\ActiveAdmin;
 use App\Http\Middleware\ActiveVendor;
 use App\Models\User;
+use App\Services\AccountHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -74,14 +75,18 @@ Route::middleware('auth')->group(function () {
     Route::patch('/my-profile', AccountDetailsController::class)->name('account.details.update');
     Route::post('/my-profile/photo', [AccountPictureController::class, 'update'])->middleware('throttle:10,1')->name('account.picture.update');
     Route::delete('/my-profile/photo', [AccountPictureController::class, 'destroy'])->middleware('throttle:10,1')->name('account.picture.destroy');
-    Route::get('/my-profile', function (Request $request) {
+    Route::get('/my-profile', function (Request $request, AccountHistory $history) {
         $account = $request->user();
+        $tab = $request->query('tab', 'overview');
 
         if ($account->role === 'vendor' && $account->status === 'active' && $account->vendorProfile()->exists()) {
-            return redirect()->route('vendor.profile');
+            return redirect()->route('vendor.profile', $request->has('tab') && is_string($tab)
+                ? ['tab' => $tab] + $request->only(['q', 'category', 'from', 'to', 'page']) : []);
         }
 
-        return view('pages.public.account', compact('account'));
+        abort_unless(in_array($tab, ['overview', 'bookings', 'payments'], true), 404);
+
+        return view('pages.public.account', compact('account', 'tab') + $history->forTab($account, $tab, $request));
     })->name('account.profile');
 
     Route::post('/become-vendor', [VendorApplicationController::class, 'store'])->middleware('throttle:10,1');
@@ -92,6 +97,7 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::middleware(ActiveVendor::class)->name('vendor.')->group(function () {
+        Route::get('/vendor-dashboard', [VendorPagesController::class, 'dashboard'])->name('dashboard');
         Route::get('/vendor-wallet', VendorWalletController::class)->name('wallet');
         Route::get('/vendor-reviews', [VendorReviewController::class, 'index'])->name('reviews');
         Route::post('/vendor-reviews/{booking}', [VendorReviewController::class, 'store'])->name('reviews.store');

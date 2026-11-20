@@ -16,13 +16,15 @@ class MarketController extends Controller
     /** قائمة الخدمات مع البحث والفلاتر */
     public function index(Request $request)
     {
+        $activeReviews = fn ($reviews) => $reviews->where('is_active', true);
+
         $query = VendorService::query()
             ->where('status', 'active')
             ->with([
                 'service.category',
                 'vendor' => fn ($q) => $q
-                    ->withAvg('reviewsReceived', 'rating')
-                    ->withCount('reviewsReceived'),
+                    ->withAvg(['reviewsReceived' => $activeReviews], 'rating')
+                    ->withCount(['reviewsReceived' => $activeReviews]),
             ])
             ->whereHas('service', fn ($q) => $q
                 ->where('approval_status', 'approved')
@@ -61,7 +63,9 @@ class MarketController extends Controller
 
         if ($request->filled('rating')) {
             $query->whereHas('vendor', fn ($v) => $v->whereRaw(
-                '(select avg(rating) from reviews where reviews.reviewed_user_id = users.id) >= ?',
+                '(select avg(rating) from reviews
+                 where reviews.reviewed_user_id = users.id
+                 and reviews.is_active = 1) >= ?',
                 [(float) $request->rating]
             ));
         }
@@ -96,19 +100,34 @@ class MarketController extends Controller
         $vendorService->load(['service.category', 'vendor.vendorProfile']);
         $vendor = $vendorService->vendor;
 
+        abort_unless(
+            $vendor->status === 'active'
+            && $vendor->vendorProfile?->application_status === 'approved'
+            && $vendorService->service->approval_status === 'approved'
+            && ! $vendorService->service->is_deleted
+            && ! $vendorService->service->category->is_deleted,
+            404
+        );
+
+        $activeReviews = Review::query()
+            ->where('reviewed_user_id', $vendor->id)
+            ->where('is_active', true);
+
+        $rating = round((float) (clone $activeReviews)->avg('rating'), 1);
+        $reviewsCount = (clone $activeReviews)->count();
+
+        $reviews = (clone $activeReviews)
+            ->with('reviewer')
+            ->latest('id')
+            ->paginate(10)
+            ->withQueryString();
+
         return view('pages.public.service-details', [
             'vendorService' => $vendorService,
             'vendor' => $vendor,
-            'rating' => round(
-                (float) $vendor->reviewsReceived()->avg('rating'),
-                1
-            ),
-            'reviewsCount' => $vendor->reviewsReceived()->count(),
-            'reviews' => Review::with('reviewer')
-                ->where('reviewed_user_id', $vendor->id)
-                ->latest('id')
-                ->take(5)
-                ->get(),
+            'rating' => $rating,
+            'reviewsCount' => $reviewsCount,
+            'reviews' => $reviews,
             'days' => $this->availableDays($vendorService),
             'isFavorite' => auth()->check()
                 && auth()->user()->favorites()
@@ -182,7 +201,6 @@ class MarketController extends Controller
                                 $date->toDateString() . ' ' . $booking->end_time
                             );
 
-                            // يخفي الموعد إذا تداخل مع حجز آخر.
                             return $slotStart->lt($bookingEnd)
                                 && $slotEnd->gt($bookingStart);
                         });
@@ -197,7 +215,6 @@ class MarketController extends Controller
                         ];
                     }
 
-                    // إظهار خيار موعد جديد كل 30 دقيقة.
                     $cursor->addMinutes(30);
                 }
             }

@@ -24,6 +24,7 @@
         background: #f5f8f6;
     }
 
+
     .checkout-wrap {
         width: min(980px, 100%);
         margin: auto;
@@ -330,6 +331,8 @@
     </div>
 </main>
 
+<<<<<<< HEAD
 @include('components.footer')
 @include('components.mobile-nav-public')
 @endsection
+

@@ -16,6 +16,7 @@
             @auth
                 @php
                     $account = auth()->user();
+
                     $unread = $account->notifications()
                         ->where('is_read', false)
                         ->count();
@@ -86,12 +87,14 @@
                     </a>
                 @endif
 
+
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button class="btn btn-outline btn-sm" type="submit">
                         تسجيل الخروج
                     </button>
                 </form>
+
             @else
                 <a class="btn btn-outline btn-sm" href="{{ route('login') }}">
                     تسجيل الدخول

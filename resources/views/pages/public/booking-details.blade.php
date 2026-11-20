@@ -30,6 +30,7 @@
         background: #f4f7f5;
     }
 
+
     .invoice-page *,
     .invoice-page *::before,
     .invoice-page *::after {
@@ -430,5 +431,6 @@
             </div>
         </article>
     </div>
+
 </main>
 @endsection

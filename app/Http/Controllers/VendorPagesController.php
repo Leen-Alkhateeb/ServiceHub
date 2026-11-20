@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
 use App\Models\PortfolioProject;
 use App\Models\Review;
 use App\Models\VendorService;
+use App\Services\AccountHistory;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -16,7 +18,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class VendorPagesController extends Controller
 {
-    public function profile(Request $request): View|RedirectResponse
+    public function profile(Request $request, AccountHistory $history): View|RedirectResponse
     {
         $vendorId = $request->integer('vendor');
         if ($request->has('vendor')) {
@@ -39,18 +41,24 @@ class VendorPagesController extends Controller
             'profiles.work_type', 'profiles.experience_years', 'profiles.bio', 'profiles.application_status',
         ]);
         abort_unless($profile, 404);
+        $tab = $request->query('tab', 'services');
+        $tabs = $ownProfile
+            ? ['services' => 'خدماتي', 'portfolio' => 'أعمالي', 'bookings' => 'طلباتي', 'payments' => 'مدفوعاتي', 'income' => 'مستحقاتي']
+            : ['services' => 'الخدمات', 'portfolio' => 'معرض الأعمال'];
+        abort_unless(is_string($tab) && isset($tabs[$tab]), 404);
+        $historyData = $ownProfile ? $history->forTab($user, $tab, $request) : ['entries' => null];
 
         $rating = Review::where('reviewed_user_id', $vendorId)->where('is_active', true)->avg('rating');
-        $projects = PortfolioProject::with('coverImage')->where('vendor_id', $vendorId)->where('is_active', true)->latest('id')
-            ->paginate(8, ['*'], 'projects_page')->withQueryString();
-        $services = $this->visibleOffers()->where('offers.vendor_id', $vendorId)->latest('offers.id')
+        $projects = $tab === 'portfolio' ? PortfolioProject::with('coverImage')->where('vendor_id', $vendorId)->where('is_active', true)->latest('id')
+            ->paginate(8, ['*'], 'projects_page')->withQueryString() : null;
+        $services = $tab === 'services' ? $this->visibleOffers()->where('offers.vendor_id', $vendorId)->latest('offers.id')
             ->paginate(8, ['offers.id', 'offers.status', 'services.name', 'offers.price', 'offers.description', 'offers.duration_minutes',
                 'offers.image', 'services.image as catalog_image', 'services.description as default_description'], 'services_page')
             ->withQueryString()->through(function ($service) {
                 $service->image_url = $this->resolveImage($service->id, $service->image, $service->catalog_image)[0] ?? null;
 
                 return $service;
-            });
+            }) : null;
 
         $catalog = $ownProfile ? DB::table('services')
             ->join('categories', 'categories.id', '=', 'services.category_id')
@@ -67,7 +75,21 @@ class VendorPagesController extends Controller
 
         $categories = $ownProfile ? DB::table('categories')->where('is_deleted', false)->orderBy('name')->get(['id', 'name']) : collect();
 
-        return view('pages.vendor.vendor-profile', compact('profile', 'ownProfile', 'rating', 'projects', 'services', 'catalog', 'requests', 'categories'));
+        return view('pages.vendor.vendor-profile', compact('profile', 'ownProfile', 'rating', 'projects', 'services', 'catalog', 'requests', 'categories', 'tab', 'tabs') + $historyData);
+    }
+
+    public function dashboard(Request $request): View
+    {
+        $vendor = $request->user();
+        $bookings = Booking::whereHas('vendorService', fn ($offer) => $offer->where('vendor_id', $vendor->id));
+        $stats = [
+            'طلبات بانتظار الرد' => (clone $bookings)->where('status', 'pending')->count(),
+            'حجوزات مكتملة' => (clone $bookings)->where('status', 'completed')->count(),
+            'خدمات معروضة' => $vendor->vendorServices()->where('status', 'active')->count(),
+            'خدمات طلبتها' => $vendor->bookingsAsCustomer()->count(),
+        ];
+
+        return view('pages.vendor.vendor-dashboard', compact('stats', 'vendor'));
     }
 
     public function serviceReviews(Request $request, VendorService $offer): JsonResponse

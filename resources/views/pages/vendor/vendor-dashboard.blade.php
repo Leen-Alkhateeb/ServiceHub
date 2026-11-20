@@ -2,28 +2,82 @@
 @section('title', 'لوحة الفني | ServiceHub')
 @section('page_id', 'vendor-dashboard')
 @section('content')
-@include('components.navbar')
-<main class="container layout">
-    @include('components.sidebars.vendor')
-    <div class="dashboard-content">
-        <h1>لوحة الفني</h1>
-        <p>أهلًا {{ $vendor->first_name }}.</p>
-        <div class="balance-cards">
-            @foreach ($stats as $name => $value)
-                <article class="balance-card"><span class="balance-label">{{ $name }}</span><strong>{{ $value }}</strong></article>
-            @endforeach
-        </div>
-        <div class="hero-actions">
-            @if ($vendor->vendorProfile)
-                <a class="btn btn-yellow" href="{{ route('vendor.profile') }}">ملفي الشخصي</a>
-                @if ($vendor->vendorProfile->application_status !== 'approved')
-                    <a class="btn btn-outline" href="{{ route('vendor.apply') }}">حالة طلب الانضمام</a>
-                @endif
-            @endif
-            <a class="btn btn-outline" href="{{ route('vendor.wallet') }}">السجل المالي</a>
-        </div>
+    @include('components.navbar')
+    <div class="container layout">
+        @include('components.sidebars.vendor')
+        <main>
+            <div class="dash-title">
+                <div>
+                    <span class="small muted">لوحة الفني</span>
+                    <h1>مرحبًا {{ $vendorName }}</h1>
+                </div>
+            </div>
+
+            <section class="stats" aria-label="إحصائيات الفني">
+                <article class="stat">
+                    <strong>{{ $stats['pending'] }}</strong>
+                    <span>طلبات بانتظار الرد</span>
+                </article>
+                <article class="stat">
+                    <strong>{{ $stats['upcoming'] }}</strong>
+                    <span>مواعيد مؤكدة قادمة</span>
+                </article>
+                <article class="stat">
+                    <strong>{{ $stats['completed'] }}</strong>
+                    <span>حجوزات مكتملة</span>
+                </article>
+                <article class="stat">
+                    <strong>{{ $stats['rating'] !== null ? number_format((float) $stats['rating'], 1) : '—' }}</strong>
+                    <span>متوسط التقييم</span>
+                </article>
+            </section>
+
+            <div class="split">
+                <section class="panel">
+                    <div class="section-head">
+                        <h2>طلبات حجز جديدة</h2>
+                        <a class="btn btn-outline btn-sm" href="{{ route('vendor.vendor-bookings.index') }}">عرض الكل</a>
+                    </div>
+                    @forelse ($pendingBookings as $booking)
+                        <article class="item-row">
+                            <div>
+                                <strong>{{ $booking->service_name }}</strong>
+                                <p class="muted small">
+                                    {{ $booking->customer->first_name }} {{ $booking->customer->last_name }}
+                                    · {{ \Illuminate\Support\Carbon::parse($booking->booking_date)->format('Y-m-d') }}
+                                    · <span dir="ltr">{{ substr($booking->start_time, 0, 5) }}</span>
+                                </p>
+                            </div>
+                            <a class="btn btn-yellow btn-sm" href="{{ route('vendor.vendor-bookings.index') }}">مراجعة</a>
+                        </article>
+                    @empty
+                        <p class="muted">ما عندك طلبات جديدة بانتظار الرد.</p>
+                    @endforelse
+                </section>
+
+                <section class="panel">
+                    <div class="section-head">
+                        <h2>المواعيد القادمة</h2>
+                        <a class="btn btn-outline btn-sm" href="/vendor-availability">الجدول الأسبوعي</a>
+                    </div>
+                    @forelse ($upcomingBookings as $booking)
+                        <article class="item-row">
+                            <div>
+                                <strong>{{ $booking->service_name }}</strong>
+                                <p class="muted small">
+                                    {{ $booking->customer->first_name }} {{ $booking->customer->last_name }}
+                                    · {{ \Illuminate\Support\Carbon::parse($booking->booking_date)->format('Y-m-d') }}
+                                    · <span dir="ltr">{{ substr($booking->start_time, 0, 5) }}–{{ substr($booking->end_time, 0, 5) }}</span>
+                                </p>
+                            </div>
+                        </article>
+                    @empty
+                        <p class="muted">ما عندك مواعيد مؤكدة قادمة.</p>
+                    @endforelse
+                </section>
+            </div>
+        </main>
     </div>
-</main>
-@include('components.footer')
-@include('components.mobile-nav-vendor')
+    @include('components.footer')
+    @include('components.mobile-nav-vendor')
 @endsection

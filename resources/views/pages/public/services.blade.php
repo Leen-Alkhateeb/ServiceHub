@@ -55,7 +55,7 @@
         padding: 8px;
         border: 1px solid var(--line);
         border-radius: 14px;
-        background: white;
+        background: #fff;
         box-shadow: 0 8px 24px #18342e0c;
     }
 
@@ -75,7 +75,7 @@
     .service-details-link {
         border: 0;
         border-radius: 9px;
-        color: white;
+        color: #fff;
         background: var(--green);
         text-decoration: none;
         font: inherit;
@@ -90,7 +90,7 @@
     .services-search button:hover,
     .filter-submit:hover,
     .service-details-link:hover {
-        color: white;
+        color: #fff;
         background: var(--green-dark);
     }
 
@@ -106,7 +106,7 @@
     .service-card {
         border: 1px solid var(--line);
         border-radius: 15px;
-        background: white;
+        background: #fff;
         box-shadow: 0 6px 22px #18342e08;
     }
 
@@ -142,7 +142,7 @@
         border: 1px solid var(--line);
         border-radius: 9px;
         outline: none;
-        background: white;
+        background: #fff;
         color: var(--ink);
         font: inherit;
     }
@@ -219,10 +219,21 @@
         display: block;
         position: relative;
         height: 180px;
+        overflow: hidden;
         background: linear-gradient(135deg, #e3eee9, #f2f6f4);
-        background-position: center;
-        background-size: cover;
         text-decoration: none;
+    }
+
+    .service-image img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform .25s ease;
+    }
+
+    .service-card:hover .service-image img {
+        transform: scale(1.04);
     }
 
     .service-category {
@@ -327,7 +338,7 @@
         border: 1px solid var(--line);
         border-radius: 9px;
         color: var(--green);
-        background: white;
+        background: #fff;
         font: inherit;
         cursor: pointer;
     }
@@ -361,10 +372,6 @@
 
         .filter-panel {
             position: static;
-        }
-
-        .services-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
     }
 
@@ -430,8 +437,11 @@
             <form method="GET" action="{{ route('market.index') }}">
                 <div class="filter-field">
                     <label for="filter-q">الخدمة أو الفني</label>
-                    <input id="filter-q" type="search" name="q"
-                           value="{{ request('q') }}" placeholder="اكتب كلمة البحث">
+                    <input id="filter-q"
+                           type="search"
+                           name="q"
+                           value="{{ request('q') }}"
+                           placeholder="اكتب كلمة البحث">
                 </div>
 
                 <div class="filter-field">
@@ -463,10 +473,18 @@
                 <div class="filter-field">
                     <label>السعر بالدينار</label>
                     <div class="price-range">
-                        <input type="number" min="0" step="0.5" name="min_price"
-                               value="{{ request('min_price') }}" placeholder="من">
-                        <input type="number" min="0" step="0.5" name="max_price"
-                               value="{{ request('max_price') }}" placeholder="إلى">
+                        <input type="number"
+                               min="0"
+                               step="0.5"
+                               name="min_price"
+                               value="{{ request('min_price') }}"
+                               placeholder="من">
+                        <input type="number"
+                               min="0"
+                               step="0.5"
+                               name="max_price"
+                               value="{{ request('max_price') }}"
+                               placeholder="إلى">
                     </div>
                 </div>
 
@@ -505,7 +523,9 @@
                     <input type="hidden" name="max_price" value="{{ request('max_price') }}">
                     <input type="hidden" name="rating" value="{{ request('rating') }}">
 
-                    <select class="sort-select" name="sort" aria-label="ترتيب النتائج"
+                    <select class="sort-select"
+                            name="sort"
+                            aria-label="ترتيب النتائج"
                             onchange="this.form.submit()">
                         <option value="latest"
                             @selected(request('sort', 'latest') === 'latest')>
@@ -527,8 +547,35 @@
                 @forelse ($services as $item)
                     @php
                         $vendor = $item->vendor;
+                        $categoryName = $item->service->category->name ?? '';
+                        $imagePath = $item->image ?: $item->service->image;
+
+                        $fallbackImage = match ($categoryName) {
+                            'السباكة' => 'category-plumbing.jpg',
+                            'الكهرباء', 'الطاقة الشمسية', 'الإنارة' => 'category-electrical.jpg',
+                            'النجارة' => 'category-carpentry.jpg',
+                            'صيانة الحدائق' => 'category-garden.jpg',
+                            'التنظيف المتخصص' => 'category-cleaning.jpg',
+                            'الأقفال', 'الأرضيات', 'الشبكات المنزلية' => 'category-tools.jpg',
+                            default => 'category-maintenance.jpg',
+                        };
+
+                        if ($imagePath && filter_var($imagePath, FILTER_VALIDATE_URL)) {
+                            $image = $imagePath;
+                        } elseif ($imagePath && str_starts_with($imagePath, 'assets/')) {
+                            $image = asset($imagePath);
+                        } elseif ($imagePath) {
+                            $imagePath = preg_replace(
+                                '#^storage/#',
+                                '',
+                                str_replace('\\', '/', $imagePath)
+                            );
+                            $image = asset('storage/' . ltrim($imagePath, '/'));
+                        } else {
+                            $image = asset('assets/demo/directory/' . $fallbackImage);
+                        }
+
                         $rating = $vendor->reviews_received_avg_rating;
-                        $image = $item->image ? asset('storage/' . $item->image) : null;
                         $isFavorite = in_array($item->id, $favoriteIds ?? []);
                         $description = $item->description
                             ?? $item->service->description
@@ -538,11 +585,11 @@
                     <article class="service-card">
                         <a class="service-image"
                            href="{{ route('market.show', $item) }}"
-                           @if ($image) style="background-image:url('{{ $image }}')" @endif
                            aria-label="تفاصيل {{ $item->service->name }}">
-                            <span class="service-category">
-                                {{ optional($item->service->category)->name }}
-                            </span>
+                            <img src="{{ $image }}"
+                                 alt="{{ $item->service->name }}"
+                                 loading="lazy">
+                            <span class="service-category">{{ $categoryName }}</span>
                         </a>
 
                         <div class="service-card-body">
@@ -563,7 +610,9 @@
                                     </span>
                                 @endif
 
-                                <span>{{ $vendor->first_name }} {{ $vendor->last_name }}</span>
+                                <span>
+                                    {{ $vendor->first_name }} {{ $vendor->last_name }}
+                                </span>
                             </a>
 
                             <div class="service-meta">
@@ -596,7 +645,9 @@
                                           action="{{ route('favorites.toggle', $item) }}">
                                         @csrf
                                         <button class="favorite-button" type="submit">
-                                            {{ $isFavorite ? '♥ إزالة من المفضلة' : '♡ إضافة للمفضلة' }}
+                                            {{ $isFavorite
+                                                ? '♥ إزالة من المفضلة'
+                                                : '♡ إضافة للمفضلة' }}
                                         </button>
                                     </form>
                                 @endif

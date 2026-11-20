@@ -7,9 +7,34 @@
 @include('components.navbar')
 
 @php
-    $cover = $vendorService->image
-        ? asset('storage/' . $vendorService->image)
-        : null;
+    $imagePath = $vendorService->image ?: $vendorService->service->image;
+    $categoryName = $vendorService->service->category->name ?? '';
+
+    $fallbackImage = match ($categoryName) {
+        'السباكة' => 'category-plumbing.jpg',
+        'الكهرباء', 'الطاقة الشمسية', 'الإنارة' => 'category-electrical.jpg',
+        'النجارة' => 'category-carpentry.jpg',
+        'صيانة الحدائق' => 'category-garden.jpg',
+        'التنظيف المتخصص' => 'category-cleaning.jpg',
+        'الأقفال', 'الأرضيات', 'الشبكات المنزلية' => 'category-tools.jpg',
+        default => 'category-maintenance.jpg',
+    };
+
+    if ($imagePath && filter_var($imagePath, FILTER_VALIDATE_URL)) {
+        $cover = $imagePath;
+    } elseif ($imagePath && str_starts_with($imagePath, 'assets/')) {
+        $cover = asset($imagePath);
+    } elseif ($imagePath) {
+        $imagePath = preg_replace(
+            '#^storage/#',
+            '',
+            str_replace('\\', '/', $imagePath)
+        );
+
+        $cover = asset('storage/' . ltrim($imagePath, '/'));
+    } else {
+        $cover = asset('assets/demo/directory/' . $fallbackImage);
+    }
 
     $isCustomer = auth()->check()
         && auth()->user()->role === 'customer';
@@ -77,13 +102,15 @@
     }
 
     .sd-cover {
-        height: 320px;
-        background: linear-gradient(135deg, #e4eee9, #f3f7f5);
+        height: 340px;
+        background-color: #e4eee9;
         background-position: center;
         background-size: cover;
+        background-repeat: no-repeat;
     }
 
-    .sd-card-content {
+    .sd-card-content,
+    .sd-aside-card {
         padding: 23px;
     }
 
@@ -108,10 +135,6 @@
         color: var(--sd-muted);
         line-height: 1.9;
         white-space: pre-line;
-    }
-
-    .sd-aside-card {
-        padding: 21px;
     }
 
     .sd-price-label {
@@ -293,13 +316,38 @@
         line-height: 1.7;
     }
 
+    .sd-review-pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 18px;
+        font-size: 14px;
+    }
+
+    .sd-review-pagination a,
+    .sd-review-pagination span {
+        padding: 8px 12px;
+        border: 1px solid var(--sd-line);
+        border-radius: 8px;
+        color: var(--sd-green);
+        background: #fff;
+        text-decoration: none;
+    }
+
+    .sd-review-pagination .sd-page-disabled {
+        color: var(--sd-muted);
+        background: #f6f8f7;
+    }
+
     @media (max-width: 800px) {
         .sd-layout {
             grid-template-columns: 1fr;
         }
 
         .sd-cover {
-            height: 260px;
+            height: 270px;
         }
     }
 
@@ -309,7 +357,7 @@
         }
 
         .sd-cover {
-            height: 210px;
+            height: 220px;
         }
 
         .sd-card-content,
@@ -332,23 +380,17 @@
             <div class="sd-error">{{ $errors->first() }}</div>
         @endif
 
-        @if (session('success'))
-            <div class="sd-error" style="border-color:#b8dfc9;color:#176b5b;background:#effaf3">
-                {{ session('success') }}
-            </div>
-        @endif
-
         <div class="sd-layout">
             <div class="sd-main">
                 <article class="sd-card">
                     <div class="sd-cover"
-                         @if ($cover) style="background-image:url('{{ $cover }}')" @endif>
+                         role="img"
+                         aria-label="{{ $vendorService->service->name }}"
+                         style="background-image: url('{{ $cover }}')">
                     </div>
 
                     <div class="sd-card-content">
-                        <span class="sd-category">
-                            {{ $vendorService->service->category->name }}
-                        </span>
+                        <span class="sd-category">{{ $categoryName }}</span>
 
                         <h1 class="sd-title">
                             {{ $vendorService->service->name }}
@@ -362,7 +404,7 @@
                     </div>
                 </article>
 
-                <section class="sd-card sd-aside-card">
+                <section class="sd-card sd-card-content">
                     <h2 class="sd-heading">تقييمات العملاء</h2>
 
                     @forelse ($reviews as $review)
@@ -385,22 +427,43 @@
                     @empty
                         <p class="sd-muted">لا توجد تقييمات لهذه الخدمة حتى الآن.</p>
                     @endforelse
+
+                    @if (method_exists($reviews, 'hasPages') && $reviews->hasPages())
+                        <nav class="sd-review-pagination" aria-label="صفحات التقييمات">
+                            @if ($reviews->onFirstPage())
+                                <span class="sd-page-disabled">السابق</span>
+                            @else
+                                <a href="{{ $reviews->previousPageUrl() }}">السابق</a>
+                            @endif
+
+                            <span>
+                                صفحة {{ $reviews->currentPage() }}
+                                من {{ $reviews->lastPage() }}
+                            </span>
+
+                            @if ($reviews->hasMorePages())
+                                <a href="{{ $reviews->nextPageUrl() }}">التالي</a>
+                            @else
+                                <span class="sd-page-disabled">التالي</span>
+                            @endif
+                        </nav>
+                    @endif
                 </section>
             </div>
 
             <aside class="sd-aside">
                 <section class="sd-card sd-aside-card">
                     <p class="sd-price-label">سعر الخدمة</p>
-                    <p class="sd-price">{{ number_format($vendorService->price, 2) }} د.أ</p>
+                    <p class="sd-price">
+                        {{ number_format($vendorService->price, 2) }} د.أ
+                    </p>
 
                     @guest
                         <a class="sd-button" href="{{ route('login') }}">
                             سجّل الدخول للحجز
                         </a>
                     @elseif ($isCustomer)
-                        <a class="sd-button" href="#booking">
-                            اختر موعدًا
-                        </a>
+                        <a class="sd-button" href="#booking">اختر موعدًا</a>
 
                         <form method="POST"
                               action="{{ route('favorites.toggle', $vendorService) }}">
@@ -420,7 +483,7 @@
                     <div class="sd-vendor">
                         @if ($vendor->profile_image)
                             <img class="sd-avatar"
-                                 src="{{ asset('storage/' . $vendor->profile_image) }}"
+                                 src="{{ route('account.picture.show', $vendor) }}"
                                  alt="صورة {{ $vendor->first_name }}">
                         @else
                             <span class="sd-avatar">
@@ -457,7 +520,7 @@
                     <section class="sd-card sd-aside-card" id="booking">
                         <h2 class="sd-heading">المواعيد المتاحة</h2>
                         <p class="sd-booking-intro">
-                            اختر موعدًا لإرسال طلب الحجز إلى مقدّم الخدمة.
+                            اختر وقتًا مناسبًا من مواعيد الفني. بعد الاختيار تنتقل إلى الدفع.
                         </p>
 
                         @if ($hasSlots)
@@ -479,23 +542,21 @@
                                                        name="slot"
                                                        value="{{ $slot['value'] }}"
                                                        required>
-                                                <span>{{ $slot['start'] }} – {{ $slot['end'] }}</span>
+                                                <span>
+                                                    {{ $slot['start'] }} – {{ $slot['end'] }}
+                                                </span>
                                             </label>
                                         @endforeach
                                     </div>
                                 @endforeach
 
-                                <p class="sd-booking-intro" style="margin-top:15px">
-                                    يظهر خيار الدفع في حجوزاتك بعد موافقة الفني على الطلب.
-                                </p>
-
-                                <button class="sd-button" type="submit">
-                                    إرسال طلب الحجز
+                                <button class="sd-button" type="submit" style="margin-top:18px">
+                                    احجز الموعد وانتقل للدفع
                                 </button>
                             </form>
                         @else
                             <p class="sd-muted">
-                                لا توجد مواعيد متاحة خلال الأيام السبعة القادمة.
+                                لا توجد مواعيد متاحة خلال الثلاثين يومًا القادمة.
                             </p>
                         @endif
                     </section>

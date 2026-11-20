@@ -42,7 +42,10 @@ class ProfileController extends Controller
         $user = $this->customer($request);
 
         return view('pages.customer.customer-favorites', [
-            'favorites' => $user->favorites()->with(['vendorService.vendor', 'vendorService.service'])->latest('id')->get(),
+            'favorites' => $user->favorites()
+                ->with(['vendorService.vendor', 'vendorService.service.category'])
+                ->latest('id')
+                ->get(),
         ]);
     }
 

@@ -1,10 +1,9 @@
 @extends('layouts.app')
 @section('title', 'رسائل الدعم | ServiceHub')
 @section('page_id', 'customer-messages')
-@section('content')
-    @include('components.navbar')
-    <div class="container layout">@include('components.sidebars.customer')
-        <div>
+
+    @include('components.navbar')<div class="container layout">@include('components.sidebars.customer')<div>
+
             <div class="dash-title">
                 <div><span class="small muted">لوحة العميل</span>
                     <h1>رسائل الدعم</h1>
@@ -22,4 +21,8 @@
             </div>
         </div>
     </div>@include('components.footer')@include('components.mobile-nav-customer')
+
 @endsection
+
+@endsection
+

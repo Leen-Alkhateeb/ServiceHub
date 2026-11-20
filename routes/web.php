@@ -1,9 +1,9 @@
-
 <?php
 
 use App\Http\Controllers\AccountDetailsController;
 use App\Http\Controllers\AccountPictureController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminUsersController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingProfileController;
 use App\Http\Controllers\DashboardController;
@@ -12,6 +12,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MaintenanceAssistantController;
 use App\Http\Controllers\MarketController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\ProfileController;
@@ -176,7 +177,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/bookings/{booking}/payment', [PaymentController::class, 'store'])->name('payment.store');
     Route::get('/bookings/{booking}/checkout', [PaymentController::class, 'checkout'])->name('payment.checkout');
     Route::get('/bookings/{booking}/invoice', [PaymentController::class, 'invoice'])->name('payment.invoice');
-    Route::get('/AdminDashboard', [AdminDashboardController::class, 'index'])->middleware(ActiveAdmin::class)->name('admin.dashboard');
+    Route::get('/AdminDashboard', [AdminDashboardController::class, 'index'])->middleware(ActiveAdmin::class);
 
     Route::middleware(['auth', ActiveVendor::class])
     ->name('vendor.')
@@ -259,11 +260,6 @@ Route::middleware('auth')->group(function () {
     Route::middleware(ActiveVendor::class)
         ->name('vendor.')
         ->group(function () {
-
-            // Dashboard
-            Route::get('/vendor-dashboard', [DashboardController::class, 'index'])
-                ->name('dashboard');
-
 
             // Wallet
             Route::get('/vendor-wallet', VendorWalletController::class)
@@ -350,15 +346,19 @@ Route::middleware(ActiveAdmin::class)
 
             Route::delete('/deleteUser/{user}', [AdminUsersController::class, 'destroy'])
                 ->name('users.destroy');
-            
 
-            
-
+            Route::get('/categories', [CategoryController::class, 'index'])
+                ->name('categories');
+            Route::get('/categories/create', [CategoryController::class, 'create'])
+                ->name('categories.create');
+            Route::post('/categories', [CategoryController::class, 'store'])
+                ->name('categories.store');
+            Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])
+                ->name('categories.edit');
+            Route::put('/categories/{category}', [CategoryController::class, 'update'])
+                ->name('categories.update');
+            Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])
+                ->name('categories.destroy');
         });
-
     });
-
 });
-
-
-

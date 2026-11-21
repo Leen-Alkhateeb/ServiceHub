@@ -16,6 +16,7 @@
 <a class="checkout-back" href="{{ route('market.index') }}">← العودة إلى الخدمات</a>
 <header class="checkout-head"><h1>تأكيد الحجز والدفع</h1><p>ادفع 50٪ الآن، والمبلغ المتبقي عند وصول مقدّم الخدمة.</p></header>
 @if($errors->any())<div class="errors">{{ $errors->first() }}</div>@endif
+<p class="note">الدفع تجريبي. استخدم بيانات اختبار فقط. لا يُخصم أي مبلغ.</p>
 <div class="checkout-grid">
 <section class="checkout-card"><h2>ملخص الحجز</h2>
 <div class="checkout-row"><span>الخدمة</span><strong>{{ $booking->service_name }}</strong></div>

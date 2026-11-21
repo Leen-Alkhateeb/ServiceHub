@@ -47,7 +47,7 @@
                     <div class="field"><label for="register-experience">سنوات الخبرة</label><input id="register-experience" name="experience_years" type="number" min="0" max="80" value="{{ is_scalar(old('experience_years')) ? old('experience_years') : '' }}" data-vendor-required></div>
                     <div class="field"><label for="register-bio">نبذة عن خبرتك</label><textarea id="register-bio" name="bio" rows="4" maxlength="5000" data-vendor-required>{{ is_string(old('bio')) ? old('bio') : '' }}</textarea></div>
                     <div class="field"><label for="register-expiry">تاريخ انتهاء تصريح العمل</label><input id="register-expiry" name="permit_expiry_date" type="date" min="{{ now()->toDateString() }}" value="{{ is_scalar(old('permit_expiry_date')) ? old('permit_expiry_date') : '' }}" data-vendor-required></div>
-                    <div class="field"><label for="register-permit">تصريح العمل</label><input id="register-permit" name="work_permit" type="file" accept=".pdf,.jpg,.jpeg,.png" data-vendor-required><small class="muted">PDF أو JPG أو PNG حتى 5 ميغابايت.</small></div>
+                    <div class="field"><label for="register-permit">تصريح العمل</label><x-file-picker :document="true"><input id="register-permit" name="work_permit" type="file" accept=".pdf,.jpg,.jpeg,.png" data-vendor-required></x-file-picker><small class="muted">PDF أو JPG أو PNG حتى 5 ميغابايت.</small></div>
                 </section>
                 <p class="muted" data-registration-progress aria-live="polite"></p>
                 <div class="moderation-actions">

@@ -1,21 +1,19 @@
 <?php
-use App\Http\Controllers\AdminRefundsController;
-use App\Http\Controllers\AdminServicesController;
 use App\Http\Controllers\AccountDetailsController;
 use App\Http\Controllers\AccountPictureController;
 use App\Http\Controllers\AdminBookingController;
 use App\Http\Controllers\AdminCancellationController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminUsersController;
 use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\AdminPaymentController;
 use App\Http\Controllers\AdminReviewController;
-use App\Http\Controllers\AdminUsersController;
+use App\Http\Controllers\AdminServicesController;
 use App\Http\Controllers\AdminVendorApplicationController;
 use App\Http\Controllers\AdminWalletController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingProfileController;
 use App\Http\Controllers\CategoryController;
-use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MaintenanceAssistantController;
@@ -90,12 +88,16 @@ Route::get('/services/{vendorService}', [MarketController::class, 'show'])
 // General Pages
 Route::view('/faq', 'pages.public.faq')
     ->name('faq');
+Route::view('/about', 'pages.public.about')->name('about');
+Route::view('/how-it-works', 'pages.public.how-it-works')->name('how-it-works');
+Route::view('/contact', 'pages.public.contact')->name('contact');
+Route::redirect('/forgot-password', '/password/reset');
+Route::redirect('/booking', '/services');
+Route::get('/service-details', function (Request $request) {
+    $offer = \App\Models\VendorService::publiclyVisible()->find($request->integer('id'));
 
-Route::view('/about', 'pages.public.about')
-    ->name('about');
-
-Route::view('/contact', 'pages.public.contact')
-    ->name('contact');
+    return $offer ? redirect()->route('market.show', $offer) : redirect()->route('market.index');
+});
 
 Route::get('/profile-pictures/{account}', [AccountPictureController::class, 'show'])
     ->name('account.picture.show');
@@ -158,6 +160,8 @@ Route::middleware('auth')->group(function () {
     */
 
     Route::name('customer.')->group(function () {
+        Route::get('/customer-reviews', [ProfileController::class, 'reviews'])->name('reviews');
+        Route::get('/customer-messages', [ProfileController::class, 'messages'])->name('messages');
 
         Route::get('/dashboard', [ProfileController::class, 'dashboard'])
             ->name('dashboard');
@@ -196,6 +200,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/bookings/{booking}/payment', [PaymentController::class, 'store'])->name('payment.store');
     Route::get('/bookings/{booking}/checkout', [PaymentController::class, 'checkout'])->name('payment.checkout');
     Route::get('/bookings/{booking}/invoice', [PaymentController::class, 'invoice'])->withTrashed()->name('payment.invoice');
+    Route::redirect('/booking-details', '/my-profile?tab=bookings');
     Route::get('/AdminDashboard', [AdminDashboardController::class, 'index'])->middleware(ActiveAdmin::class);
 
     Route::middleware(['auth', ActiveVendor::class])
@@ -209,6 +214,7 @@ Route::middleware('auth')->group(function () {
         });
 
     Route::patch('/my-profile', AccountDetailsController::class)->name('account.details.update');
+    Route::post('/contact', [ProfileController::class, 'sendMessage'])->middleware('throttle:6,1')->name('contact.store');
     Route::post('/my-profile/photo', [AccountPictureController::class, 'update'])->middleware('throttle:10,1')->name('account.picture.update');
     Route::delete('/my-profile/photo', [AccountPictureController::class, 'destroy'])->middleware('throttle:10,1')->name('account.picture.destroy');
     Route::get('/my-profile', function (Request $request, AccountHistory $history) {
@@ -280,7 +286,16 @@ Route::middleware('auth')->group(function () {
         ->name('vendor.')
         ->group(function () {
 
+            Route::get('/vendor-dashboard', [DashboardController::class, 'index'])
+                ->name('dashboard');
+
             // Wallet
+            Route::get('/vendor-dashboard', [VendorPagesController::class, 'dashboard'])->name('dashboard');
+            Route::redirect('/vendor-settings', '/vendor-profile')->name('settings.redirect');
+            Route::redirect('/vendor-services', '/vendor-profile?tab=services')->name('services.redirect');
+            Route::redirect('/vendor-service-form', '/vendor-profile?tab=services')->name('service-form.redirect');
+            Route::redirect('/vendor-portfolio', '/vendor-profile?tab=portfolio')->name('portfolio.redirect');
+            Route::redirect('/vendor-portfolio-form', '/vendor-profile?tab=portfolio')->name('portfolio-form.redirect');
             Route::get('/vendor-wallet', VendorWalletController::class)
                 ->name('wallet');
 
@@ -402,20 +417,23 @@ Route::middleware('auth')->group(function () {
 
             Route::delete('/admin-cancellations/{id}', [AdminCancellationController::class, 'destroy'])
             ->name('cancellations.destroy');
-            
-            // Wallet
-            Route::get('/admin-wallet', [AdminWalletController::class, 'index'])
-            ->name('wallet.index');
-
-            Route::delete('/admin-wallet/{id}', [AdminWalletController::class, 'destroy'])
-            ->name('wallet.destroy');
-
                 // Payments (read only)
                 Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
                 Route::get('/payments/{payment}', [AdminPaymentController::class, 'show'])->name('payments.show');
 
+                Route::get('/admin-wallet', [AdminDashboardController::class, 'wallet'])->name('wallet.index');
+
                 Route::get('/admin-applications', [AdminVendorApplicationController::class, 'index'])
                     ->name('admin-applications');
+
+                Route::get('/admin-applications/{application}/permit', [AdminVendorApplicationController::class, 'permit'])
+                    ->name('applications.permit');
+
+                Route::get('/admin-refunds', [\App\Http\Controllers\AdminRefundsController::class, 'index'])
+                    ->name('refunds.index');
+
+                Route::post('/admin-refunds/{refund}', [\App\Http\Controllers\AdminRefundsController::class, 'decide'])
+                    ->name('refunds.decide');
 
                 Route::put(
                     '/admin-applications/{id}/approved',
@@ -427,31 +445,13 @@ Route::middleware('auth')->group(function () {
                     [AdminVendorApplicationController::class, 'rejected']
                 )->name('admin-applications.rejected');
 
-                Route::put(
-                    '/admin-applications/{id}/rejected',
-                    [AdminVendorApplicationController::class, 'rejected']
-                )->name('admin-applications.rejected');
-
                 // Vendor Service Requests
                 Route::get(
                     '/vendor-service-requests',
                     [AdminServiceApprovalController::class, 'index']
                 )->name('service-requests.index');
-
-                // Approve / reject a vendor's service request (used by the page's decision dialog)
-                Route::post(
-                    '/vendor-service-requests/{offer}/decide',
-                    [VendorServiceRequestController::class, 'decide']
-                )->name('service-requests.decide');
-
-                Route::get(
-                    '/admin-refunds',
-                    [AdminRefundsController::class, 'index']
-                )->name('refunds.index');
-
-                Route::post('/refunds/{refund}/decide', [AdminRefundsController::class, 'decide'])
-                    ->name('refunds.decide');
-
+                Route::post('/vendor-service-requests/{offer}', [AdminServiceApprovalController::class, 'decide'])
+                    ->name('service-requests.decide');
 
 
                 Route::get('/categories', [CategoryController::class, 'index'])
@@ -471,3 +471,5 @@ Route::middleware('auth')->group(function () {
             });
         });
 });
+
+

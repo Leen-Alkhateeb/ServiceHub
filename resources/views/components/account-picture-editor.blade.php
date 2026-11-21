@@ -15,7 +15,7 @@
         @csrf
         <div class="field">
             <label for="account-picture">اختر صورة</label>
-            <input id="account-picture" type="file" name="profile_image" accept="image/jpeg,image/png,image/webp" required>
+            <x-file-picker><input id="account-picture" type="file" name="profile_image" accept="image/jpeg,image/png,image/webp" required></x-file-picker>
             <small class="muted">JPG أو PNG أو WebP، حتى 5 ميغابايت. يُفضّل استخدام صورة مربّعة.</small>
         </div>
         <button type="submit" class="btn btn-yellow">حفظ الصورة</button>

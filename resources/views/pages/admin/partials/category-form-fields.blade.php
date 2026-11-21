@@ -26,7 +26,7 @@
         </div>
     @endif
 
-    <input type="file" id="image" name="image" accept=".jpg,.jpeg,.png,.webp" @unless ($category) required @endunless>
+    <x-file-picker><input type="file" id="image" name="image" accept=".jpg,.jpeg,.png,.webp" @unless ($category) required @endunless></x-file-picker>
     <span class="field-hint">JPG أو PNG أو WEBP، بحجم أقصى 2 ميغابايت.</span>
     @error('image')
         <span class="field-error">{{ $message }}</span>

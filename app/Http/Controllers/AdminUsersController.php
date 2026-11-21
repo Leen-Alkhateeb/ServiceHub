@@ -2,25 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Service;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class AdminUsersController extends Controller
 {
    
 public function index(Request $request)
 {
+    $request->validate(['search' => ['nullable', 'string']]);
     $query = User::query();
 
     if ($request->filled('search')) {
 
         $search = trim($request->input('search'));
 
-        $query->where(function ($q) use ($search) {
+        $fullName = $query->getConnection()->getDriverName() === 'sqlite'
+            ? "first_name || ' ' || last_name"
+            : "CONCAT(first_name, ' ', last_name)";
+        $query->where(function ($q) use ($search, $fullName) {
             $q->where('first_name', 'like', "%{$search}%")
               ->orWhere('last_name', 'like', "%{$search}%")
               ->orWhereRaw(
-                  "CONCAT(first_name, ' ', last_name) LIKE ?",
+                  "($fullName) LIKE ?",
                   ["%{$search}%"]
               )
               ->orWhere('email', 'like', "%{$search}%");
@@ -65,5 +71,27 @@ public function toggleStatus(User $user)
             : 'تم تعطيل المستخدم بنجاح.'
     );
 }
+
+public function destroy(User $user)
+{
+    if ($user->id === auth()->id()) {
+        return back()->with('error', 'لا يمكنك حذف حسابك.');
+    }
+
+    if ($user->role === 'admin') {
+        return back()->with('error', 'لا يمكن حذف حساب الأدمن.');
+    }
+
+    DB::transaction(function () use ($user) {
+        $account = User::query()->lockForUpdate()->findOrFail($user->id);
+        Service::where('suggested_by', $account->id)->update(['suggested_by' => null]);
+        $account->delete();
+    });
+
+    return redirect()
+        ->route('admin.admin.Users')
+        ->with('status', 'تم حذف المستخدم نهائيًا بنجاح.');
+}
+
 
 }

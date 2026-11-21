@@ -339,8 +339,8 @@
                             قيد المراجعة
                         </option>
 
-                        <option value="active"
-                            @selected(request('status') === 'active')>
+                        <option value="approved"
+                            @selected(request('status') === 'approved')>
                             مقبول
                         </option>
 
@@ -580,7 +580,7 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+(() => {
 
     const modal = document.getElementById('request-decision-modal');
     const form = document.getElementById('request-decision-form');
@@ -669,13 +669,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    document.addEventListener('keydown', event => {
+    modal.addEventListener('keydown', event => {
         if (event.key === 'Escape' && !modal.hidden) {
             closeModal();
         }
     });
 
-});
+})();
 </script>
 
 @include('components.footer')

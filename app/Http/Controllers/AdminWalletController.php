@@ -67,7 +67,7 @@ class AdminWalletController extends Controller
          $transaction = WalletTransaction::findOrFail($id);
         $transaction->delete();
 
-        return redirect()->route('wallet.index')
+        return redirect()->route('admin.wallet.index')
             ->with('success', 'تم حذف سجل حركة المحفظة بنجاح.');
     }
 }

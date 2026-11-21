@@ -25,7 +25,7 @@
                 <span>إجمالي الارباح المسجلة</span>
                 <strong>{{ number_format($stats['paidAmount']*0.15, 2) }}</strong>
                 <small>صافي ربح المنصة</small>
-                <a href="#" class="admin-card-link" data-page="payments">عرض المدفوعات <span aria-hidden="true">←</span></a>
+                <a href="{{ route('admin.payments.index') }}" class="admin-card-link">عرض المدفوعات <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="admin-stat">
@@ -39,7 +39,7 @@
                 <span>الفنيون</span>
                 <strong>{{ number_format($stats['vendors']) }}</strong>
                 <small>حسابات الفنيين</small>
-                <a href="{{ url('/admin/Users?role=vendor') }}" class="admin-card-link" data-page="vendors">عرض الفنيين <span aria-hidden="true">←</span></a>
+                <a href="{{ route('admin.admin.Users', ['role' => 'vendor']) }}" class="admin-card-link">عرض الفنيين <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="admin-stat">
@@ -53,14 +53,14 @@
                 <span>طلبات الفنيين المعلقة</span>
                 <strong>{{ number_format($stats['pendingVendors']) }}</strong>
                 <small>بانتظار المراجعة</small>
-                <a href="#" class="admin-card-link" data-page="vendor-applications">مراجعة الطلبات <span aria-hidden="true">←</span></a>
+                <a href="{{ route('admin.admin-applications') }}" class="admin-card-link">مراجعة الطلبات <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="admin-stat">
                 <span>طلبات الاسترجاع المعلقة</span>
                 <strong>{{ number_format($stats['pendingRefunds']) }}</strong>
                 <small>تحتاج قرار الإدارة</small>
-                <a href="#" class="admin-card-link" data-page="refunds">عرض الاسترجاعات <span aria-hidden="true">←</span></a>
+                <a href="{{ route('admin.refunds.index', ['status' => 'pending']) }}" class="admin-card-link">عرض الاسترجاعات <span aria-hidden="true">←</span></a>
             </div>
         </section>
 
@@ -125,7 +125,7 @@
             <section class="panel admin-section">
                 <div class="admin-section-heading">
                     <h3>أحدث التقييمات</h3>
-                    <a href="#" class="admin-section-link" data-page="reviews">عرض التقييمات <span aria-hidden="true">←</span></a>
+                    <a href="{{ route('admin.reviews.index') }}" class="admin-section-link">عرض التقييمات <span aria-hidden="true">←</span></a>
                 </div>
 
                 @forelse($latestReviews as $review)
@@ -158,7 +158,7 @@
             <section class="panel admin-section">
                 <div class="admin-section-heading">
                     <h3>أحدث طلبات الاسترجاع</h3>
-                    <a href="#" class="admin-section-link" data-page="refunds">عرض الاسترجاعات <span aria-hidden="true">←</span></a>
+                    <a href="{{ route('admin.refunds.index') }}" class="admin-section-link">عرض الاسترجاعات <span aria-hidden="true">←</span></a>
                 </div>
 
                 @forelse($latestRefunds as $refund)
@@ -189,7 +189,7 @@
         <section class="panel admin-section">
             <div class="admin-section-heading">
                     <h3>أحدث طلبات انضمام الفنيين</h3>
-                    <a href="#" class="admin-section-link" data-page="vendor-applications">عرض الطلبات <span aria-hidden="true">←</span></a>
+                    <a href="{{ route('admin.admin-applications') }}" class="admin-section-link">عرض الطلبات <span aria-hidden="true">←</span></a>
                 </div>
 
             <div class="table-wrap">
@@ -228,14 +228,16 @@
 </div>
 
 @include('components.footer')
+@include('components.mobile-nav-admin')
 
 <script>
-// Turbo swaps pages without a full reload, so DOMContentLoaded does not fire again.
-// This runs every time the page is shown, loads Chart.js once, and redraws the charts.
-(function () {
+(async function () {
+    const bookingsCanvas = document.getElementById('bookingsChart');
+    const statusCanvas = document.getElementById('statusChart');
     const bookings = @json($bookingChart);
     const statuses = @json($statusChart);
 
+    // Booking statuses in Arabic for the doughnut chart legend.
     const statusNames = {
         pending: 'قيد الانتظار',
         awaiting_payment: 'بانتظار العربون',
@@ -252,44 +254,35 @@
         closed: 'مغلق',
     };
 
-    function loadChartJs(callback) {
-        if (window.Chart) {
-            callback();
-            return;
-        }
-
-        let script = document.getElementById('chartjs-lib');
-
-        if (!script) {
-            script = document.createElement('script');
-            script.id = 'chartjs-lib';
-            script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
-            document.head.appendChild(script);
-        }
-
-        script.addEventListener('load', callback, { once: true });
-    }
-
-    function drawCharts() {
-        const bookingsCanvas = document.getElementById('bookingsChart');
-        const statusCanvas = document.getElementById('statusChart');
-
-        if (!bookingsCanvas || !statusCanvas) {
-            return;
-        }
-
-        // Remove old chart objects (when coming back to the page) before drawing again.
-        [bookingsCanvas, statusCanvas].forEach(function (canvas) {
-            const old = Chart.getChart(canvas);
-
-            if (old) {
-                old.destroy();
-            }
+    if (!window.Chart) {
+        window.serviceHubChartLibrary ??= new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/chart.js';
+            script.addEventListener('load', resolve, { once: true });
+            script.addEventListener('error', reject, { once: true });
+            document.head.append(script);
         });
 
-        Chart.defaults.font.family = "'IBM Plex Sans Arabic', 'Cairo', sans-serif";
+        try {
+            await window.serviceHubChartLibrary;
+        } catch {
+            delete window.serviceHubChartLibrary;
+            if (bookingsCanvas.isConnected) {
+                for (const canvas of [bookingsCanvas, statusCanvas]) {
+                    const message = document.createElement('p');
+                    message.textContent = 'تعذّر تحميل الرسم البياني.';
+                    canvas.replaceWith(message);
+                }
+            }
+            return;
+        }
+    }
 
-    new Chart(bookingsCanvas, {
+    if (!bookingsCanvas.isConnected || !statusCanvas.isConnected) return;
+    const Chart = window.Chart;
+    Chart.defaults.font.family = "'IBM Plex Sans Arabic', 'Cairo', sans-serif";
+
+    const bookingsChart = new Chart(bookingsCanvas, {
         type: 'line',
         data: {
             labels: bookings.labels,
@@ -319,7 +312,7 @@
         }
     });
 
-    new Chart(statusCanvas, {
+    const statusChart = new Chart(statusCanvas, {
         type: 'doughnut',
         data: {
             labels: statuses.labels.map(function (status) {
@@ -355,23 +348,14 @@
             }
         }
     });
-    }
-
-    loadChartJs(drawCharts);
-
-    // Back/forward buttons show a cached copy where the canvases are empty, so redraw on every turbo:load.
-    window.drawAdminCharts = function () {
-        loadChartJs(drawCharts);
+    const events = new AbortController();
+    const dispose = () => {
+        bookingsChart.destroy();
+        statusChart.destroy();
+        events.abort();
     };
-
-    if (!window.adminChartsListener) {
-        window.adminChartsListener = true;
-        document.addEventListener('turbo:load', function () {
-            if (document.getElementById('bookingsChart') && window.drawAdminCharts) {
-                window.drawAdminCharts();
-            }
-        });
-    }
+    document.addEventListener('turbo:before-cache', dispose, { signal: events.signal });
+    document.addEventListener('turbo:before-render', dispose, { signal: events.signal });
 })();
 </script>
 @endsection

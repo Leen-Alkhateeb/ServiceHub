@@ -6,7 +6,6 @@ use App\Models\Booking;
 use App\Models\Notification;
 use App\Models\Payment;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
@@ -18,21 +17,10 @@ class PaymentController extends Controller
     {
         abort_unless(
             $booking->customer_id === $request->user()->id
-            && $booking->status === 'awaiting_payment'
+            && in_array($booking->status, ['approved', 'awaiting_payment'], true)
             && ! $booking->payment()->exists(),
             403
         );
-
-        if (
-            $booking->payment_deadline
-            && Carbon::parse($booking->payment_deadline)->isPast()
-        ) {
-            $booking->update(['status' => 'expired']);
-
-            return redirect()
-                ->route('market.index')
-                ->with('error', 'انتهت مهلة الدفع وأصبح الموعد متاحًا للحجز.');
-        }
 
         // إزالة الفراغات قبل التحقق من رقم البطاقة.
         $request->merge([
@@ -56,7 +44,7 @@ class PaymentController extends Controller
 
             abort_unless(
                 $lockedBooking->customer_id === auth()->id()
-                && $lockedBooking->status === 'awaiting_payment',
+                && in_array($lockedBooking->status, ['approved', 'awaiting_payment'], true),
                 403
             );
 
@@ -66,7 +54,7 @@ class PaymentController extends Controller
 
             if (
                 $lockedBooking->payment_deadline
-                && Carbon::parse($lockedBooking->payment_deadline)->isPast()
+                && $lockedBooking->payment_deadline->lte(now())
             ) {
                 $lockedBooking->update(['status' => 'expired']);
 
@@ -122,19 +110,17 @@ class PaymentController extends Controller
 
         if (
             $booking->payment_deadline
-            && Carbon::parse($booking->payment_deadline)->isPast()
-            && $booking->status === 'awaiting_payment'
+            && $booking->payment_deadline->lte(now())
+            && in_array($booking->status, ['approved', 'awaiting_payment'], true)
             && ! $booking->payment()->exists()
         ) {
-            $booking->update(['status' => 'expired']);
-
             return redirect()
                 ->route('market.index')
                 ->with('error', 'انتهت مهلة الدفع وأصبح الموعد متاحًا للحجز.');
         }
 
         abort_unless(
-            $booking->status === 'awaiting_payment'
+            in_array($booking->status, ['approved', 'awaiting_payment'], true)
             && ! $booking->payment()->exists(),
             403
         );

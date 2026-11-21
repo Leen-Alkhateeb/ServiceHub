@@ -16,10 +16,19 @@ class MarketController extends Controller
     /** قائمة الخدمات مع البحث والفلاتر */
     public function index(Request $request)
     {
+        $request->validate([
+            'q' => ['nullable', 'string'],
+            'category' => ['nullable', 'integer'],
+            'location' => ['nullable', 'string'],
+            'min_price' => ['nullable', 'numeric'],
+            'max_price' => ['nullable', 'numeric'],
+            'rating' => ['nullable', 'numeric'],
+            'sort' => ['nullable', 'string'],
+        ]);
+
         $activeReviews = fn ($reviews) => $reviews->where('is_active', true);
 
-        $query = VendorService::query()
-            ->where('status', 'active')
+        $query = VendorService::query()->publiclyVisible()
             ->with([
                 'service.category',
                 'vendor' => fn ($q) => $q
@@ -28,6 +37,7 @@ class MarketController extends Controller
             ])
             ->whereHas('service', fn ($q) => $q
                 ->where('approval_status', 'approved')
+                ->where('is_active', true)
                 ->where('is_deleted', false))
             ->whereHas('vendor', fn ($q) => $q->where('status', 'active'));
 
@@ -98,7 +108,7 @@ class MarketController extends Controller
     /** تفاصيل الخدمة والتقييمات والمواعيد المتاحة */
     public function show(VendorService $vendorService)
     {
-        abort_unless($vendorService->status === 'active', 404);
+        abort_unless(VendorService::publiclyVisible()->whereKey($vendorService)->exists(), 404);
 
         $vendorService->load(['service.category', 'vendor.vendorProfile']);
         $vendor = $vendorService->vendor;
@@ -107,6 +117,7 @@ class MarketController extends Controller
             $vendor->status === 'active'
             && $vendor->vendorProfile?->application_status === 'approved'
             && $vendorService->service->approval_status === 'approved'
+            && $vendorService->service->is_active
             && ! $vendorService->service->is_deleted
             && ! $vendorService->service->category->is_deleted,
             404
@@ -161,8 +172,7 @@ class MarketController extends Controller
                 fn ($q) => $q->where('vendor_id', $vendorService->vendor_id)
             )
             ->whereBetween('booking_date', [$firstDate, $lastDate])
-            // Same statuses that block a new booking in BookingProfileController.
-            ->whereIn('status', ['pending', 'awaiting_payment', 'approved', 'confirmed', 'in_progress', 'completed'])
+            ->blockingSlot()
             ->get()
             ->groupBy(fn ($booking) =>
                 Carbon::parse($booking->booking_date)->toDateString()

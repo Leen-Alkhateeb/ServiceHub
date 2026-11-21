@@ -1,6 +1,6 @@
 <div class="mobile-nav">
-    <a href="/services">⌕<br />اكتشف</a>
-    <a href="/customer-bookings">▤<br/>حجوزاتي</a>
-    <a href="/customer-favorites">♡<br/>المفضلة</a>
-    <a href="/customer-dashboard">♙<br />حسابي</a>
+    <a href="{{ route('admin.dashboard') }}">نظرة عامة</a>
+    <a href="{{ route('admin.bookings.index') }}">الحجوزات</a>
+    <a href="{{ route('admin.wallet.index') }}">حركات المحفظة</a>
+    <a href="{{ route('account.profile') }}">حسابي</a>
 </div>

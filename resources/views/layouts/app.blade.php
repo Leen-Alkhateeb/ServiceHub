@@ -7,10 +7,13 @@
     <meta name="description" content="ServiceHub منصة لحجز خدمات الصيانة">
     <title>@yield('title', 'ServiceHub')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="view-transition" content="same-origin">
+    <meta name="turbo-cache-control" content="no-preview">
 
     <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.23/dist/turbo.es2017-esm.min.js">
     </script>
+    <script type="module" src="/assets/app.js"></script>
+    <script type="module" src="/assets/servicehub-pages.js"></script>
+    <script src="/assets/theme.js" defer></script>
 
     @stack('styles')
 
@@ -26,9 +29,6 @@
         @include('components.archive-dialog')
     @endauth
 
-    <script type="module" src="/assets/app.js" defer></script>
-    <script src="/assets/servicehub-pages.js" defer></script>
-    <script src="/assets/theme.js" defer></script>
 </body>
 
 </html>

@@ -287,7 +287,7 @@ private function seedServiceSuggestions(): void
         $booking = $this->seed(Booking::factory(), [
             'customer_id' => $customer->id,
             'vendor_service_id' => $offer->id,
-            'booking_date' => Carbon::now()->subDays(90)->toDateString(),
+            'booking_date' => '2025-02-24',
             'status' => 'completed',
         ], [
             'availability_id' => $slot->id,
@@ -347,7 +347,7 @@ private function seedServiceSuggestions(): void
         $disputed = $this->seed(Booking::factory(), [
             'customer_id' => $applicant->id,
             'vendor_service_id' => $offer->id,
-            'booking_date' => Carbon::now()->subDays(60)->toDateString(),
+            'booking_date' => '2025-03-24',
             'status' => 'completed',
         ], [
             'availability_id' => $slot->id,
@@ -468,8 +468,23 @@ private function seedServiceSuggestions(): void
         array $attributes = []
     ): Model {
         $model = $factory->newModel();
+        $query = $model->newQuery();
+        foreach ($identity as $column => $value) {
+            if ($model instanceof Booking && $column === 'booking_date') {
+                $query->whereDate($column, $value);
+            } else {
+                $query->where($column, $value);
+            }
+        }
 
-        return $model->newQuery()->where($identity)->firstOr(
+        $query = $model->newQuery();
+        $lookup = $identity;
+        if ($model instanceof Booking && isset($lookup['booking_date'])) {
+            $query->whereDate('booking_date', $lookup['booking_date']);
+            unset($lookup['booking_date']);
+        }
+
+        return $query->where($lookup)->firstOr(
             fn () => $factory->create($identity + $attributes),
         );
     }

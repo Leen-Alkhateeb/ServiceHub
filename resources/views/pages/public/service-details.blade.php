@@ -39,6 +39,7 @@
 
     $isCustomer = auth()->check()
         && auth()->user()->role === 'customer';
+    $canBook = auth()->check() && auth()->user()->status === 'active' && (int) auth()->id() !== (int) $vendor->id;
 
     // Days that have slots (free or booked), with how many are still free.
     $bookableDays = collect($days)
@@ -472,10 +473,11 @@
                         <a class="sd-button" href="{{ route('login') }}">
                             سجّل الدخول للحجز
                         </a>
-                    @elseif ($isCustomer)
+                    @elseif ($canBook)
                         <a class="sd-button" href="#booking">اختر موعدًا</a>
 
 
+                        @if ($isCustomer)
                         <form method="POST"
                               action="{{ route('favorites.toggle', $vendorService) }}">
                             @csrf
@@ -483,8 +485,9 @@
                                 {{ $isFavorite ? '♥ إزالة من المفضلة' : '♡ إضافة للمفضلة' }}
                             </button>
                         </form>
+                        @endif
                     @else
-                        <p class="sd-muted">الحجز متاح للعملاء فقط.</p>
+                        <p class="sd-muted">الحجز غير متاح لهذا الحساب على هذه الخدمة.</p>
                     @endguest
                 </section>
 
@@ -530,11 +533,11 @@
                     </a>
                 </section>
 
-                @if ($isCustomer)
+                @if ($canBook)
                     <section class="sd-card sd-aside-card" id="booking">
                         <h2 class="sd-heading">المواعيد المتاحة</h2>
                         <p class="sd-booking-intro">
-                            اختر موعدًا مناسبًا وأرسل طلب الحجز. الدفع بيصير بعد موافقة مقدّم الخدمة.
+                            اختر موعدًا مناسبًا وانتقل إلى صفحة العربون لتأكيد الحجز.
                         </p>
 
                         @if ($hasSlots)
@@ -566,7 +569,8 @@
                                                     @if ($index !== $firstFreeDay) hidden disabled @endif>
                                                 <option value="">اختر الوقت</option>
                                                 @foreach ($day['slots'] as $slot)
-                                                    <option value="{{ $slot['value'] }}" @disabled($slot['taken'])>
+                                                    {{-- Booked slots are shown greyed out, without their value, so they can't be sent. --}}
+                                                    <option value="{{ $slot['taken'] ? '' : $slot['value'] }}" @disabled($slot['taken'])>
                                                         {{ $slot['start'] }} – {{ $slot['end'] }}{{ $slot['taken'] ? ' — محجوز' : '' }}
                                                     </option>
                                                 @endforeach
@@ -575,7 +579,7 @@
                                     </div>                                </div>
 
                                 <button class="sd-button" type="submit" style="margin-top:18px">
-                                    أرسل طلب الحجز
+                                    متابعة إلى دفع العربون
                                 </button>
                             </form>
                         @else

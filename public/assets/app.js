@@ -245,8 +245,10 @@ document.addEventListener('click', (event) => {
         }
     }
 
-    if (event.target.closest('#menu-toggle')) {
-        $('#navlinks')?.classList.toggle('open');
+    const menuToggle = event.target.closest('#menu-toggle');
+    if (menuToggle) {
+        const isOpen = $('#navlinks')?.classList.toggle('open') ?? false;
+        menuToggle.setAttribute('aria-expanded', String(isOpen));
     }
 });
 

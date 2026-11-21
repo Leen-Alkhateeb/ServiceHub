@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ContactMessage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -12,6 +13,33 @@ class ProfileController extends Controller
         'عمّان', 'الزرقاء', 'إربد', 'العقبة', 'البلقاء', 'مادبا',
         'الكرك', 'جرش', 'عجلون', 'المفرق', 'الطفيلة', 'معان',
     ];
+
+    public function reviews(Request $request)
+    {
+        $reviews = $this->customer($request)->reviewsGiven()->where('is_active', true)
+            ->with(['booking' => fn ($booking) => $booking->withTrashed()])->latest('id')->paginate(12);
+
+        return view('pages.customer.customer-reviews', compact('reviews'));
+    }
+
+    public function messages(Request $request)
+    {
+        $messages = ContactMessage::where('sender_id', $this->customer($request)->id)->latest('id')->paginate(12);
+
+        return view('pages.customer.customer-messages', compact('messages'));
+    }
+
+    public function sendMessage(Request $request)
+    {
+        abort_unless($request->user()->status === 'active', 403);
+        $data = $request->validate([
+            'subject' => ['required', 'string', 'max:255'],
+            'message' => ['required', 'string', 'max:5000'],
+        ]);
+        ContactMessage::create($data + ['sender_id' => $request->user()->id, 'status' => 'pending']);
+
+        return redirect()->route('contact')->with('status', 'تم إرسال رسالتك إلى الإدارة.');
+    }
 
     public function dashboard(Request $request)
     {
@@ -32,8 +60,8 @@ class ProfileController extends Controller
         $base = fn () => $user->bookingsAsCustomer()->with(['vendorService.vendor', 'payment'])->latest('id');
 
         return view('pages.customer.customer-bookings', [
-            'current' => $base()->whereIn('status', ['pending', 'approved', 'confirmed'])->get(),
-            'past'    => $base()->whereIn('status', ['completed', 'rejected', 'cancelled', 'expired', 'closed'])->get(),
+            'current' => $base()->whereIn('status', ['pending', 'approved', 'awaiting_payment', 'confirmed', 'paid', 'in_progress', 'objection_pending'])->get(),
+            'past'    => $base()->whereIn('status', ['completed', 'rejected', 'cancelled', 'expired', 'closed', 'refunded'])->get(),
         ]);
     }
 
@@ -41,12 +69,14 @@ class ProfileController extends Controller
     {
         $user = $this->customer($request);
 
-        return view('pages.customer.customer-favorites', [
-            'favorites' => $user->favorites()
+        $favorites = $user->favorites()
                 ->with(['vendorService.vendor', 'vendorService.service.category'])
                 ->latest('id')
-                ->get(),
-        ]);
+                ->get();
+        $availableOffers = \App\Models\VendorService::publiclyVisible()
+            ->whereIn('id', $favorites->pluck('vendor_service_id'))->pluck('id')->all();
+
+        return view('pages.customer.customer-favorites', compact('favorites', 'availableOffers'));
     }
 
     public function notifications(Request $request)

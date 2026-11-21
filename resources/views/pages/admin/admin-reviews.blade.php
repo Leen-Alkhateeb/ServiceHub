@@ -106,7 +106,7 @@
 
                                             
                                             <form action="{{ route('admin.reviews.destroy', $review->id) }}" method="POST" style="margin: 0;"
-      onsubmit="event.preventDefault(); Swal.fire({
+      onsubmit="if (!window.Swal) return confirm('هل أنت متأكد من حذف هذا التقييم؟'); event.preventDefault(); Swal.fire({
           title: 'هل أنت متأكد؟',
           text: 'لن تتمكن من استرجاع هذا التقييم بعد حذفه !',
           icon: 'warning',

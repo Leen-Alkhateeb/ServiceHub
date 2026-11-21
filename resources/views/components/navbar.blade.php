@@ -11,12 +11,26 @@
             <a href="{{ route('categories.index') }}">أقسام الصيانة</a>
             <a href="{{ route('market.index') }}">خدمات</a>
             <a href="{{ route('home') }}#how-it-works">كيف تعمل المنصة</a>
+            @auth
+                @if (auth()->user()->status === 'active' && auth()->user()->role === 'admin')
+                    @include('components.sidebars.admin')
+                @elseif (auth()->user()->status === 'active' && auth()->user()->role === 'vendor')
+                    @include('components.sidebars.vendor')
+                @elseif (auth()->user()->role === 'customer')
+                    @include('components.sidebars.customer')
+                @endif
+            @endauth
         </nav>
 
         <div class="nav-actions account-actions">
             @auth
                 @php
                     $account = auth()->user();
+                    $dashboard = match ($account->role) {
+                        'vendor' => 'vendor.dashboard',
+                        'admin' => 'admin.dashboard',
+                        default => null,
+                    };
 
                     $favoriteCount = $account->role === 'customer'
                         ? $account->favorites()->count()
@@ -32,13 +46,19 @@
                         ->get();
                 @endphp
 
-                <a
-                    class="account-picture-link"
-                    href="{{ route('account.profile') }}"
-                    aria-label="فتح ملفي الشخصي"
-                >
-                    <x-account-picture :account="$account" />
-                </a>
+                @if ($dashboard && $account->status === 'active')
+                    <a class="btn btn-yellow btn-sm" href="{{ route($dashboard) }}">لوحة التحكم</a>
+                @endif
+                <details class="account-dropdown">
+                    <summary class="account-picture-link" aria-label="قائمة الحساب"><x-account-picture :account="$account" /></summary>
+                    <div class="account-menu">
+                        <a href="{{ route('account.profile') }}">ملفي الشخصي</a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit">تسجيل الخروج</button>
+                        </form>
+                    </div>
+                </details>
 
                 <details class="notification-dropdown">
                     <summary
@@ -131,18 +151,14 @@
                 @elseif ($account->role === 'admin' && $account->status === 'active')
                     <a
                         class="btn btn-yellow btn-sm"
-                        href="{{ route('admin.service-requests.index') }}"
+                        href="{{ route('admin.dashboard') }}"
                     >
-                        طلبات الخدمات
+                        لوحة التحكم
                     </a>
+                @elseif ($account->role === 'vendor' && $account->status === 'active')
+                    <a class="btn btn-outline btn-sm" href="{{ route('vendor.dashboard') }}">لوحة الفني</a>
                 @endif
 
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="btn btn-outline btn-sm" type="submit">
-                        تسجيل الخروج
-                    </button>
-                </form>
             @else
                 <a class="btn btn-outline btn-sm" href="{{ route('login') }}">
                     تسجيل الدخول
@@ -155,6 +171,8 @@
 
             <button
                 aria-label="القائمة"
+                aria-controls="navlinks"
+                aria-expanded="false"
                 class="btn btn-outline btn-sm menu-toggle"
                 id="menu-toggle"
                 type="button"

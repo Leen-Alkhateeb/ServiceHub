@@ -21,7 +21,9 @@ class PortfolioController extends Controller
         $images = $project->images()->where('is_active', true)->oldest('id')->paginate(8);
         $isOwner = (int) $request->user()?->id === (int) $project->vendor_id;
 
-        return view('pages.vendor.portfolio-project', compact('project', 'images', 'isOwner'));
+        $editableImages = $isOwner ? $project->images()->where('is_active', true)->oldest('id')->get() : collect();
+
+        return view('pages.vendor.portfolio-project', compact('project', 'images', 'isOwner', 'editableImages'));
     }
 
     public function image(Request $request, PortfolioImage $image): StreamedResponse
@@ -56,6 +58,8 @@ class PortfolioController extends Controller
             'completion_date' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today', 'after_or_equal:1900-01-01'],
             'images' => [$project ? 'nullable' : 'required', 'array', 'min:1', 'max:8'],
             'images.*' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:max_width=5000,max_height=5000'],
+            'remove_images' => [$project ? 'nullable' : 'prohibited', 'array', 'max:8'],
+            'remove_images.*' => ['required', 'integer', 'distinct'],
         ]);
 
         $vendor = $request->user();
@@ -78,8 +82,17 @@ class PortfolioController extends Controller
                 ];
                 if ($project) {
                     $project = $vendor->portfolioProjects()->where('is_active', true)->lockForUpdate()->findOrFail($project->id);
-                    if ($project->images()->where('is_active', true)->count() + count($paths) > 8) {
+                    $activeImages = $project->images()->where('is_active', true);
+                    $removeIds = $data['remove_images'] ?? [];
+                    $removed = $project->images()->where('is_active', true)->whereIn('id', $removeIds);
+                    if ($removed->count() !== count($removeIds)) {
+                        throw ValidationException::withMessages(['remove_images' => 'إحدى الصور المحددة للحذف لم تعد متاحة في هذا المشروع.'])->errorBag($bag);
+                    }
+                    if ($activeImages->count() - count($removeIds) + count($paths) > 8) {
                         throw ValidationException::withMessages(['images' => 'يمكن عرض 8 صور للمشروع. احذف صورة قبل إضافة صور أخرى.'])->errorBag($bag);
+                    }
+                    if ($removeIds) {
+                        $removed->update(['is_active' => false]);
                     }
                     $project->update($attributes);
                 } else {
@@ -110,8 +123,10 @@ class PortfolioController extends Controller
     {
         $project = $image->project;
         $this->authorizeOwner($request, $project);
-        abort_unless($image->is_active, 404);
-        $image->forceFill(['is_active' => false])->save();
+        DB::transaction(function () use ($project, $image) {
+            $current = PortfolioProject::where('is_active', true)->lockForUpdate()->findOrFail($project->id);
+            $current->images()->where('is_active', true)->findOrFail($image->id)->forceFill(['is_active' => false])->save();
+        });
 
         return redirect()->route('vendor.portfolio.show', $project)->with('status', 'تم حذف الصورة من المعرض.');
     }

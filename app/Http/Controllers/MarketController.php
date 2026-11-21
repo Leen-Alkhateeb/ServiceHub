@@ -161,7 +161,8 @@ class MarketController extends Controller
                 fn ($q) => $q->where('vendor_id', $vendorService->vendor_id)
             )
             ->whereBetween('booking_date', [$firstDate, $lastDate])
-            ->whereIn('status', ['pending', 'approved', 'confirmed', 'completed'])
+            // Same statuses that block a new booking in BookingProfileController.
+            ->whereIn('status', ['pending', 'awaiting_payment', 'approved', 'confirmed', 'in_progress', 'completed'])
             ->get()
             ->groupBy(fn ($booking) =>
                 Carbon::parse($booking->booking_date)->toDateString()
@@ -208,13 +209,15 @@ class MarketController extends Controller
                                 && $slotEnd->gt($bookingStart);
                         });
 
-                    if (! $isTaken && $slotStart->isFuture()) {
+                    // Booked slots stay in the list (marked as taken) so the customer sees the full schedule.
+                    if ($slotStart->isFuture()) {
                         $slots[] = [
                             'value' => $date->toDateString()
                                 . '|' . $slotStart->format('H:i')
                                 . '|' . $window->id,
                             'start' => $slotStart->format('H:i'),
                             'end' => $slotEnd->format('H:i'),
+                            'taken' => $isTaken,
                         ];
                     }
 

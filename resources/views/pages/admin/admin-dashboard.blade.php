@@ -229,16 +229,67 @@
 
 @include('components.footer')
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+// Turbo swaps pages without a full reload, so DOMContentLoaded does not fire again.
+// This runs every time the page is shown, loads Chart.js once, and redraws the charts.
+(function () {
     const bookings = @json($bookingChart);
     const statuses = @json($statusChart);
 
-    Chart.defaults.font.family = "'IBM Plex Sans Arabic', 'Cairo', sans-serif";
+    const statusNames = {
+        pending: 'قيد الانتظار',
+        awaiting_payment: 'بانتظار العربون',
+        approved: 'مقبول',
+        confirmed: 'مؤكد',
+        paid: 'مدفوع',
+        in_progress: 'قيد التنفيذ',
+        completed: 'مكتمل',
+        cancelled: 'ملغي',
+        refunded: 'مسترد',
+        objection_pending: 'اعتراض قيد المراجعة',
+        rejected: 'مرفوض',
+        expired: 'منتهي',
+        closed: 'مغلق',
+    };
 
-    new Chart(document.getElementById('bookingsChart'), {
+    function loadChartJs(callback) {
+        if (window.Chart) {
+            callback();
+            return;
+        }
+
+        let script = document.getElementById('chartjs-lib');
+
+        if (!script) {
+            script = document.createElement('script');
+            script.id = 'chartjs-lib';
+            script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js';
+            document.head.appendChild(script);
+        }
+
+        script.addEventListener('load', callback, { once: true });
+    }
+
+    function drawCharts() {
+        const bookingsCanvas = document.getElementById('bookingsChart');
+        const statusCanvas = document.getElementById('statusChart');
+
+        if (!bookingsCanvas || !statusCanvas) {
+            return;
+        }
+
+        // Remove old chart objects (when coming back to the page) before drawing again.
+        [bookingsCanvas, statusCanvas].forEach(function (canvas) {
+            const old = Chart.getChart(canvas);
+
+            if (old) {
+                old.destroy();
+            }
+        });
+
+        Chart.defaults.font.family = "'IBM Plex Sans Arabic', 'Cairo', sans-serif";
+
+    new Chart(bookingsCanvas, {
         type: 'line',
         data: {
             labels: bookings.labels,
@@ -268,10 +319,12 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    new Chart(document.getElementById('statusChart'), {
+    new Chart(statusCanvas, {
         type: 'doughnut',
         data: {
-            labels: statuses.labels,
+            labels: statuses.labels.map(function (status) {
+                return statusNames[status] || status;
+            }),
             datasets: [{
                 data: statuses.values,
                 backgroundColor: [
@@ -302,6 +355,23 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     });
-});
+    }
+
+    loadChartJs(drawCharts);
+
+    // Back/forward buttons show a cached copy where the canvases are empty, so redraw on every turbo:load.
+    window.drawAdminCharts = function () {
+        loadChartJs(drawCharts);
+    };
+
+    if (!window.adminChartsListener) {
+        window.adminChartsListener = true;
+        document.addEventListener('turbo:load', function () {
+            if (document.getElementById('bookingsChart') && window.drawAdminCharts) {
+                window.drawAdminCharts();
+            }
+        });
+    }
+})();
 </script>
 @endsection

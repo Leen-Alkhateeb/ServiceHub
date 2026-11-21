@@ -68,6 +68,25 @@ class AdminBookingManagementTest extends TestCase
         $this->get(route('payment.checkout', $paid))->assertNotFound();
     }
 
+    public function test_admin_can_search_bookings_by_customer_name_and_sees_archive_message(): void
+    {
+        $customer = User::factory()->create(['first_name' => 'Rania', 'last_name' => 'Haddad']);
+        $booking = Booking::factory()->pending()->create(['customer_id' => $customer->id]);
+        Booking::factory()->pending()->count(2)->create();
+
+        $this->actingAs(User::factory()->admin()->create());
+
+        $this->get(route('admin.bookings.index', ['q' => 'Rania']))->assertOk()
+            ->assertViewHas('bookings', function ($bookings) use ($booking) {
+                return $bookings->total() === 1 && $bookings->first()->is($booking);
+            });
+
+        $this->followingRedirects()
+            ->delete(route('admin.bookings.destroy', $booking))
+            ->assertOk()
+            ->assertSee('تم نقل الحجز #' . $booking->id . ' إلى الأرشيف');
+    }
+
     public function test_guests_and_users_without_active_admin_access_cannot_manage_bookings(): void
     {
         $booking = Booking::factory()->pending()->create();

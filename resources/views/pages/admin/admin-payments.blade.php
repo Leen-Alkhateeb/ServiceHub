@@ -22,6 +22,11 @@
                 </div>
             </div>
 
+            <div class="stat">
+                    <strong>{{ number_format($paidTotal*0.15, 2) }}</strong>
+                    <span>ارباح المنصه  (د.أ)</span>
+                </div>
+
             <div class="stats">
                 <div class="stat">
                     <strong>{{ number_format($paidTotal, 2) }}</strong>
@@ -39,6 +44,7 @@
                     <strong>{{ number_format($refundedTotal, 2) }}</strong>
                     <span>مبالغ مستردة (د.أ)</span>
                 </div>
+                
             </div>
 
             @if ($errors->any())

@@ -7,7 +7,7 @@
         <a class="" href="/admin/admin-applications">طلبات الانضمام</a>
         <a class="" href="{{ route('admin.categories') }}">الأقسام</a>
         <a class="" href="/admin/admin-services">كتالوج الخدمات</a>
-        <a class="" href="/admin/admin-approvals">اعتماد الخدمات</a>
+        <a class="" href="/admin/vendor-service-requests">اعتماد الخدمات</a>
         <a class="" href="{{ route('admin.bookings.index') }}">الحجوزات</a>
         <a class="" href="/admin/admin-cancellations">الإلغاءات</a>
         <a class="" href="{{ route('admin.payments.index') }}">المدفوعات</a>

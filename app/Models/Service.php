@@ -21,6 +21,8 @@ class Service extends Model
         'approval_status',
         'rejection_reason',
         'is_deleted',
+        'is_active',
+        'suggested_by',
     ];
 
     public function category(): BelongsTo
@@ -32,4 +34,9 @@ class Service extends Model
     {
         return $this->hasMany(VendorService::class, 'service_id');
     }
+
+    public function suggestedBy(): BelongsTo
+{
+    return $this->belongsTo(User::class, 'suggested_by');
+}
 }

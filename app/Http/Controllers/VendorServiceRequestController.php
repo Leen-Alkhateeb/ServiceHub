@@ -29,8 +29,8 @@ class VendorServiceRequestController extends Controller
             User::query()->lockForUpdate()->findOrFail($vendor->id);
             $service = Service::query()->whereKey($data['service_id'])
                 ->where('approval_status', 'approved')->where('is_deleted', false)
-                ->whereHas('category', fn ($category) => $category->where('is_deleted', false))->first();
-            if (! $service) {
+                ->whereHas('category', fn($category) => $category->where('is_deleted', false))->first();
+            if (!$service) {
                 throw ValidationException::withMessages(['service_id' => 'اختر خدمة معتمدة من القائمة.'])->errorBag('offer');
             }
 
@@ -49,7 +49,7 @@ class VendorServiceRequestController extends Controller
             }
         }, 3);
 
-        return redirect(route('vendor.profile').'#services')->with('offer_status', 'تمت إضافة الخدمة إلى ملفك.');
+        return redirect(route('vendor.profile') . '#services')->with('offer_status', 'تمت إضافة الخدمة إلى ملفك.');
     }
 
     public function suggest(Request $request): RedirectResponse
@@ -63,26 +63,34 @@ class VendorServiceRequestController extends Controller
         DB::transaction(function () use ($vendor, $data) {
             User::query()->lockForUpdate()->findOrFail($vendor->id);
             $category = Category::where('is_deleted', false)->lockForUpdate()->find($data['category_id']);
-            if (! $category) {
+            if (!$category) {
                 throw ValidationException::withMessages(['category_id' => 'اختر قسمًا متاحًا.'])->errorBag('suggestion');
             }
-            if ($category->services()->where('is_deleted', false)->whereIn('approval_status', ['pending', 'approved'])
-                ->whereRaw('LOWER(name) = ?', [mb_strtolower($data['name'])])->exists()) {
+            if (
+                $category->services()->where('is_deleted', false)->whereIn('approval_status', ['pending', 'approved'])
+                    ->whereRaw('LOWER(name) = ?', [mb_strtolower($data['name'])])->exists()
+            ) {
                 throw ValidationException::withMessages(['name' => 'هذه الخدمة موجودة بالفعل أو قيد المراجعة.'])->errorBag('suggestion');
             }
 
             $service = $category->services()->create([
-                'name' => $data['name'], 'description' => $data['description'],
-                'image' => '', 'approval_status' => 'pending',
+                'name' => $data['name'],
+                'description' => $data['description'],
+                'image' => '',
+                'approval_status' => 'pending',
+                'suggested_by' => $vendor->id,
             ]);
             $vendor->vendorServices()->create([
-                'service_id' => $service->id, 'price' => $data['price'],
-                'description' => $data['description'], 'duration_minutes' => $data['duration_minutes'] ?? null,
-                'image' => '', 'status' => 'pending',
+                'service_id' => $service->id,
+                'price' => $data['price'],
+                'description' => $data['description'],
+                'duration_minutes' => $data['duration_minutes'] ?? null,
+                'image' => '',
+                'status' => 'pending',
             ]);
         }, 3);
 
-        return redirect(route('vendor.profile').'#services')->with('offer_status', 'تم إرسال اقتراح الخدمة إلى الإدارة.');
+        return redirect(route('vendor.profile') . '#services')->with('offer_status', 'تم إرسال اقتراح الخدمة إلى الإدارة.');
     }
 
     public function index(): View
@@ -109,7 +117,7 @@ class VendorServiceRequestController extends Controller
             }
         });
 
-        return redirect(route('vendor.profile').'#services')->with('offer_status', 'تم تعديل العرض.');
+        return redirect(route('vendor.profile') . '#services')->with('offer_status', 'تم تعديل العرض.');
     }
 
     public function destroy(Request $request, VendorService $offer): RedirectResponse
@@ -122,7 +130,7 @@ class VendorServiceRequestController extends Controller
             $current->update(['status' => 'inactive']);
         });
 
-        return redirect(route('vendor.profile').'#services')->with('offer_status', 'تم حذف العرض من ملفك.');
+        return redirect(route('vendor.profile') . '#services')->with('offer_status', 'تم حذف العرض من ملفك.');
     }
 
     public function decide(Request $request, VendorService $offer): RedirectResponse
@@ -141,7 +149,7 @@ class VendorServiceRequestController extends Controller
             $reason = $approved ? null : $data['rejection_reason'];
             if ($approved) {
                 abort_unless(in_array($service->approval_status, ['approved', 'pending'], true)
-                    && ! $service->is_deleted && ! $service->category->is_deleted, 409);
+                    && !$service->is_deleted && !$service->category->is_deleted, 409);
             }
             if ($service->approval_status === 'pending') {
                 $service->update(['approval_status' => $approved ? 'approved' : 'rejected', 'rejection_reason' => $reason]);
@@ -149,7 +157,7 @@ class VendorServiceRequestController extends Controller
             $current->update(['status' => $data['decision'], 'rejection_reason' => $reason]);
             $current->vendor->notifications()->create([
                 'title' => $approved ? 'تمت الموافقة على الخدمة' : 'لم تتم الموافقة على الخدمة',
-                'message' => $service->name.($reason ? ' · '.$reason : ''),
+                'message' => $service->name . ($reason ? ' · ' . $reason : ''),
                 'type' => 'service',
             ]);
         }, 3);

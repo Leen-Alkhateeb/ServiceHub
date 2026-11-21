@@ -46,4 +46,24 @@ public function index(Request $request)
     return view('pages.admin.admin-users', compact('users', 'count'));
 }
 
+public function toggleStatus(User $user)
+{
+    if ($user->id === auth()->id()) {
+        return back()->with('error', 'لا يمكنك تعطيل حسابك الشخصي.');
+    }
+
+    $user->status = $user->status === 'active'
+        ? 'inactive'
+        : 'active';
+
+    $user->save();
+
+    return back()->with(
+        'success',
+        $user->status === 'active'
+            ? 'تم تفعيل المستخدم بنجاح.'
+            : 'تم تعطيل المستخدم بنجاح.'
+    );
+}
+
 }

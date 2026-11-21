@@ -2,9 +2,8 @@
     <div class="brand">
         <span class="brandmark">✓</span>ServiceHub
     </div>
-        <a class="" href="/admin/Dashboard">نظرة عامة</a>
+        <a class="" href="/admin/dashboard">نظرة عامة</a>
         <a class="" href="/admin/Users">المستخدمون</a>
-        <a class="" href="/admin-vendors">الفنيون</a>
         <a class="" href="/admin-applications">طلبات الانضمام</a>
         <a class="" href="/admin-categories">الأقسام</a>
         <a class="" href="/admin-services">كتالوج الخدمات</a>

@@ -6,7 +6,11 @@ use App\Http\Controllers\AdminBookingController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\AdminPaymentController;
+<<<<<<< HEAD
 use App\Http\Controllers\AdminReviewController;
+=======
+use App\Http\Controllers\AdminServicesController;
+>>>>>>> 1ae9934ce4e42692ffbe665e92e78e1ae8229b60
 use App\Http\Controllers\AdminUsersController;
 use App\Http\Controllers\AdminVendorApplicationController;
 use App\Http\Controllers\BookingController;
@@ -34,7 +38,7 @@ use App\Services\AccountHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\AdminServiceApprovalController;
 
 /*
 |--------------------------------------------------------------------------
@@ -350,6 +354,24 @@ Route::middleware('auth')->group(function () {
                 Route::delete('/deleteUser/{user}', [AdminUsersController::class, 'destroy'])
                     ->name('users.destroy');
 
+                Route::put('/users/{user}/toggle-status', [AdminUsersController::class, 'toggleStatus'])
+                    ->name('users.toggle-status');
+
+                Route::get('/admin-services', [AdminServicesController::class, 'adminServices'])
+                    ->name('admin-services');
+
+                Route::post('/addServices', [AdminServicesController::class, 'addServices'])
+                    ->name('addServices');
+
+                Route::put('/admin-services/{service}', [AdminServicesController::class, 'editServices'])
+                    ->name('editServices');
+
+                Route::put('/admin-services/toggle/{service}', [AdminServicesController::class, 'toggleServices'])
+                    ->name('toggleServices');
+
+                Route::delete('/admin-services/{service}', [AdminServicesController::class, 'deleteServices'])
+                    ->name('deleteServices');
+
                 Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
                 Route::get('/bookings/{booking}', [AdminBookingController::class, 'show'])->withTrashed()->name('bookings.show');
                 Route::delete('/bookings/{booking}', [AdminBookingController::class, 'destroy'])->name('bookings.destroy');
@@ -377,19 +399,25 @@ Route::middleware('auth')->group(function () {
                     ->name('admin-applications');
 
                 Route::put(
-                    '/admin-applications/{id}/approved',[AdminVendorApplicationController::class, 'approved']
+                    '/admin-applications/{id}/approved',
+                    [AdminVendorApplicationController::class, 'approved']
                 )->name('admin-applications.approved');
 
                 Route::put(
-                    '/admin-applications/{id}/rejected',[AdminVendorApplicationController::class, 'rejected']
+                    '/admin-applications/{id}/rejected',
+                    [AdminVendorApplicationController::class, 'rejected']
                 )->name('admin-applications.rejected');
 
                 // Vendor Service Requests
-                Route::get('/vendor-service-requests', [VendorServiceRequestController::class, 'index'])
-                    ->name('service-requests.index');
+                Route::get(
+                    '/vendor-service-requests',
+                    [AdminServiceApprovalController::class, 'index']
+                )->name('service-requests.index');
 
-                Route::post('/vendor-service-requests/{offer}', [VendorServiceRequestController::class, 'decide'])
-                    ->name('service-requests.decide');
+                Route::post(
+                    '/vendor-service-requests/{offer}',
+                    [AdminServiceApprovalController::class, 'decide']
+                )->name('service-requests.decide');
 
 
 

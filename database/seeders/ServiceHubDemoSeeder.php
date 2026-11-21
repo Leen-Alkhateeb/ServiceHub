@@ -176,8 +176,101 @@ class ServiceHubDemoSeeder extends Seeder
                 ]);
 
             }
+            $this->seedServiceSuggestions();
         });
     }
+
+
+private function seedServiceSuggestions(): void
+{
+    $suggestions = [
+        [
+            'vendor_email' => 'plumbing.seed@servicehub.example',
+            'category' => 'السباكة',
+            'name' => 'فحص ضغط المياه في المنزل',
+            'description' => 'قياس ضغط المياه وفحص أسباب ضعف تدفق المياه داخل المنزل.',
+            'price' => 35,
+            'duration_minutes' => 60,
+            'approval_status' => 'pending',
+        ],
+        [
+            'vendor_email' => 'electrical.seed@servicehub.example',
+            'category' => 'الكهرباء',
+            'name' => 'فحص استهلاك الكهرباء المنزلي',
+            'description' => 'فحص استهلاك الأجهزة الكهربائية وتحديد مصادر الاستهلاك المرتفع.',
+            'price' => 45,
+            'duration_minutes' => 90,
+            'approval_status' => 'pending',
+        ],
+        [
+            'vendor_email' => 'cooling.seed@servicehub.example',
+            'category' => 'صيانة المكيفات',
+            'name' => 'فحص كفاءة توزيع الهواء',
+            'description' => 'فحص توزيع الهواء وتحديد أسباب ضعف التبريد في الغرف.',
+            'price' => 40,
+            'duration_minutes' => 60,
+            'approval_status' => 'rejected',
+        ],
+    ];
+
+    foreach ($suggestions as $suggestion) {
+        $vendor = User::where(
+            'email',
+            $suggestion['vendor_email']
+        )->firstOrFail();
+
+        $category = Category::where(
+            'name',
+            $suggestion['category']
+        )->firstOrFail();
+
+        $service = Service::firstOrCreate(
+            [
+                'category_id' => $category->id,
+                'name' => $suggestion['name'],
+            ],
+            [
+                'description' => $suggestion['description'],
+                'image' => '',
+                'suggested_by' => $vendor->id,
+                'approval_status' => $suggestion['approval_status'],
+                'rejection_reason' =>
+                    $suggestion['approval_status'] === 'rejected'
+                        ? 'يرجى توضيح تفاصيل الخدمة بشكل أكبر.'
+                        : null,
+                'is_deleted' => false,
+                'is_active' => false,
+            ]
+        );
+
+        // لا نغيّر الخدمات الموجودة مسبقًا أو أصحابها.
+        if ((int) $service->suggested_by !== (int) $vendor->id) {
+            continue;
+        }
+
+        VendorService::firstOrCreate(
+            [
+                'vendor_id' => $vendor->id,
+                'service_id' => $service->id,
+            ],
+            [
+                'description' => $suggestion['description'],
+                'price' => $suggestion['price'],
+                'duration_minutes' => $suggestion['duration_minutes'],
+                'image' => '',
+                'status' =>
+                    $suggestion['approval_status'] === 'rejected'
+                        ? 'rejected'
+                        : 'pending',
+                'rejection_reason' =>
+                    $suggestion['approval_status'] === 'rejected'
+                        ? 'يرجى توضيح تفاصيل الخدمة بشكل أكبر.'
+                        : null,
+            ]
+        );
+    }
+}
+
 
     private function seedBookingActivity(
         User $customer,

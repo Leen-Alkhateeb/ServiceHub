@@ -21,6 +21,13 @@
 
         <!-- Statistics -->
         <section class="admin-stat-grid">
+             <div class="admin-stat">
+                <span>إجمالي الارباح المسجلة</span>
+                <strong>{{ number_format($stats['paidAmount']*0.15, 2) }}</strong>
+                <small>صافي ربح المنصة</small>
+                <a href="#" class="admin-card-link" data-page="payments">عرض المدفوعات <span aria-hidden="true">←</span></a>
+            </div>
+
             <div class="admin-stat">
                 <span>إجمالي المستخدمين</span>
                 <strong>{{ number_format($stats['users']) }}</strong>
@@ -32,7 +39,7 @@
                 <span>الفنيون</span>
                 <strong>{{ number_format($stats['vendors']) }}</strong>
                 <small>حسابات الفنيين</small>
-                <a href="#" class="admin-card-link" data-page="vendors">عرض الفنيين <span aria-hidden="true">←</span></a>
+                <a href="{{ url('/admin/Users?role=vendor') }}" class="admin-card-link" data-page="vendors">عرض الفنيين <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="admin-stat">
@@ -54,13 +61,6 @@
                 <strong>{{ number_format($stats['pendingRefunds']) }}</strong>
                 <small>تحتاج قرار الإدارة</small>
                 <a href="#" class="admin-card-link" data-page="refunds">عرض الاسترجاعات <span aria-hidden="true">←</span></a>
-            </div>
-
-            <div class="admin-stat">
-                <span>إجمالي المدفوعات المسجلة</span>
-                <strong>{{ number_format($stats['paidAmount'], 2) }}</strong>
-                <small>قيمة المدفوعات بحالة paid، وليست صافي ربح المنصة</small>
-                <a href="#" class="admin-card-link" data-page="payments">عرض المدفوعات <span aria-hidden="true">←</span></a>
             </div>
         </section>
 

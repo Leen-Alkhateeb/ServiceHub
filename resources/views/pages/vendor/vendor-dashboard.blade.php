@@ -10,6 +10,9 @@
                 <div>
                     <span class="small muted">لوحة الفني</span>
                     <h1>مرحبًا {{ $vendorName }}</h1>
+                    @if ($vendor->vendorProfile && $vendor->vendorProfile->application_status !== 'approved')
+                        <a href="{{ route('vendor.apply') }}">حالة طلب الانضمام</a>
+                    @endif
                 </div>
             </div>
 

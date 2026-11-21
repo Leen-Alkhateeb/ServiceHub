@@ -10,7 +10,7 @@
             <div><b>المنصة</b><a href="/about">من نحن</a><a href="/how-it-works">كيف تعمل المنصة</a><a
                     href="/become-vendor">انضم كفني</a></div>
             <div><b>المساعدة</b><a href="/faq">الأسئلة الشائعة</a><a href="/contact">تواصل معنا</a><a
-                    href="/customer-dashboard">حسابي</a></div>
+                    href="{{ route('account.profile') }}">حسابي</a></div>
         </div>
         <div class="footer-bottom">© ServiceHub — جميع الحقوق محفوظة · نسخة واجهات تجريبية</div>
     </div>

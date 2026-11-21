@@ -146,16 +146,17 @@
                 @php
                     $item = $favorite->vendorService;
                     $categoryName = $item->service->category->name ?? $item->service->name;
+                    $available = in_array($item->id, $availableOffers, true);
                 @endphp
 
                 <article class="favorite-product">
-                    <a href="{{ route('market.show', $item) }}" aria-label="تفاصيل {{ $item->service->name }}">
+                    @if ($available)<a href="{{ route('market.show', $item) }}" aria-label="تفاصيل {{ $item->service->name }}">@endif
                         <x-directory-photo
                             :picture="$item->image ?: $item->service->image"
                             :trade="$categoryName"
                             kind="category"
                         />
-                    </a>
+                    @if ($available)</a>@endif
 
                     <div class="favorite-product-body">
                         <span class="favorite-product-category">{{ $categoryName }}</span>
@@ -176,9 +177,11 @@
                                         إزالة ♥
                                     </button>
                                 </form>
-                                <a class="btn btn-primary btn-sm" href="{{ route('market.show', $item) }}">
-                                    التفاصيل
-                                </a>
+                                @if ($available)
+                                    <a class="btn btn-primary btn-sm" href="{{ route('market.show', $item) }}">التفاصيل</a>
+                                @else
+                                    <span class="muted">الخدمة غير متاحة</span>
+                                @endif
                             </div>
                         </div>
                     </div>

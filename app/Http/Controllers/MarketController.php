@@ -18,18 +18,13 @@ class MarketController extends Controller
     {
         $activeReviews = fn ($reviews) => $reviews->where('is_active', true);
 
-        $query = VendorService::query()
-            ->where('status', 'active')
+        $query = VendorService::query()->publiclyVisible()
             ->with([
                 'service.category',
                 'vendor' => fn ($q) => $q
                     ->withAvg(['reviewsReceived' => $activeReviews], 'rating')
                     ->withCount(['reviewsReceived' => $activeReviews]),
-            ])
-            ->whereHas('service', fn ($q) => $q
-                ->where('approval_status', 'approved')
-                ->where('is_deleted', false))
-            ->whereHas('vendor', fn ($q) => $q->where('status', 'active'));
+            ]);
 
         if ($request->filled('q')) {
             $term = '%' . $request->q . '%';
@@ -98,19 +93,10 @@ class MarketController extends Controller
     /** تفاصيل الخدمة والتقييمات والمواعيد المتاحة */
     public function show(VendorService $vendorService)
     {
-        abort_unless($vendorService->status === 'active', 404);
+        abort_unless(VendorService::publiclyVisible()->whereKey($vendorService)->exists(), 404);
 
         $vendorService->load(['service.category', 'vendor.vendorProfile']);
         $vendor = $vendorService->vendor;
-
-        abort_unless(
-            $vendor->status === 'active'
-            && $vendor->vendorProfile?->application_status === 'approved'
-            && $vendorService->service->approval_status === 'approved'
-            && ! $vendorService->service->is_deleted
-            && ! $vendorService->service->category->is_deleted,
-            404
-        );
 
         $activeReviews = Review::query()
             ->where('reviewed_user_id', $vendor->id)

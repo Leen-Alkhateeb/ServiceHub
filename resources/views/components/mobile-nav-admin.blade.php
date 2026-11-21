@@ -1,6 +1,6 @@
-<div class="mobile-nav">
-    <a href="/services">⌕<br />اكتشف</a>
-    <a href="/customer-bookings">▤<br/>حجوزاتي</a>
-    <a href="/customer-favorites">♡<br/>المفضلة</a>
-    <a href="/customer-dashboard">♙<br />حسابي</a>
-</div>
+<nav class="mobile-nav" aria-label="لوحة الإدارة">
+    <a href="{{ route('admin.dashboard') }}">لوحة الإدارة</a>
+    <a href="{{ route('admin.bookings.index') }}">الحجوزات</a>
+    <a href="{{ route('admin.messages.index') }}">الرسائل</a>
+    <a href="{{ route('account.profile') }}">حسابي</a>
+</nav>

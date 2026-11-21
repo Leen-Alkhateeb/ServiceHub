@@ -8,7 +8,7 @@
 }
 
 .admin-manage .stats {
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
 }
 
 .admin-manage td.nowrap {
@@ -186,4 +186,30 @@
     .admin-manage .dash-title {
         flex-wrap: wrap;
     }
+}
+
+/* Filter bar: fields share the row and grow; the action buttons sit at the end
+   of the row (left in RTL). If they don't fit, they wrap to the end of the next line. */
+.admin-manage .hub-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.admin-manage .hub-filters .field {
+    flex: 1 1 160px;
+    min-width: 0;
+}
+
+.admin-manage .hub-filters .filter-actions {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin-inline-start: auto;
+}
+
+.admin-manage .hub-filters .filter-actions .btn {
+    padding-inline: 18px;
+    white-space: nowrap;
 }

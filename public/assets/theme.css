@@ -1201,7 +1201,7 @@ body[data-page^="admin"] .layout .section-head p {
 body[data-page^="admin"] .stats,
 body[data-page^="admin"] .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
     gap: 14px;
     margin-bottom: 18px;
 }

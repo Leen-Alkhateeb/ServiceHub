@@ -468,8 +468,16 @@ private function seedServiceSuggestions(): void
         array $attributes = []
     ): Model {
         $model = $factory->newModel();
+        $query = $model->newQuery();
+        foreach ($identity as $column => $value) {
+            if ($model instanceof Booking && $column === 'booking_date') {
+                $query->whereDate($column, $value);
+            } else {
+                $query->where($column, $value);
+            }
+        }
 
-        return $model->newQuery()->where($identity)->firstOr(
+        return $query->firstOr(
             fn () => $factory->create($identity + $attributes),
         );
     }

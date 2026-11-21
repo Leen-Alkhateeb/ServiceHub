@@ -89,6 +89,16 @@ Route::get('/services/{vendorService}', [MarketController::class, 'show'])
 // General Pages
 Route::view('/faq', 'pages.public.faq')
     ->name('faq');
+Route::view('/about', 'pages.public.about')->name('about');
+Route::view('/how-it-works', 'pages.public.how-it-works')->name('how-it-works');
+Route::view('/contact', 'pages.public.contact')->name('contact');
+Route::redirect('/forgot-password', '/password/reset');
+Route::redirect('/booking', '/services');
+Route::get('/service-details', function (Request $request) {
+    $offer = \App\Models\VendorService::publiclyVisible()->find($request->integer('id'));
+
+    return $offer ? redirect()->route('market.show', $offer) : redirect()->route('market.index');
+});
 
 Route::get('/profile-pictures/{account}', [AccountPictureController::class, 'show'])
     ->name('account.picture.show');
@@ -151,6 +161,8 @@ Route::middleware('auth')->group(function () {
     */
 
     Route::name('customer.')->group(function () {
+        Route::get('/customer-reviews', [ProfileController::class, 'reviews'])->name('reviews');
+        Route::get('/customer-messages', [ProfileController::class, 'messages'])->name('messages');
 
         Route::get('/dashboard', [ProfileController::class, 'dashboard'])
             ->name('dashboard');
@@ -189,6 +201,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/bookings/{booking}/payment', [PaymentController::class, 'store'])->name('payment.store');
     Route::get('/bookings/{booking}/checkout', [PaymentController::class, 'checkout'])->name('payment.checkout');
     Route::get('/bookings/{booking}/invoice', [PaymentController::class, 'invoice'])->withTrashed()->name('payment.invoice');
+    Route::redirect('/booking-details', '/my-profile?tab=bookings');
     Route::get('/AdminDashboard', [AdminDashboardController::class, 'index'])->middleware(ActiveAdmin::class);
 
     Route::middleware(['auth', ActiveVendor::class])
@@ -202,6 +215,7 @@ Route::middleware('auth')->group(function () {
         });
 
     Route::patch('/my-profile', AccountDetailsController::class)->name('account.details.update');
+    Route::post('/contact', [ProfileController::class, 'sendMessage'])->middleware('throttle:6,1')->name('contact.store');
     Route::post('/my-profile/photo', [AccountPictureController::class, 'update'])->middleware('throttle:10,1')->name('account.picture.update');
     Route::delete('/my-profile/photo', [AccountPictureController::class, 'destroy'])->middleware('throttle:10,1')->name('account.picture.destroy');
     Route::get('/my-profile', function (Request $request, AccountHistory $history) {
@@ -274,6 +288,12 @@ Route::middleware('auth')->group(function () {
         ->group(function () {
 
             // Wallet
+            Route::get('/vendor-dashboard', [VendorPagesController::class, 'dashboard'])->name('dashboard');
+            Route::redirect('/vendor-settings', '/vendor-profile')->name('settings.redirect');
+            Route::redirect('/vendor-services', '/vendor-profile?tab=services')->name('services.redirect');
+            Route::redirect('/vendor-service-form', '/vendor-profile?tab=services')->name('service-form.redirect');
+            Route::redirect('/vendor-portfolio', '/vendor-profile?tab=portfolio')->name('portfolio.redirect');
+            Route::redirect('/vendor-portfolio-form', '/vendor-profile?tab=portfolio')->name('portfolio-form.redirect');
             Route::get('/vendor-wallet', VendorWalletController::class)
                 ->name('wallet');
 
@@ -420,16 +440,13 @@ Route::middleware('auth')->group(function () {
                     [AdminVendorApplicationController::class, 'rejected']
                 )->name('admin-applications.rejected');
 
-                Route::put(
-                    '/admin-applications/{id}/rejected',
-                    [AdminVendorApplicationController::class, 'rejected']
-                )->name('admin-applications.rejected');
-
                 // Vendor Service Requests
                 Route::get(
                     '/vendor-service-requests',
                     [AdminServiceApprovalController::class, 'index']
                 )->name('service-requests.index');
+                Route::post('/vendor-service-requests/{offer}', [AdminServiceApprovalController::class, 'decide'])
+                    ->name('service-requests.decide');
 
                 Route::get(
                     '/admin-refunds',

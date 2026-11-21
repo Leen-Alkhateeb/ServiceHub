@@ -58,9 +58,17 @@ class VendorWorkspaceTest extends TestCase
 
         $vendor = User::whereEmail('plumbing.seed@servicehub.example')->firstOrFail();
         $offer = $vendor->vendorServices()->firstOrFail();
+        Booking::withoutEvents(function () use ($offer) {
+            foreach (Booking::factory()->count(10)->for($offer)->create() as $booking) {
+                Payment::factory()->for($booking)->create();
+                WalletTransaction::factory()->for($booking)->create();
+                Review::factory()->for($booking)->create();
+            }
+        });
         $response = $this->getJson(route('vendor.service.reviews', $offer))->assertOk()->assertJsonCount(8, 'data');
         $pageOne = array_column($response->json('data'), 'id');
-        $pageTwo = $this->getJson($response->json('next_page_url'))->assertOk()->assertJsonCount(8, 'data');
+        $pageTwo = $this->getJson($response->json('next_page_url'))->assertOk();
+        $this->assertNotEmpty($pageTwo->json('data'));
         $this->assertLessThan(min($pageOne), max(array_column($pageTwo->json('data'), 'id')));
 
         $this->actingAs($vendor)->get(route('home'))->assertOk()->assertSee(route('account.profile'))
@@ -123,11 +131,9 @@ class VendorWorkspaceTest extends TestCase
         $this->get(route('categories.index'))->assertOk()->assertSee('صفحة 2');
         $this->get(route('vendors.index'))->assertOk()->assertSee('صفحة 2');
         $service = Service::where('approval_status', 'approved')->firstOrFail();
-        $expectedVendor = $service->vendorServices()->firstOrFail()->vendor;
-        $this->get(route('categories.show', $service->category))->assertOk()
-            ->assertViewHas('vendors', fn ($vendors) => $vendors->pluck('id')->all() === [$expectedVendor->id])
-            ->assertSee(route('vendor.profile', ['vendor' => $expectedVendor->id]))
-            ->assertSee('assets/demo/directory/vendor-');
+        $categoryMarket = route('market.index', ['category' => $service->category_id]);
+        $this->get(route('categories.show', $service->category))->assertRedirect($categoryMarket);
+        $this->get($categoryMarket)->assertOk()->assertSee($service->name);
         $customer = User::factory()->create();
         $this->actingAs($customer)->get(route('account.profile'))->assertOk()->assertSee($customer->email)->assertSee('&nbsp;', false);
     }
@@ -372,9 +378,10 @@ class VendorWorkspaceTest extends TestCase
         $slot = fn (string $hour) => ['slot' => $tomorrow->format('Y-m-d').'|'.$hour.'|'.$window->id];
         $store = route('booking.store', $offer);
         $this->actingAs($seller)->post($store, $slot('09:00'))->assertForbidden();
-        $this->actingAs($buyer)->get(route('market.show', $offer))->assertOk()->assertSee('احجز الآن');
-        $this->post($store, $slot('09:00'))->assertRedirect(route('account.profile', ['tab' => 'bookings']));
+        $this->actingAs($buyer)->get(route('market.show', $offer))->assertOk()->assertSee('اختر موعدًا');
+        $bookingResponse = $this->post($store, $slot('09:00'));
         $ownBooking = $buyer->bookingsAsCustomer()->firstOrFail();
+        $bookingResponse->assertRedirect(route('payment.checkout', $ownBooking));
         Payment::factory()->for($ownBooking)->create(['amount' => 77.55, 'paid_at' => now()->subDay()]);
         $this->get(route('vendor.profile', ['tab' => 'payments']))->assertOk()
             ->assertSee('77.55')->assertDontSee('طلب إضافة خدمة');

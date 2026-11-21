@@ -19,7 +19,7 @@
             <dt>تاريخ ووقت الدفع</dt><dd><x-dialog-date-time :value="$payment->paid_at" /></dd>
         @endif
     </dl>
-    @if ($tab === 'bookings' && $booking->status === 'approved')
+    @if ($tab === 'bookings' && $booking->status === 'awaiting_payment')
         <a class="btn btn-yellow" href="{{ route('payment.checkout', $booking) }}">الدفع</a>
     @endif
 </dialog>

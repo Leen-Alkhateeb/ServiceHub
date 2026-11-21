@@ -26,7 +26,7 @@
     @endauth
 
     <script type="module" src="/assets/app.js" defer></script>
-    <script src="/assets/servicehub-pages.js" defer></script>
+    <script type="module" src="/assets/servicehub-pages.js"></script>
 </body>
 
 </html>

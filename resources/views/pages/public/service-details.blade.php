@@ -39,6 +39,7 @@
 
     $isCustomer = auth()->check()
         && auth()->user()->role === 'customer';
+    $canBook = auth()->check() && auth()->user()->status === 'active' && (int) auth()->id() !== (int) $vendor->id;
 
     $hasSlots = collect($days)->contains(
         fn ($day) => count($day['slots']) > 0
@@ -465,10 +466,11 @@
                         <a class="sd-button" href="{{ route('login') }}">
                             سجّل الدخول للحجز
                         </a>
-                    @elseif ($isCustomer)
+                    @elseif ($canBook)
                         <a class="sd-button" href="#booking">اختر موعدًا</a>
 
 
+                        @if ($isCustomer)
                         <form method="POST"
                               action="{{ route('favorites.toggle', $vendorService) }}">
                             @csrf
@@ -476,8 +478,9 @@
                                 {{ $isFavorite ? '♥ إزالة من المفضلة' : '♡ إضافة للمفضلة' }}
                             </button>
                         </form>
+                        @endif
                     @else
-                        <p class="sd-muted">الحجز متاح للعملاء فقط.</p>
+                        <p class="sd-muted">الحجز غير متاح لهذا الحساب على هذه الخدمة.</p>
                     @endguest
                 </section>
 
@@ -521,7 +524,7 @@
                     </a>
                 </section>
 
-                @if ($isCustomer)
+                @if ($canBook)
                     <section class="sd-card sd-aside-card" id="booking">
                         <h2 class="sd-heading">المواعيد المتاحة</h2>
                         <p class="sd-booking-intro">

@@ -98,14 +98,20 @@ class VendorPagesController extends Controller
     {
         $vendor = $request->user();
         $bookings = Booking::whereHas('vendorService', fn($offer) => $offer->where('vendor_id', $vendor->id));
+        $pending = (clone $bookings)->where('status', 'pending');
+        $upcoming = (clone $bookings)->whereIn('status', ['approved', 'paid', 'confirmed', 'in_progress'])
+            ->whereDate('booking_date', '>=', today());
         $stats = [
-            'طلبات بانتظار الرد' => (clone $bookings)->where('status', 'pending')->count(),
-            'حجوزات مكتملة' => (clone $bookings)->where('status', 'completed')->count(),
-            'خدمات معروضة' => $vendor->vendorServices()->where('status', 'active')->count(),
-            'خدمات طلبتها' => $vendor->bookingsAsCustomer()->count(),
+            'pending' => (clone $pending)->count(),
+            'upcoming' => (clone $upcoming)->count(),
+            'completed' => (clone $bookings)->where('status', 'completed')->count(),
+            'rating' => $vendor->reviewsReceived()->where('is_active', true)->avg('rating'),
         ];
+        $vendorName = $vendor->first_name.' '.$vendor->last_name;
+        $pendingBookings = $pending->with('customer')->latest('id')->limit(5)->get();
+        $upcomingBookings = $upcoming->with('customer')->oldest('booking_date')->oldest('start_time')->limit(5)->get();
 
-        return view('pages.vendor.vendor-dashboard', compact('stats', 'vendor'));
+        return view('pages.vendor.vendor-dashboard', compact('stats', 'vendor', 'vendorName', 'pendingBookings', 'upcomingBookings'));
     }
 
     public function serviceReviews(Request $request, VendorService $offer): JsonResponse

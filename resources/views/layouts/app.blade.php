@@ -16,6 +16,7 @@
 
     <link rel="stylesheet" href="/assets/style.css">
     <link rel="stylesheet" href="/assets/servicehub-pages.css">
+    <link rel="stylesheet" href="/assets/theme.css">
 </head>
 
 <body data-page="@yield('page_id')">
@@ -27,6 +28,7 @@
 
     <script type="module" src="/assets/app.js" defer></script>
     <script src="/assets/servicehub-pages.js" defer></script>
+    <script src="/assets/theme.js" defer></script>
 </body>
 
 </html>

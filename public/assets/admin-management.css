@@ -1,0 +1,185 @@
+/* Styles for admin management pages (categories, bookings, messages, payments).
+   Every rule starts with .admin-manage so other pages are not affected. */
+
+.admin-manage .page-intro {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.admin-manage .stats {
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.admin-manage .stat small {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.admin-manage .panel-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.admin-manage .panel-head h3 {
+    margin: 0;
+}
+
+.admin-manage .results-count {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.admin-manage table td {
+    vertical-align: middle;
+}
+
+.admin-manage .row-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.admin-manage .cell-title {
+    display: block;
+    font-weight: 700;
+}
+
+.admin-manage .cell-sub {
+    display: block;
+    margin-top: 2px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.admin-manage .category-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 220px;
+}
+
+.admin-manage .category-cell .directory-photo {
+    width: 64px;
+    height: 44px;
+    flex-shrink: 0;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+}
+
+.admin-manage .empty-state {
+    padding: 36px 16px;
+    text-align: center;
+    color: var(--muted);
+}
+
+.admin-manage .empty-state strong {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--ink);
+    font-size: 16px;
+}
+
+/* Forms */
+.admin-manage .form-panel {
+    max-width: 720px;
+}
+
+.admin-manage .field-hint {
+    display: block;
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.admin-manage .field-error {
+    display: block;
+    margin-top: 4px;
+    color: var(--danger);
+    font-size: 13px;
+}
+
+.admin-manage .field.has-error input,
+.admin-manage .field.has-error textarea,
+.admin-manage .field.has-error select {
+    border-color: var(--danger);
+}
+
+.admin-manage .current-image {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.admin-manage .current-image .directory-photo {
+    width: 140px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+}
+
+.admin-manage .form-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 18px;
+}
+
+/* Details pages */
+.admin-manage .details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+.admin-manage .details-list {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 10px 14px;
+    margin: 0;
+}
+
+.admin-manage .details-list dt {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+.admin-manage .details-list dd {
+    margin: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.admin-manage .message-body {
+    padding: 16px;
+    background: var(--bg);
+    border-radius: 10px;
+    line-height: 1.9;
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+    .admin-manage .details-list {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+
+    .admin-manage .details-list dd {
+        margin-bottom: 10px;
+    }
+
+    .admin-manage .dash-title {
+        flex-wrap: wrap;
+    }
+}

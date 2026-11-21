@@ -11,7 +11,7 @@ class VendorSettlement
 {
     public function completed(): Builder
     {
-        return Booking::query()->where('status', 'completed')->whereNotNull('completed_at');
+        return Booking::withTrashed()->where('status', 'completed')->whereNotNull('completed_at');
     }
 
     public function statusQuery(Builder $query, string $status): Builder
@@ -40,7 +40,7 @@ class VendorSettlement
         $this->statusQuery($this->completed(), 'ready')->chunkById(100, function ($bookings) use (&$released) {
             foreach ($bookings as $candidate) {
                 $released += (int) DB::transaction(function () use ($candidate) {
-                    $booking = Booking::query()->lockForUpdate()->find($candidate->id);
+                    $booking = Booking::withTrashed()->lockForUpdate()->find($candidate->id);
                     if (! $booking || ! $this->statusQuery($this->completed()->whereKey($booking->id), 'ready')->exists()) {
                         return false;
                     }

@@ -24,11 +24,11 @@
                         <div class="feature-icon">✓</div>
                         <h3>٣ · احجز الموعد المناسب</h3>
                         <p>اختار نافذة من جدول الفني الأسبوعي.</p>
-                    </a><a class="feature" href="/customer-bookings">
+                    </a><div class="feature">
                         <div class="feature-icon">✓</div>
-                        <h3>٤ · تابع طلبك</h3>
-                        <p>الموافقة، الدفع، الإنجاز والتقييم.</p>
-                    </a></div>
+                        <h3>٤ · استلم الخدمة واطبع فاتورتك</h3>
+                        <p>بعد الدفع ستظهر فاتورتك لتطبعها أو تحفظها PDF.</p>
+                    </div></div>
             </div>
         </section>
     </main>@include('components.footer')@include('components.mobile-nav-public')

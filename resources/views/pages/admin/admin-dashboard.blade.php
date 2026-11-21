@@ -21,25 +21,32 @@
 
         <!-- Statistics -->
         <section class="admin-stat-grid">
+             <div class="admin-stat">
+                <span>إجمالي الارباح المسجلة</span>
+                <strong>{{ number_format($stats['paidAmount']*0.15, 2) }}</strong>
+                <small>صافي ربح المنصة</small>
+                <a href="#" class="admin-card-link" data-page="payments">عرض المدفوعات <span aria-hidden="true">←</span></a>
+            </div>
+
             <div class="admin-stat">
                 <span>إجمالي المستخدمين</span>
                 <strong>{{ number_format($stats['users']) }}</strong>
                 <small>جميع الحسابات</small>
-                <a href="#" class="admin-card-link" data-page="users">عرض المستخدمين <span aria-hidden="true">←</span></a>
+                <a href="{{ route('admin.admin.Users') }}" class="admin-card-link" data-page="users">عرض المستخدمين <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="admin-stat">
                 <span>الفنيون</span>
                 <strong>{{ number_format($stats['vendors']) }}</strong>
                 <small>حسابات الفنيين</small>
-                <a href="#" class="admin-card-link" data-page="vendors">عرض الفنيين <span aria-hidden="true">←</span></a>
+                <a href="{{ url('/admin/Users?role=vendor') }}" class="admin-card-link" data-page="vendors">عرض الفنيين <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="admin-stat">
                 <span>إجمالي الحجوزات</span>
                 <strong>{{ number_format($stats['bookings']) }}</strong>
                 <small>جميع حالات الحجز</small>
-                <a href="#" class="admin-card-link" data-page="bookings">عرض الحجوزات <span aria-hidden="true">←</span></a>
+                <a href="{{ route('admin.bookings.index') }}" class="admin-card-link">عرض الحجوزات <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="admin-stat">
@@ -54,13 +61,6 @@
                 <strong>{{ number_format($stats['pendingRefunds']) }}</strong>
                 <small>تحتاج قرار الإدارة</small>
                 <a href="#" class="admin-card-link" data-page="refunds">عرض الاسترجاعات <span aria-hidden="true">←</span></a>
-            </div>
-
-            <div class="admin-stat">
-                <span>إجمالي المدفوعات المسجلة</span>
-                <strong>{{ number_format($stats['paidAmount'], 2) }}</strong>
-                <small>قيمة المدفوعات بحالة paid، وليست صافي ربح المنصة</small>
-                <a href="#" class="admin-card-link" data-page="payments">عرض المدفوعات <span aria-hidden="true">←</span></a>
             </div>
         </section>
 
@@ -91,7 +91,7 @@
         <section class="panel admin-section">
             <div class="admin-section-heading">
                     <h3>أحدث المستخدمين</h3>
-                    <a href="#" class="admin-section-link" data-page="users">عرض المستخدمين <span aria-hidden="true">←</span></a>
+                    <a href="{{ route('admin.admin.Users') }}" class="admin-section-link" data-page="users">عرض المستخدمين <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="table-wrap">

@@ -27,7 +27,7 @@ class VendorPagesController extends Controller
             $vendorId = $this->visibleOffers()->where('offers.id', $request->integer('id'))->value('offers.vendor_id');
             abort_unless($vendorId, 404);
         } else {
-            if (! $request->user()) {
+            if (!$request->user()) {
                 return redirect()->guest(route('login'));
             }
             abort_unless($request->user()->role === 'vendor' && $request->user()->status === 'active', 403);
@@ -37,8 +37,15 @@ class VendorPagesController extends Controller
         $user = $request->user();
         $ownProfile = $user && (int) $user->id === (int) $vendorId && $user->status === 'active';
         $profile = $this->visibleVendors($ownProfile)->where('users.id', $vendorId)->first([
-            'users.id', 'users.first_name', 'users.last_name', 'users.location', 'users.profile_image',
-            'profiles.work_type', 'profiles.experience_years', 'profiles.bio', 'profiles.application_status',
+            'users.id',
+            'users.first_name',
+            'users.last_name',
+            'users.location',
+            'users.profile_image',
+            'profiles.work_type',
+            'profiles.experience_years',
+            'profiles.bio',
+            'profiles.application_status',
         ]);
         abort_unless($profile, 404);
         $tab = $request->query('tab', 'services');
@@ -52,8 +59,17 @@ class VendorPagesController extends Controller
         $projects = $tab === 'portfolio' ? PortfolioProject::with('coverImage')->where('vendor_id', $vendorId)->where('is_active', true)->latest('id')
             ->paginate(8, ['*'], 'projects_page')->withQueryString() : null;
         $services = $tab === 'services' ? $this->visibleOffers()->where('offers.vendor_id', $vendorId)->latest('offers.id')
-            ->paginate(8, ['offers.id', 'offers.status', 'services.name', 'offers.price', 'offers.description', 'offers.duration_minutes',
-                'offers.image', 'services.image as catalog_image', 'services.description as default_description'], 'services_page')
+            ->paginate(8, [
+                'offers.id',
+                'offers.status',
+                'services.name',
+                'offers.price',
+                'offers.description',
+                'offers.duration_minutes',
+                'offers.image',
+                'services.image as catalog_image',
+                'services.description as default_description'
+            ], 'services_page')
             ->withQueryString()->through(function ($service) {
                 $service->image_url = $this->resolveImage($service->id, $service->image, $service->catalog_image)[0] ?? null;
 
@@ -64,7 +80,7 @@ class VendorPagesController extends Controller
             ->join('categories', 'categories.id', '=', 'services.category_id')
             ->where('services.approval_status', 'approved')->where('services.is_deleted', false)
             ->where('categories.is_deleted', false)
-            ->whereNotExists(fn (Builder $offers) => $offers->selectRaw('1')->from('vendor_services')
+            ->whereNotExists(fn(Builder $offers) => $offers->selectRaw('1')->from('vendor_services')
                 ->whereColumn('vendor_services.service_id', 'services.id')
                 ->where('vendor_services.vendor_id', $vendorId)->where('vendor_services.status', 'active'))
             ->orderBy('categories.name')->orderBy('services.name')
@@ -81,7 +97,7 @@ class VendorPagesController extends Controller
     public function dashboard(Request $request): View
     {
         $vendor = $request->user();
-        $bookings = Booking::whereHas('vendorService', fn ($offer) => $offer->where('vendor_id', $vendor->id));
+        $bookings = Booking::whereHas('vendorService', fn($offer) => $offer->where('vendor_id', $vendor->id));
         $stats = [
             'طلبات بانتظار الرد' => (clone $bookings)->where('status', 'pending')->count(),
             'حجوزات مكتملة' => (clone $bookings)->where('status', 'completed')->count(),
@@ -126,14 +142,14 @@ class VendorPagesController extends Controller
     private function resolveImage(int $offerId, ?string ...$images): array
     {
         foreach (array_unique($images) as $image) {
-            if (! $image) {
+            if (!$image) {
                 continue;
             }
             if (filter_var($image, FILTER_VALIDATE_URL) && in_array(parse_url($image, PHP_URL_SCHEME), ['https', 'http'], true)) {
                 return [$image, null];
             }
             $path = ltrim(str_replace('\\', '/', $image), '/');
-            if (str_contains($path, '..') || ! preg_match('/\.(jpe?g|png|webp|gif|avif)$/i', $path)) {
+            if (str_contains($path, '..') || !preg_match('/\.(jpe?g|png|webp|gif|avif)$/i', $path)) {
                 continue;
             }
             if (str_starts_with($path, 'assets/') && is_file(public_path($path))) {
@@ -161,7 +177,7 @@ class VendorPagesController extends Controller
         return DB::table('vendor_profiles as profiles')
             ->join('users', 'users.id', '=', 'profiles.user_id')
             ->where('users.role', 'vendor')->where('users.status', 'active')
-            ->when(! $ownProfile, fn (Builder $query) => $query->where('profiles.application_status', 'approved'));
+            ->when(!$ownProfile, fn(Builder $query) => $query->where('profiles.application_status', 'approved'));
     }
 
     private function visibleOffers(): Builder

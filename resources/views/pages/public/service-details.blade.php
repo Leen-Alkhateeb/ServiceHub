@@ -525,7 +525,7 @@
                     <section class="sd-card sd-aside-card" id="booking">
                         <h2 class="sd-heading">المواعيد المتاحة</h2>
                         <p class="sd-booking-intro">
-                            اختر وقتًا مناسبًا من مواعيد الفني. بعد الاختيار تنتقل إلى الدفع.
+                            اختر موعدًا مناسبًا وأرسل طلب الحجز. الدفع بيصير بعد موافقة مقدّم الخدمة.
                         </p>
 
                         @if ($hasSlots)
@@ -556,7 +556,7 @@
                                 @endforeach
 
                                 <button class="sd-button" type="submit" style="margin-top:18px">
-                                    احجز الموعد وانتقل للدفع
+                                    أرسل طلب الحجز
                                 </button>
                             </form>
                         @else

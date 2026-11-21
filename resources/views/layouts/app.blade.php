@@ -9,9 +9,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="view-transition" content="same-origin">
 
-    <script
-        type="module"
-        src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.23/dist/turbo.es2017-esm.min.js">
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.23/dist/turbo.es2017-esm.min.js">
     </script>
 
     @stack('styles')
@@ -27,7 +25,8 @@
         @include('components.archive-dialog')
     @endauth
 
-    <script src="/assets/app.js" defer></script>
+    <script type="module" src="/assets/app.js" defer></script>
     <script src="/assets/servicehub-pages.js" defer></script>
 </body>
+
 </html>

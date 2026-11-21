@@ -41,9 +41,16 @@
         && auth()->user()->role === 'customer';
     $canBook = auth()->check() && auth()->user()->status === 'active' && (int) auth()->id() !== (int) $vendor->id;
 
-    $hasSlots = collect($days)->contains(
-        fn ($day) => count($day['slots']) > 0
-    );
+    // Days that have slots (free or booked), with how many are still free.
+    $bookableDays = collect($days)
+        ->filter(fn ($day) => count($day['slots']) > 0)
+        ->map(fn ($day) => $day + [
+            'free' => collect($day['slots'])->where('taken', false)->count(),
+        ])
+        ->values();
+
+    $hasSlots = $bookableDays->contains(fn ($day) => $day['free'] > 0);
+    $firstFreeDay = $bookableDays->search(fn ($day) => $day['free'] > 0);
 
 @endphp
 
@@ -491,7 +498,9 @@
                     <div class="sd-vendor">
                         @if ($vendor->profile_image)
                             <img class="sd-avatar"
-                                 src="{{ route('account.picture.show', $vendor) }}"
+                                 src="{{ str_starts_with($vendor->profile_image, 'profile-photos/')
+                                     ? route('account.picture.show', $vendor)
+                                     : asset('storage/' . ltrim($vendor->profile_image, '/')) }}"
                                  alt="صورة {{ $vendor->first_name }}">
                         @else
                             <span class="sd-avatar">
@@ -536,27 +545,38 @@
                                   action="{{ route('booking.store', $vendorService) }}">
                                 @csrf
 
-                                @foreach ($days as $day)
-                                    @continue(count($day['slots']) === 0)
-
-                                    <h3 class="sd-day">
-                                        {{ $day['date']->locale('ar')->translatedFormat('l، d F') }}
-                                    </h3>
-
-                                    <div class="sd-slots">
-                                        @foreach ($day['slots'] as $slot)
-                                            <label class="sd-slot">
-                                                <input type="radio"
-                                                       name="slot"
-                                                       value="{{ $slot['value'] }}"
-                                                       required>
-                                                <span>
-                                                    {{ $slot['start'] }} – {{ $slot['end'] }}
-                                                </span>
-                                            </label>
-                                        @endforeach
+                                <div class="sd-picker" data-slot-picker>
+                                    <div>
+                                        <label for="slot-day">اليوم</label>
+                                        <select id="slot-day" data-slot-day>
+                                            @foreach ($bookableDays as $index => $day)
+                                                <option value="{{ $index }}"
+                                                        @selected($index === $firstFreeDay)
+                                                        @disabled($day['free'] === 0)>
+                                                    {{ $day['date']->locale('ar')->translatedFormat('l، d F') }}{{ $day['free'] === 0 ? ' — مكتمل' : '' }}
+                                                </option>
+                                            @endforeach
+                                        </select>
                                     </div>
-                                @endforeach
+
+                                    <div>
+                                        <label for="slot-time-{{ $firstFreeDay }}">الوقت</label>
+                                        @foreach ($bookableDays as $index => $day)
+                                            <select id="slot-time-{{ $index }}"
+                                                    name="slot"
+                                                    data-slot-time="{{ $index }}"
+                                                    required
+                                                    @if ($index !== $firstFreeDay) hidden disabled @endif>
+                                                <option value="">اختر الوقت</option>
+                                                @foreach ($day['slots'] as $slot)
+                                                    {{-- Booked slots are shown greyed out, without their value, so they can't be sent. --}}
+                                                    <option value="{{ $slot['taken'] ? '' : $slot['value'] }}" @disabled($slot['taken'])>
+                                                        {{ $slot['start'] }} – {{ $slot['end'] }}{{ $slot['taken'] ? ' — محجوز' : '' }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+                                        @endforeach
+                                    </div>                                </div>
 
                                 <button class="sd-button" type="submit" style="margin-top:18px">
                                     متابعة إلى دفع العربون

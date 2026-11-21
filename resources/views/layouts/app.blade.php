@@ -13,11 +13,13 @@
     </script>
     <script type="module" src="/assets/app.js"></script>
     <script type="module" src="/assets/servicehub-pages.js"></script>
+    <script src="/assets/theme.js" defer></script>
 
     @stack('styles')
 
     <link rel="stylesheet" href="/assets/style.css">
     <link rel="stylesheet" href="/assets/servicehub-pages.css">
+    <link rel="stylesheet" href="/assets/theme.css">
 </head>
 
 <body data-page="@yield('page_id')">

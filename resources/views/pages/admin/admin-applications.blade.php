@@ -159,7 +159,7 @@
 
                 @if (method_exists($applications, 'links'))
                     <div class="pagination-wrap">
-                        {{ $applications->links() }}
+                        {{ $applications->onEachSide(1)->links('components.pager') }}
                     </div>
                 @endif
             </div>

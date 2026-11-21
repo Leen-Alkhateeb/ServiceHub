@@ -22,12 +22,11 @@
                 </div>
             </div>
 
-            <div class="stat">
-                    <strong>{{ number_format($paidTotal*0.15, 2) }}</strong>
-                    <span>ارباح المنصه  (د.أ)</span>
-                </div>
-
             <div class="stats">
+                <div class="stat">
+                    <strong>{{ number_format($paidTotal * 0.15, 2) }}</strong>
+                    <span>أرباح المنصة (د.أ)</span>
+                </div>
                 <div class="stat">
                     <strong>{{ number_format($paidTotal, 2) }}</strong>
                     <span>إجمالي المدفوع (د.أ)</span>
@@ -44,7 +43,6 @@
                     <strong>{{ number_format($refundedTotal, 2) }}</strong>
                     <span>مبالغ مستردة (د.أ)</span>
                 </div>
-                
             </div>
 
             @if ($errors->any())
@@ -128,9 +126,9 @@
                                         </span>
                                     </td>
                                     <td>{{ trim($payment->booking?->customer?->first_name . ' ' . $payment->booking?->customer?->last_name) ?: '—' }}</td>
-                                    <td><span class="cell-title">{{ number_format($payment->amount, 2) }} د.أ</span></td>
+                                    <td class="nowrap"><span class="cell-title">{{ number_format($payment->amount, 2) }} د.أ</span></td>
                                     <td>{{ $methods[$payment->payment_method] ?? '—' }}</td>
-                                    <td>{{ $payment->paid_at?->format('Y-m-d H:i') ?? '—' }}</td>
+                                    <td class="nowrap">{{ $payment->paid_at?->format('Y-m-d H:i') ?? '—' }}</td>
                                     <td>
                                         <span class="pill {{ $statusColors[$payment->status] ?? '' }}">{{ $statuses[$payment->status] ?? $payment->status }}</span>
                                     </td>

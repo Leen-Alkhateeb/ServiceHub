@@ -11,6 +11,10 @@
     grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
 }
 
+.admin-manage td.nowrap {
+    white-space: nowrap;
+}
+
 .admin-manage .stat small {
     display: block;
     margin-top: 4px;

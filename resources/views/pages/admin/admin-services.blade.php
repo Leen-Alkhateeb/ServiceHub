@@ -96,7 +96,7 @@
 
                 @if (isset($services) && method_exists($services, 'links'))
                     <div class="services-pagination" data-turbo="false">
-                        {{ $services->withQueryString()->links() }}
+                        {{ $services->withQueryString()->onEachSide(1)->links('components.pager') }}
                     </div>
                 @endif
             </section>

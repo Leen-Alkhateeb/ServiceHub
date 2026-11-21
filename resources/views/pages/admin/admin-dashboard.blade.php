@@ -237,6 +237,23 @@
     const bookings = @json($bookingChart);
     const statuses = @json($statusChart);
 
+    // Booking statuses in Arabic for the doughnut chart legend.
+    const statusNames = {
+        pending: 'قيد الانتظار',
+        awaiting_payment: 'بانتظار العربون',
+        approved: 'مقبول',
+        confirmed: 'مؤكد',
+        paid: 'مدفوع',
+        in_progress: 'قيد التنفيذ',
+        completed: 'مكتمل',
+        cancelled: 'ملغي',
+        refunded: 'مسترد',
+        objection_pending: 'اعتراض قيد المراجعة',
+        rejected: 'مرفوض',
+        expired: 'منتهي',
+        closed: 'مغلق',
+    };
+
     if (!window.Chart) {
         window.serviceHubChartLibrary ??= new Promise((resolve, reject) => {
             const script = document.createElement('script');
@@ -298,7 +315,9 @@
     const statusChart = new Chart(statusCanvas, {
         type: 'doughnut',
         data: {
-            labels: statuses.labels,
+            labels: statuses.labels.map(function (status) {
+                return statusNames[status] || status;
+            }),
             datasets: [{
                 data: statuses.values,
                 backgroundColor: [

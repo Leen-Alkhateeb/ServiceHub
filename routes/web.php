@@ -9,8 +9,6 @@ use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\AdminPaymentController;
 use App\Http\Controllers\AdminReviewController;
 use App\Http\Controllers\AdminServicesController;
-
-use App\Http\Controllers\AdminUsersController;
 use App\Http\Controllers\AdminVendorApplicationController;
 use App\Http\Controllers\AdminWalletController;
 use App\Http\Controllers\BookingController;
@@ -100,9 +98,6 @@ Route::get('/service-details', function (Request $request) {
 
     return $offer ? redirect()->route('market.show', $offer) : redirect()->route('market.index');
 });
-
-Route::view('/about', 'pages.public.about')->name('about');
-Route::redirect('/how-it-works', '/#how-it-works');
 
 Route::get('/profile-pictures/{account}', [AccountPictureController::class, 'show'])
     ->name('account.picture.show');
@@ -457,15 +452,6 @@ Route::middleware('auth')->group(function () {
                 )->name('service-requests.index');
                 Route::post('/vendor-service-requests/{offer}', [AdminServiceApprovalController::class, 'decide'])
                     ->name('service-requests.decide');
-
-                Route::get(
-                    '/admin-refunds',
-                    [AdminRefundsController::class, 'index']
-                )->name('refunds.index');
-
-                Route::post('/refunds/{refund}/decide', [AdminRefundsController::class, 'decide'])
-                    ->name('refunds.decide');
-
 
 
                 Route::get('/categories', [CategoryController::class, 'index'])

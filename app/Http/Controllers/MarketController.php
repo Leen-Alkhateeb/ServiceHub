@@ -219,13 +219,15 @@ class MarketController extends Controller
                                 && $slotEnd->gt($bookingStart);
                         });
 
-                    if (! $isTaken && $slotStart->isFuture()) {
+                    // Booked slots stay in the list (marked as taken) so the customer sees the full schedule.
+                    if ($slotStart->isFuture()) {
                         $slots[] = [
                             'value' => $date->toDateString()
                                 . '|' . $slotStart->format('H:i')
                                 . '|' . $window->id,
                             'start' => $slotStart->format('H:i'),
                             'end' => $slotEnd->format('H:i'),
+                            'taken' => $isTaken,
                         ];
                     }
 

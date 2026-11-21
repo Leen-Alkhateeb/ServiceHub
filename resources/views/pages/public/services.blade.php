@@ -34,6 +34,7 @@
         padding: 42px 0 32px;
         background: linear-gradient(125deg, #eaf5ef, #fbfcfb);
         border-bottom: 1px solid var(--line);
+        text-align: center;
     }
 
     .services-hero h1 {
@@ -51,7 +52,8 @@
         display: flex;
         gap: 10px;
         max-width: 760px;
-        margin-top: 22px;
+        margin: 22px auto 0;
+        text-align: start;
         padding: 8px;
         border: 1px solid var(--line);
         border-radius: 14px;
@@ -504,7 +506,14 @@
                     </select>
                 </div>
 
-                <input type="hidden" name="sort" value="{{ request('sort', 'latest') }}">
+                <div class="filter-field">
+                    <label for="sort">ترتيب حسب</label>
+                    <select id="sort" name="sort">
+                        <option value="latest" @selected(request('sort', 'latest') === 'latest')>الأحدث</option>
+                        <option value="price_asc" @selected(request('sort') === 'price_asc')>السعر من الأقل للأعلى</option>
+                        <option value="price_desc" @selected(request('sort') === 'price_desc')>السعر من الأعلى للأقل</option>
+                    </select>
+                </div>
 
                 <button class="filter-submit" type="submit">تطبيق الفلاتر</button>
                 <a class="clear-filters" href="{{ route('market.index', $selectedCategory ? ['category' => $selectedCategory->id] : []) }}">مسح الفلاتر</a>
@@ -517,33 +526,6 @@
                     <h2>{{ $selectedCategory ? 'خدمات '.$selectedCategory->name : 'الخدمات المتاحة' }}</h2>
                     <p>{{ $services->total() }} خدمة متاحة</p>
                 </div>
-
-                <form method="GET" action="{{ route('market.index') }}">
-                    <input type="hidden" name="q" value="{{ request('q') }}">
-                    <input type="hidden" name="category" value="{{ request('category') }}">
-                    <input type="hidden" name="location" value="{{ request('location') }}">
-                    <input type="hidden" name="min_price" value="{{ request('min_price') }}">
-                    <input type="hidden" name="max_price" value="{{ request('max_price') }}">
-                    <input type="hidden" name="rating" value="{{ request('rating') }}">
-
-                    <select class="sort-select"
-                            name="sort"
-                            aria-label="ترتيب النتائج"
-                            onchange="this.form.submit()">
-                        <option value="latest"
-                            @selected(request('sort', 'latest') === 'latest')>
-                            الأحدث
-                        </option>
-                        <option value="price_asc"
-                            @selected(request('sort') === 'price_asc')>
-                            السعر من الأقل للأعلى
-                        </option>
-                        <option value="price_desc"
-                            @selected(request('sort') === 'price_desc')>
-                            السعر من الأعلى للأقل
-                        </option>
-                    </select>
-                </form>
             </div>
 
             <div class="services-grid">
@@ -667,7 +649,7 @@
 
             @if ($services->lastPage() > 1)
                 <div class="services-pagination">
-                    {{ $services->withQueryString()->links() }}
+                    {{ $services->withQueryString()->onEachSide(1)->links('components.pager') }}
                 </div>
             @endif
         </section>

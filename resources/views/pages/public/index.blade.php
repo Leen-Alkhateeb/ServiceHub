@@ -4,8 +4,29 @@
 @section('content')
 @include('components.navbar')
 <main>
-    <section class="hero home-hero">
-        <div class="container home-hero-layout">
+    @php
+        // [image, alt text, category label, focus point of the photo]
+        $heroSlides = [
+            ['plumber-2.jpg', 'فني سباكة يركّب وصلات أنابيب المياه', 'السباكة', 'center'],
+            ['electrician.jpg', 'فني كهرباء يفحص لوحة التوزيع', 'الكهرباء', 'center 30%'],
+            ['ac-technician.jpg', 'فني يصلح وحدة مكيف خارجية', 'صيانة المكيفات', 'center 20%'],
+            ['painter.jpg', 'دهّان يجدد جدران غرفة', 'الدهان', 'center 35%'],
+            ['solar.jpg', 'فني يركّب ألواح طاقة شمسية', 'الطاقة الشمسية', 'center 30%'],
+            ['cleaning.jpg', 'عاملة تنظيف تنظف غرفة جلوس', 'التنظيف المتخصص', 'center 25%'],
+        ];
+    @endphp
+    <section class="hero home-hero" data-hero-slider aria-roledescription="carousel" aria-label="صور من خدمات المنصة">
+        <div class="hero-bg" aria-hidden="true">
+            @foreach ($heroSlides as $index => [$image, $alt, $label, $focus])
+                <figure class="hero-slide {{ $index === 0 ? 'is-active' : '' }}" data-label="{{ $label }}">
+                    <img src="{{ asset('assets/demo/hero/' . $image) }}" alt="{{ $alt }}" width="1920" height="960"
+                        style="object-position: {{ $focus }}"
+                        @if ($index === 0) fetchpriority="high" @else loading="lazy" @endif>
+                </figure>
+            @endforeach
+        </div>
+
+        <div class="container hero-full-inner">
             <div class="home-hero-copy">
                 <span class="eyebrow">خدمات الصيانة بمكان واحد</span>
                 <h1>عندك عطل؟ <span>صلّحها.</span></h1>
@@ -15,11 +36,16 @@
                     <a class="btn btn-outline" href="#how-it-works">كيف تعمل المنصة؟</a>
                 </div>
             </div>
-            <picture class="home-hero-media">
-                <source media="(max-width: 720px)" srcset="{{ asset('assets/demo/directory/hero-repair-mobile.jpg') }}" width="720" height="480">
-                <img src="{{ asset('assets/demo/directory/hero-repair.jpg') }}" alt="فني صيانة يفحص تمديدات المياه في مطبخ منزلي"
-                    width="1200" height="900" fetchpriority="high">
-            </picture>
+
+            <div class="hero-controls">
+                <span class="hero-current" data-hero-label aria-live="polite">{{ $heroSlides[0][2] }}</span>
+                <div class="hero-dots">
+                    @foreach ($heroSlides as $index => $slide)
+                        <button type="button" class="{{ $index === 0 ? 'is-active' : '' }}" data-hero-dot="{{ $index }}"
+                            aria-label="عرض صورة {{ $slide[2] }}"></button>
+                    @endforeach
+                </div>
+            </div>
         </div>
     </section>
 

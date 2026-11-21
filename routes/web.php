@@ -9,9 +9,9 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\AdminPaymentController;
 use App\Http\Controllers\AdminReviewController;
-use App\Http\Controllers\AdminServicesController;
 use App\Http\Controllers\AdminUsersController;
 use App\Http\Controllers\AdminVendorApplicationController;
+use App\Http\Controllers\AdminWalletController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingProfileController;
 use App\Http\Controllers\CategoryController;
@@ -396,6 +396,13 @@ Route::middleware('auth')->group(function () {
 
             Route::delete('/admin-cancellations/{id}', [AdminCancellationController::class, 'destroy'])
             ->name('cancellations.destroy');
+            
+            // Wallet
+            Route::get('/admin-wallet', [AdminWalletController::class, 'index'])
+            ->name('wallet.index');
+
+            Route::delete('/admin-wallet/{id}', [AdminWalletController::class, 'destroy'])
+            ->name('wallet.destroy');
 
                 // Payments (read only)
                 Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');

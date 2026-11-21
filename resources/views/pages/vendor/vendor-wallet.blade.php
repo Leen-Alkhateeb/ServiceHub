@@ -55,7 +55,7 @@
                             <tr>
                                 <td><bdi>#{{ $booking->id }}</bdi></td>
                                 <td>{{ $booking->service_name }}</td>
-                                <td><bdi>{{ $booking->booking_date }}</bdi></td>
+                                <td><bdi>{{ $booking->booking_date->format('Y-m-d') }}</bdi></td>
                                 <td>
                                     <span class="hub-status" data-status="{{ $status }}">{{ $labels[$status] }}</span>
                                     @if ($released && ($paymentIssue || $complaint))

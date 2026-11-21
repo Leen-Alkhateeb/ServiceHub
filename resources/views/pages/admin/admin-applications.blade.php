@@ -69,8 +69,8 @@
                                     <td>{{ $application->experience_years }}</td>
 
                                     <td>
-                                        @if ($application->work_permit_path)
-                                            <a href="{{ asset('storage/' . $application->work_permit_path) }}"
+                                        @if ($application->work_permit_path && \Illuminate\Support\Facades\Storage::disk('local')->exists($application->work_permit_path))
+                                            <a href="{{ route('admin.applications.permit', $application) }}"
                                                target="_blank"
                                                rel="noopener noreferrer">
                                                 عرض التصريح

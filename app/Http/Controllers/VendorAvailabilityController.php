@@ -17,7 +17,7 @@ class VendorAvailabilityController extends Controller
     {
         $availabilities = $request->user()->recurringAvailabilities()
             ->withCount('bookings')
-            ->orderByRaw('FIELD(day_of_week, 6, 0, 1, 2, 3, 4, 5)')
+            ->orderByRaw('CASE WHEN day_of_week = 6 THEN -1 ELSE day_of_week END')
             ->orderBy('start_time')
             ->get();
 

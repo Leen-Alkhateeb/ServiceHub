@@ -21,7 +21,7 @@
                 <article class="review-booking">
                     <div>
                         <h2>{{ $booking->service_name }} <bdi>#{{ $booking->id }}</bdi></h2>
-                        <p><a href="{{ route('users.profile.show', $booking->customer) }}">{{ $booking->customer->first_name }} {{ $booking->customer->last_name }}</a> · <bdi>{{ $booking->booking_date }}</bdi></p>
+                        <p><a href="{{ route('users.profile.show', $booking->customer) }}">{{ $booking->customer->first_name }} {{ $booking->customer->last_name }}</a> · <bdi>{{ $booking->booking_date->format('Y-m-d') }}</bdi></p>
                         @if ($review)
                             <p><strong class="rating-display" aria-label="{{ $ratedStars }} من 5">{{ str_repeat('★', $ratedStars).str_repeat('☆', 5 - $ratedStars) }}</strong></p>
                             @if ($review->comment)<p>{{ $review->comment }}</p>@endif

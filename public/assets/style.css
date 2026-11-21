@@ -772,12 +772,42 @@ textarea {
 
     display: grid;
 
-    grid-template-columns: 240px 1fr;
+    grid-template-columns: 240px minmax(0, 1fr);
 
     gap: 28px;
 
     padding: 34px 0 75px;
 
+}
+
+.layout > :not(.sidebar) {
+    min-width: 0;
+}
+
+.navlinks .sidebar {
+    display: none;
+}
+
+@media (max-width: 650px) {
+    .navlinks.open {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    .navlinks.open .sidebar {
+        display: grid;
+        width: 100%;
+        padding: 0;
+        background: transparent;
+    }
+
+    .navlinks .sidebar .brand {
+        display: none;
+    }
+
+    .navlinks .sidebar a {
+        color: var(--ink);
+    }
 }
 
 .sidebar {
@@ -2293,56 +2323,6 @@ td {
     background: #fee2e2;
 
     color: #dc2626;
-
-}@keyframes page-fade-in {
-
-    from {
-
-        opacity: 0;
-
-        transform: translateY(10px);
-
-    }
-
-    to {
-
-        opacity: 1;
-
-        transform: translateY(0);
-
-    }
-
-}@keyframes page-fade-out {
-
-    from {
-
-        opacity: 1;
-
-    }
-
-    to {
-
-        opacity: 0;
-
-    }
-
-}::view-transition-old(root) {
-
-    animation: page-fade-out 250ms ease both;
-
-}::view-transition-new(root) {
-
-    animation: page-fade-in 650ms ease both;
-
-}@media (prefers-reduced-motion: reduce) {
-
-    ::view-transition-old(root),
-
-    ::view-transition-new(root) {
-
-        animation-duration: 1ms;
-
-    }
 
 }
 

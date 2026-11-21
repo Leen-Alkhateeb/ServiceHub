@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Booking;
 use App\Models\Notification;
 use App\Models\RecurringAvailability;
+use App\Models\User;
 use App\Models\VendorService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -12,15 +13,6 @@ use Illuminate\Support\Facades\DB;
 
 class BookingProfileController extends Controller
 {
-    /** الحالات التي تبقي الموعد محجوزًا. */
-    private const ACTIVE = [
-        'pending',
-        'awaiting_payment',
-        'approved',
-        'confirmed',
-        'completed',
-    ];
-
     /** إنشاء الحجز وتحويل العميل مباشرةً إلى صفحة دفع العربون. */
     public function store(Request $request, VendorService $vendorService)
     {
@@ -39,6 +31,7 @@ class BookingProfileController extends Controller
             && $vendorService->vendor?->status === 'active'
             && $vendorService->vendor->vendorProfile?->application_status === 'approved'
             && $vendorService->service?->approval_status === 'approved'
+            && $vendorService->service->is_active
             && ! $vendorService->service->is_deleted
             && ! $vendorService->service->category?->is_deleted
             && (int) $vendorService->vendor_id !== (int) $customer->id,
@@ -100,6 +93,8 @@ class BookingProfileController extends Controller
             $endAt,
             $window
         ) {
+            User::query()->lockForUpdate()->findOrFail($vendorService->vendor_id);
+
             // منع حجز موعد يتداخل مع موعد آخر لمقدّم الخدمة.
             $taken = Booking::query()
                 ->whereHas(
@@ -112,7 +107,7 @@ class BookingProfileController extends Controller
                 ->whereDate('booking_date', $date)
                 ->where('start_time', '<', $endAt->format('H:i:s'))
                 ->where('end_time', '>', $startAt->format('H:i:s'))
-                ->whereIn('status', self::ACTIVE)
+                ->blockingSlot()
                 ->lockForUpdate()
                 ->exists();
 
@@ -160,29 +155,32 @@ class BookingProfileController extends Controller
     /** إلغاء الحجز قبل دفع العربون. */
     public function cancel(Request $request, Booking $booking)
     {
-        abort_unless(
-            $booking->customer_id === $request->user()->id
-            && in_array(
-                $booking->status,
-                ['pending', 'awaiting_payment', 'approved'],
-                true
-            )
-            && ! $booking->payment()->exists(),
-            403
-        );
+        DB::transaction(function () use ($request, $booking) {
+            $booking = Booking::query()->lockForUpdate()->findOrFail($booking->id);
+            abort_unless(
+                $booking->customer_id === $request->user()->id
+                && in_array(
+                    $booking->status,
+                    ['pending', 'awaiting_payment', 'approved'],
+                    true
+                )
+                && ! $booking->payment()->exists(),
+                403
+            );
 
-        $booking->update([
-            'status' => 'cancelled',
-            'cancelled_at' => now(),
-            'cancelled_by' => $request->user()->id,
-        ]);
+            $booking->update([
+                'status' => 'cancelled',
+                'cancelled_at' => now(),
+                'cancelled_by' => $request->user()->id,
+            ]);
 
-        Notification::create([
-            'user_id' => $booking->vendorService->vendor_id,
-            'title' => 'تم إلغاء الحجز',
-            'message' => "ألغى العميل {$request->user()->first_name} حجز خدمة {$booking->service_name}.",
-            'type' => 'booking',
-        ]);
+            Notification::create([
+                'user_id' => $booking->vendorService->vendor_id,
+                'title' => 'تم إلغاء الحجز',
+                'message' => "ألغى العميل {$request->user()->first_name} حجز خدمة {$booking->service_name}.",
+                'type' => 'booking',
+            ]);
+        });
 
         return redirect()
             ->route('market.index')

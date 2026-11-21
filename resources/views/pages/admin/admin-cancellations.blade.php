@@ -87,7 +87,7 @@
 
                                     <td style="padding: 16px 10px;">
                                         <form action="{{ route('admin.cancellations.destroy', $cancellation->id) }}" method="POST" style="margin: 0;"
-                                              onsubmit="event.preventDefault(); Swal.fire({
+                                              onsubmit="if (!window.Swal) return confirm('هل أنت متأكد من حذف هذا السجل نهائياً؟'); event.preventDefault(); Swal.fire({
                                                   title: 'تأكيد الحذف',
                                                   text: 'هل أنت متأكد من حذف هذا السجل نهائياً؟',
                                                   icon: 'warning',

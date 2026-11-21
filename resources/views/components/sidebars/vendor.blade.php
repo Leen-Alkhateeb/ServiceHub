@@ -7,5 +7,5 @@
     <a href="{{ route('vendor.profile', ['tab' => 'portfolio']) }}#portfolio">أعمالي</a>
     <a href="{{ route('vendor.wallet') }}">السجل المالي</a>
     <a href="{{ route('vendor.reviews') }}">التقييمات</a>
-    <a href="/vendor-settings">الإعدادات</a>
+    <a href="{{ route('vendor.profile') }}">الملف الشخصي</a>
 </aside>

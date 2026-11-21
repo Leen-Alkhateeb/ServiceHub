@@ -112,6 +112,7 @@
                         <p>{{ \Illuminate\Support\Str::limit($project->description, 110) }}</p>
                         @if ($project->completion_date)<time datetime="{{ $project->completion_date }}">{{ $project->completion_date }}</time>@endif
                         @if ($project->project_price !== null)<strong class="price">{{ number_format($project->project_price, 2) }} د.أ</strong>@endif
+                        <span class="btn btn-outline btn-sm portfolio-details">عرض التفاصيل</span>
                     </div>
                 </a>
             @empty
@@ -165,12 +166,7 @@
             <div class="field"><label for="project-description">وصف المشروع</label><textarea id="project-description" name="description" rows="4" maxlength="5000" required>{{ is_string(old('description')) ? old('description') : '' }}</textarea></div>
             <div class="field"><label for="project-price">قيمة المشروع (د.أ)</label><input id="project-price" name="project_price" type="number" min="0" max="99999999.99" step="0.01" value="{{ is_scalar(old('project_price')) ? old('project_price') : '' }}"></div>
             <div class="field"><label for="project-date">تاريخ الإنجاز</label><input type="date" id="project-date" name="completion_date" max="{{ now()->toDateString() }}" value="{{ is_string(old('completion_date')) ? old('completion_date') : '' }}"></div>
-            <div class="field">
-                <label for="project-images">صور المشروع</label>
-                <input type="file" id="project-images" name="images[]" accept="image/jpeg,image/png,image/webp" aria-describedby="project-image-hint" multiple required>
-                <small id="project-image-hint">حتى 8 صور، 5 ميغابايت لكل صورة. المقاس الموصى به 1600 × 1200 بكسل.</small>
-                <div class="upload-previews" data-upload-previews></div>
-            </div>
+            @include('pages.vendor.partials.project-image-fields', ['projectImages' => collect(), 'requiresImage' => true])
             <button class="btn btn-yellow" type="submit">حفظ المشروع</button>
         </form>
     </dialog>

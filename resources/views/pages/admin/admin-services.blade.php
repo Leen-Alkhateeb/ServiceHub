@@ -121,7 +121,7 @@
                     </select>
                 </label>
                 <label>الوصف <textarea name="description" rows="4" placeholder="اكتب وصف الخدمة"></textarea></label>
-                <label>صورة الخدمة <input name="image" type="file" accept="image/*"></label>
+                <label>صورة الخدمة <x-file-picker><input name="image" type="file" accept="image/*"></x-file-picker></label>
                 <div class="service-modal-actions">
                     <button type="button" class="services-btn services-btn-neutral" data-service-close>إلغاء</button>
                     <button type="submit" class="services-btn services-btn-primary">حفظ الخدمة</button>
@@ -150,7 +150,7 @@
                     </select>
                 </label>
                 <label>الوصف <textarea id="edit-service-description" name="description" rows="4"></textarea></label>
-                <label>استبدال الصورة (اختياري) <input name="image" type="file" accept="image/*"></label>
+                <label>استبدال الصورة (اختياري) <x-file-picker><input name="image" type="file" accept="image/*"></x-file-picker></label>
                 <div class="service-modal-actions">
                     <button type="button" class="services-btn services-btn-neutral" data-service-close>إلغاء</button>
                     <button type="submit" class="services-btn services-btn-primary">حفظ التعديلات</button>
@@ -199,7 +199,7 @@
 
     
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        (() => {
             const modalIds = ['create', 'edit', 'toggle', 'delete'];
             let lastTrigger = null;
             const closeModals = () => {
@@ -252,14 +252,11 @@
             document.querySelectorAll('.service-modal-backdrop').forEach(backdrop => {
                 backdrop.addEventListener('click', event => { if (event.target === backdrop) closeModals(); });
             });
-            document.addEventListener('keydown', event => {
+            document.querySelectorAll('.service-modal-backdrop').forEach(modal => modal.addEventListener('keydown', event => {
                 if (event.key === 'Escape' && modalIds.some(type => !document.getElementById('service-modal-' + type)?.hidden)) closeModals();
-            });
-            // The forms are UI-only until Laravel routes/actions are wired.
-           
-        });
+            }));
+        })();
     </script>
-s
     @include('components.footer')
     @include('components.mobile-nav-admin')
 @endsection

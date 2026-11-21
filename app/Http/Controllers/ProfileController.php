@@ -32,8 +32,8 @@ class ProfileController extends Controller
         $base = fn () => $user->bookingsAsCustomer()->with(['vendorService.vendor', 'payment'])->latest('id');
 
         return view('pages.customer.customer-bookings', [
-            'current' => $base()->whereIn('status', ['pending', 'approved', 'confirmed'])->get(),
-            'past'    => $base()->whereIn('status', ['completed', 'rejected', 'cancelled', 'expired', 'closed'])->get(),
+            'current' => $base()->whereIn('status', ['pending', 'approved', 'awaiting_payment', 'confirmed', 'paid', 'in_progress', 'objection_pending'])->get(),
+            'past'    => $base()->whereIn('status', ['completed', 'rejected', 'cancelled', 'expired', 'closed', 'refunded'])->get(),
         ]);
     }
 

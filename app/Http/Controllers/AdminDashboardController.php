@@ -9,11 +9,21 @@ use App\Models\RefundRequest;
 use App\Models\Review;
 use App\Models\User;
 use App\Models\VendorProfile;
+use App\Models\WalletTransaction;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class AdminDashboardController extends Controller
 {
+    public function wallet()
+    {
+        $transactions = WalletTransaction::with(['vendor', 'booking'])
+            ->latest('id')
+            ->paginate(15);
+
+        return view('pages.admin.admin-wallet', compact('transactions'));
+    }
+
     public function index()
     {
         $today = Carbon::today();
@@ -21,7 +31,7 @@ class AdminDashboardController extends Controller
         $stats = [
             'users' => User::count(),
             'vendors' => User::where('role', 'vendor')->count(),
-            'bookings' => Booking::where('status', 'completed')->count(),
+            'bookings' => Booking::count(),
             'pendingVendors' => VendorProfile::where('application_status', 'pending')->count(),
             'pendingRefunds' => RefundRequest::where('status', 'pending')->count(),
             'paidAmount' => Payment::where('status', 'paid')->sum('amount'),

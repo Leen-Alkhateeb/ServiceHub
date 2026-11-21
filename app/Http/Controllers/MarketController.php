@@ -16,6 +16,16 @@ class MarketController extends Controller
     /** قائمة الخدمات مع البحث والفلاتر */
     public function index(Request $request)
     {
+        $request->validate([
+            'q' => ['nullable', 'string'],
+            'category' => ['nullable', 'integer'],
+            'location' => ['nullable', 'string'],
+            'min_price' => ['nullable', 'numeric'],
+            'max_price' => ['nullable', 'numeric'],
+            'rating' => ['nullable', 'numeric'],
+            'sort' => ['nullable', 'string'],
+        ]);
+
         $activeReviews = fn ($reviews) => $reviews->where('is_active', true);
 
         $query = VendorService::query()
@@ -28,6 +38,7 @@ class MarketController extends Controller
             ])
             ->whereHas('service', fn ($q) => $q
                 ->where('approval_status', 'approved')
+                ->where('is_active', true)
                 ->where('is_deleted', false))
             ->whereHas('vendor', fn ($q) => $q->where('status', 'active'));
 
@@ -107,6 +118,7 @@ class MarketController extends Controller
             $vendor->status === 'active'
             && $vendor->vendorProfile?->application_status === 'approved'
             && $vendorService->service->approval_status === 'approved'
+            && $vendorService->service->is_active
             && ! $vendorService->service->is_deleted
             && ! $vendorService->service->category->is_deleted,
             404
@@ -161,7 +173,7 @@ class MarketController extends Controller
                 fn ($q) => $q->where('vendor_id', $vendorService->vendor_id)
             )
             ->whereBetween('booking_date', [$firstDate, $lastDate])
-            ->whereIn('status', ['pending', 'approved', 'confirmed', 'completed'])
+            ->blockingSlot()
             ->get()
             ->groupBy(fn ($booking) =>
                 Carbon::parse($booking->booking_date)->toDateString()

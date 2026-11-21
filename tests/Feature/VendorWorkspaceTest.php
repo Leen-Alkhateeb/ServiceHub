@@ -58,10 +58,8 @@ class VendorWorkspaceTest extends TestCase
 
         $vendor = User::whereEmail('plumbing.seed@servicehub.example')->firstOrFail();
         $offer = $vendor->vendorServices()->firstOrFail();
-        $response = $this->getJson(route('vendor.service.reviews', $offer))->assertOk()->assertJsonCount(8, 'data');
-        $pageOne = array_column($response->json('data'), 'id');
-        $pageTwo = $this->getJson($response->json('next_page_url'))->assertOk()->assertJsonCount(8, 'data');
-        $this->assertLessThan(min($pageOne), max(array_column($pageTwo->json('data'), 'id')));
+        $this->getJson(route('vendor.service.reviews', $offer))
+            ->assertOk()->assertJsonCount(4, 'data')->assertJsonPath('next_page_url', null);
 
         $this->actingAs($vendor)->get(route('home'))->assertOk()->assertSee(route('account.profile'))
             ->assertSee(route('logout'))->assertDontSee(route('register'))
@@ -71,9 +69,9 @@ class VendorWorkspaceTest extends TestCase
             ->assertSeeInOrder([$vendor->first_name.' '.$vendor->last_name, $vendor->vendorProfile->work_type])
             ->assertSee('vendor-profile-layout')->assertSee(route('vendor.profile', ['tab' => 'portfolio']).'#portfolio');
         $this->get(route('vendor.wallet', ['status' => 'released', 'q' => $offer->service->name, 'to' => now()->toDateString()]))
-            ->assertOk()->assertSee('40.00')->assertSee('حالة الدفع')->assertSee('page=2')
-            ->assertSee('balance-cards')->assertSee('السابق')->assertSee('التالي')->assertSee('dialog-date-time')
-            ->assertViewHas('bookings', fn ($bookings) => $bookings->count() === 6)
+            ->assertOk()->assertSee('40.00')->assertSee('حالة الدفع')
+            ->assertSee('balance-cards')->assertSee('dialog-date-time')
+            ->assertViewHas('bookings', fn ($bookings) => $bookings->total() === 1)
             ->assertDontSee('تاريخ الموافقة')->assertDontSee('انتهاء مهلة الدفع');
         $this->get(route('vendor.reviews'))->assertOk()->assertSee('تقييم العميل')->assertSee('rating-dialog')->assertSee('type="radio"', false);
     }
@@ -123,11 +121,9 @@ class VendorWorkspaceTest extends TestCase
         $this->get(route('categories.index'))->assertOk()->assertSee('صفحة 2');
         $this->get(route('vendors.index'))->assertOk()->assertSee('صفحة 2');
         $service = Service::where('approval_status', 'approved')->firstOrFail();
-        $expectedVendor = $service->vendorServices()->firstOrFail()->vendor;
-        $this->get(route('categories.show', $service->category))->assertOk()
-            ->assertViewHas('vendors', fn ($vendors) => $vendors->pluck('id')->all() === [$expectedVendor->id])
-            ->assertSee(route('vendor.profile', ['vendor' => $expectedVendor->id]))
-            ->assertSee('assets/demo/directory/vendor-');
+        $market = route('market.index', ['category' => $service->category_id]);
+        $this->get(route('categories.show', $service->category))->assertRedirect($market);
+        $this->get($market)->assertOk()->assertSee($service->name);
         $customer = User::factory()->create();
         $this->actingAs($customer)->get(route('account.profile'))->assertOk()->assertSee($customer->email)->assertSee('&nbsp;', false);
     }
@@ -198,13 +194,37 @@ class VendorWorkspaceTest extends TestCase
         $project = PortfolioProject::latest('id')->firstOrFail();
         $this->assertSame($vendor->id, $project->vendor_id);
         $this->assertCount(2, $project->images);
-        $this->get(route('vendor.profile', ['tab' => 'portfolio']))->assertSeeInOrder(['Newest portfolio project', 'مشروع كشف وإصلاح تسريبات المياه']);
+        $this->get(route('vendor.profile', ['tab' => 'portfolio']))->assertSeeInOrder(['Newest portfolio project', 'مشروع كشف وإصلاح تسريبات المياه'])
+            ->assertSee('عرض التفاصيل')->assertSee(route('vendor.portfolio.show', $project));
         $this->get(route('vendor.portfolio.show', $project))->assertOk()->assertSee($project->description)
             ->assertSee('87.50')->assertSee('project-thumbnails');
         foreach ($project->images as $image) {
             $disk->assertExists($image->image);
             $this->get(route('vendor.portfolio.image', $image))->assertOk()->assertHeader('X-Content-Type-Options', 'nosniff');
         }
+    }
+
+    public function test_vendor_can_replace_a_project_image_at_the_eight_image_limit(): void
+    {
+        Storage::fake('public');
+        $vendor = VendorProfile::factory()->create()->user;
+        $project = PortfolioProject::factory()->for($vendor, 'vendor')->create();
+        $other = PortfolioProject::factory()->for($vendor, 'vendor')->create();
+        $existing = $project->images()->createMany(array_map(fn ($i) => ['image' => "portfolio/photo-$i.png"], range(1, 8)));
+        $unrelated = $other->images()->create(['image' => 'portfolio/unrelated.png']);
+        $url = route('vendor.portfolio.update', $project);
+        $data = ['name' => $project->name, 'description' => $project->description];
+        $image = fn () => UploadedFile::fake()->createWithContent('new.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+Xk4QAAAAASUVORK5CYII='));
+
+        $this->actingAs($vendor)->get(route('vendor.portfolio.show', $project))->assertOk()->assertSee('إضافة حقل صورة');
+        $this->patch($url, $data + ['images' => [$image()]])->assertSessionHasErrorsIn('portfolioEdit', 'images');
+        $this->patch($url, $data + ['remove_images' => [$unrelated->id]])->assertSessionHasErrorsIn('portfolioEdit', 'remove_images');
+        $this->patch($url, $data + ['remove_images' => [$existing->first()->id], 'images' => [$image()]])
+            ->assertRedirect(route('vendor.portfolio.show', $project));
+        $this->assertDatabaseHas('portfolio_images', ['id' => $existing->first()->id, 'is_active' => false]);
+        $this->assertDatabaseHas('portfolio_images', ['id' => $unrelated->id, 'is_active' => true]);
+        $this->assertSame(8, $project->images()->where('is_active', true)->count());
+        Storage::disk('public')->assertExists($project->images()->latest('id')->firstOrFail()->image);
     }
 
     public function test_catalog_offer_publishes_directly_and_uses_only_its_linked_image(): void
@@ -360,7 +380,7 @@ class VendorWorkspaceTest extends TestCase
         $this->get(route('vendor.dashboard'))->assertOk()->assertSee('حالة طلب الانضمام');
     }
 
-    public function test_a_vendor_and_admin_can_book_and_each_profile_shows_only_its_own_history(): void
+    public function test_booking_is_restricted_to_customers_and_each_profile_shows_its_own_history(): void
     {
         $seller = VendorProfile::factory()->create()->user;
         $buyer = VendorProfile::factory()->create()->user;
@@ -372,9 +392,12 @@ class VendorWorkspaceTest extends TestCase
         $slot = fn (string $hour) => ['slot' => $tomorrow->format('Y-m-d').'|'.$hour.'|'.$window->id];
         $store = route('booking.store', $offer);
         $this->actingAs($seller)->post($store, $slot('09:00'))->assertForbidden();
-        $this->actingAs($buyer)->get(route('market.show', $offer))->assertOk()->assertSee('احجز الآن');
-        $this->post($store, $slot('09:00'))->assertRedirect(route('account.profile', ['tab' => 'bookings']));
-        $ownBooking = $buyer->bookingsAsCustomer()->firstOrFail();
+        $this->actingAs($buyer)->get(route('market.show', $offer))->assertOk()->assertDontSee('احجز الآن');
+        $this->post($store, $slot('09:00'))->assertForbidden();
+        $ownBooking = Booking::factory()->for($offer)->create([
+            'customer_id' => $buyer->id,
+            'booking_date' => $tomorrow->toDateString(),
+        ]);
         Payment::factory()->for($ownBooking)->create(['amount' => 77.55, 'paid_at' => now()->subDay()]);
         $this->get(route('vendor.profile', ['tab' => 'payments']))->assertOk()
             ->assertSee('77.55')->assertDontSee('طلب إضافة خدمة');
@@ -392,10 +415,10 @@ class VendorWorkspaceTest extends TestCase
         $incoming = Booking::factory()->for(VendorService::factory()->for($buyer, 'vendor'))->create();
         WalletTransaction::factory()->for($incoming)->create(['amount' => 46.25]);
         $this->get(route('vendor.profile', ['tab' => 'income']))->assertOk()->assertSee('46.25')->assertDontSee('77.55');
-        $this->get(route('home'))->assertSee(route('vendor.dashboard'))->assertSee('قائمة الحساب');
+        $this->get(route('home'))->assertSee(route('vendor.dashboard'))->assertSee(route('account.profile'));
 
         $admin = User::factory()->admin()->create();
-        $this->actingAs($admin)->post($store, $slot('10:00'))->assertRedirect();
+        $this->actingAs($admin)->post($store, $slot('10:00'))->assertForbidden();
         $this->get(route('account.profile', ['tab' => 'payments']))->assertOk()->assertDontSee('77.55');
         $this->get(route('home'))->assertSee(route('admin.dashboard'));
         $this->actingAs(User::factory()->create())->get(route('home'))->assertDontSee('لوحة التحكم');

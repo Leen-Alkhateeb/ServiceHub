@@ -590,17 +590,9 @@
             }
         });
 
-        // Close modal dialogs before Turbo caches the page snapshot.
-        page.addEventListener('turbo:before-cache', closeDialogs);
     }
 
-    // Turbo navigation does not fire DOMContentLoaded for each visit.
-    document.addEventListener('turbo:load', initializeRefunds);
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initializeRefunds, { once: true });
-    } else {
-        initializeRefunds();
-    }
+    initializeRefunds();
 
     // Restore submit buttons when navigating back to a cached page.
     document.addEventListener('turbo:before-cache', function () {
@@ -616,7 +608,7 @@
                 button.textContent = 'تأكيد';
             }
         });
-    });
+    }, { once: true });
 })();
 </script>
 

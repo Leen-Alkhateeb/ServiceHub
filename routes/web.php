@@ -1,6 +1,4 @@
 <?php
-use App\Http\Controllers\AdminRefundsController;
-use App\Http\Controllers\AdminServicesController;
 use App\Http\Controllers\AccountDetailsController;
 use App\Http\Controllers\AccountPictureController;
 use App\Http\Controllers\AdminBookingController;
@@ -9,6 +7,8 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\AdminPaymentController;
 use App\Http\Controllers\AdminReviewController;
+use App\Http\Controllers\AdminServicesController;
+
 use App\Http\Controllers\AdminUsersController;
 use App\Http\Controllers\AdminVendorApplicationController;
 use App\Http\Controllers\BookingController;
@@ -89,6 +89,9 @@ Route::get('/services/{vendorService}', [MarketController::class, 'show'])
 // General Pages
 Route::view('/faq', 'pages.public.faq')
     ->name('faq');
+
+Route::view('/about', 'pages.public.about')->name('about');
+Route::redirect('/how-it-works', '/#how-it-works');
 
 Route::get('/profile-pictures/{account}', [AccountPictureController::class, 'show'])
     ->name('account.picture.show');
@@ -273,6 +276,9 @@ Route::middleware('auth')->group(function () {
         ->name('vendor.')
         ->group(function () {
 
+            Route::get('/vendor-dashboard', [DashboardController::class, 'index'])
+                ->name('dashboard');
+
             // Wallet
             Route::get('/vendor-wallet', VendorWalletController::class)
                 ->name('wallet');
@@ -378,16 +384,16 @@ Route::middleware('auth')->group(function () {
                 Route::get('/messages', [AdminMessageController::class, 'index'])->name('messages.index');
                 Route::get('/messages/{message}', [AdminMessageController::class, 'show'])->name('messages.show');
                 Route::patch('/messages/{message}', [AdminMessageController::class, 'update'])->name('messages.update');
+                
+            // Reviews (التقييمات)
+            Route::get('/admin-reviews', [AdminReviewController::class, 'index'])
+            ->name('reviews.index');
 
-                // Reviews (التقييمات)
-                Route::get('/admin-reviews', [AdminReviewController::class, 'index'])
-                    ->name('reviews.index');
+            Route::put('/admin-reviews/{id}', [AdminReviewController::class, 'update'])
+            ->name('reviews.update');
 
-                Route::put('/admin-reviews/{id}', [AdminReviewController::class, 'update'])
-                    ->name('reviews.update');
-
-                Route::delete('/admin-reviews/{id}', [AdminReviewController::class, 'destroy'])
-                    ->name('reviews.destroy');
+             Route::delete('/admin-reviews/{id}', [AdminReviewController::class, 'destroy'])
+             ->name('reviews.destroy');
 
              // Cancellation 
              Route::get('/admin-cancellations', [AdminCancellationController::class, 'index'])
@@ -395,23 +401,28 @@ Route::middleware('auth')->group(function () {
 
             Route::delete('/admin-cancellations/{id}', [AdminCancellationController::class, 'destroy'])
             ->name('cancellations.destroy');
-
                 // Payments (read only)
                 Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
                 Route::get('/payments/{payment}', [AdminPaymentController::class, 'show'])->name('payments.show');
 
+                Route::get('/admin-wallet', [AdminDashboardController::class, 'wallet'])->name('wallet.index');
+
                 Route::get('/admin-applications', [AdminVendorApplicationController::class, 'index'])
                     ->name('admin-applications');
+
+                Route::get('/admin-applications/{application}/permit', [AdminVendorApplicationController::class, 'permit'])
+                    ->name('applications.permit');
+
+                Route::get('/admin-refunds', [\App\Http\Controllers\AdminRefundsController::class, 'index'])
+                    ->name('refunds.index');
+
+                Route::post('/admin-refunds/{refund}', [\App\Http\Controllers\AdminRefundsController::class, 'decide'])
+                    ->name('refunds.decide');
 
                 Route::put(
                     '/admin-applications/{id}/approved',
                     [AdminVendorApplicationController::class, 'approved']
                 )->name('admin-applications.approved');
-
-                Route::put(
-                    '/admin-applications/{id}/rejected',
-                    [AdminVendorApplicationController::class, 'rejected']
-                )->name('admin-applications.rejected');
 
                 Route::put(
                     '/admin-applications/{id}/rejected',
@@ -424,13 +435,10 @@ Route::middleware('auth')->group(function () {
                     [AdminServiceApprovalController::class, 'index']
                 )->name('service-requests.index');
 
-                Route::get(
-                    '/admin-refunds',
-                    [AdminRefundsController::class, 'index']
-                )->name('refunds.index');
-
-                Route::post('/refunds/{refund}/decide', [AdminRefundsController::class, 'decide'])
-                    ->name('refunds.decide');
+                Route::post(
+                    '/vendor-service-requests/{offer}',
+                    [AdminServiceApprovalController::class, 'decide']
+                )->name('service-requests.decide');
 
 
 
@@ -451,3 +459,5 @@ Route::middleware('auth')->group(function () {
             });
         });
 });
+
+

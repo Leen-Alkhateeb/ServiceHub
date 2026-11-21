@@ -16,6 +16,18 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Booking extends Model
 {
+    public function scopeBlockingSlot(\Illuminate\Database\Eloquent\Builder $query): void
+    {
+        $query->where(function ($bookings) {
+            $bookings->whereIn('status', ['pending', 'confirmed', 'completed'])
+                ->orWhere(function ($unpaid) {
+                    $unpaid->whereIn('status', ['approved', 'awaiting_payment'])
+                        ->where(fn ($deadline) => $deadline->whereNull('payment_deadline')
+                            ->orWhere('payment_deadline', '>', now()));
+                });
+        });
+    }
+
     use HasFactory;
     use SoftDeletes;
 

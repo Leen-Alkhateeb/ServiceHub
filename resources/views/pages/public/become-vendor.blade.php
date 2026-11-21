@@ -57,7 +57,7 @@
                     </div>
                     <div class="field">
                         <label for="work_permit">تصريح العمل</label>
-                        <input id="work_permit" name="work_permit" type="file" accept=".pdf,.jpg,.jpeg,.png" aria-describedby="permit-formats" required>
+                        <x-file-picker :document="true"><input id="work_permit" name="work_permit" type="file" accept=".pdf,.jpg,.jpeg,.png" aria-describedby="permit-formats" required></x-file-picker>
                         <small id="permit-formats" class="muted">PDF أو JPG أو PNG، حتى 5 ميغابايت.</small>
                         @error('work_permit') <p class="notice" role="alert">{{ $message }}</p> @enderror
                     </div>

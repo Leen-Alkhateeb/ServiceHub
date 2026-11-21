@@ -1,5 +1,5 @@
 <?php
-
+use App\Http\Controllers\AdminServicesController;
 use App\Http\Controllers\AccountDetailsController;
 use App\Http\Controllers\AccountPictureController;
 use App\Http\Controllers\AdminBookingController;
@@ -8,7 +8,6 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\AdminPaymentController;
 use App\Http\Controllers\AdminReviewController;
-use App\Http\Controllers\AdminServicesController;
 use App\Http\Controllers\AdminUsersController;
 use App\Http\Controllers\AdminVendorApplicationController;
 use App\Http\Controllers\BookingController;

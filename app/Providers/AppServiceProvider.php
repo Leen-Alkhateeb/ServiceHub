@@ -7,6 +7,7 @@ use App\Models\Payment;
 use App\Models\RefundRequest;
 use App\Models\WalletTransaction;
 use App\Observers\VendorFinancialObserver;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -28,5 +29,6 @@ class AppServiceProvider extends ServiceProvider
         Payment::observe(VendorFinancialObserver::class);
         RefundRequest::observe(VendorFinancialObserver::class);
         WalletTransaction::observe(VendorFinancialObserver::class);
+        Paginator::useBootstrapFive();
     }
 }

@@ -43,7 +43,7 @@
                             <div>
                                 <strong>{{ $booking->service_name }}</strong>
                                 <p class="muted small">
-                                    {{ $booking->customer->first_name }} {{ $booking->customer->last_name }}
+                                    <a href="{{ route('users.profile.show', $booking->customer) }}">{{ $booking->customer->first_name }} {{ $booking->customer->last_name }}</a>
                                     · {{ \Illuminate\Support\Carbon::parse($booking->booking_date)->format('Y-m-d') }}
                                     · <span dir="ltr">{{ substr($booking->start_time, 0, 5) }}</span>
                                 </p>
@@ -65,7 +65,7 @@
                             <div>
                                 <strong>{{ $booking->service_name }}</strong>
                                 <p class="muted small">
-                                    {{ $booking->customer->first_name }} {{ $booking->customer->last_name }}
+                                    <a href="{{ route('users.profile.show', $booking->customer) }}">{{ $booking->customer->first_name }} {{ $booking->customer->last_name }}</a>
                                     · {{ \Illuminate\Support\Carbon::parse($booking->booking_date)->format('Y-m-d') }}
                                     · <span dir="ltr">{{ substr($booking->start_time, 0, 5) }}–{{ substr($booking->end_time, 0, 5) }}</span>
                                 </p>

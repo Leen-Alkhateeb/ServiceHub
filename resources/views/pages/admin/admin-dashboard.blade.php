@@ -25,7 +25,7 @@
                 <span>إجمالي المستخدمين</span>
                 <strong>{{ number_format($stats['users']) }}</strong>
                 <small>جميع الحسابات</small>
-                <a href="#" class="admin-card-link" data-page="users">عرض المستخدمين <span aria-hidden="true">←</span></a>
+                <a href="{{ route('admin.admin.Users') }}" class="admin-card-link" data-page="users">عرض المستخدمين <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="admin-stat">
@@ -91,7 +91,7 @@
         <section class="panel admin-section">
             <div class="admin-section-heading">
                     <h3>أحدث المستخدمين</h3>
-                    <a href="#" class="admin-section-link" data-page="users">عرض المستخدمين <span aria-hidden="true">←</span></a>
+                    <a href="{{ route('admin.admin.Users') }}" class="admin-section-link" data-page="users">عرض المستخدمين <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="table-wrap">

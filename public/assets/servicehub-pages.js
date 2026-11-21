@@ -1,9 +1,24 @@
-const initializedBodies = new WeakSet();
+let currentBody;
+let pageEvents;
 
-function initializeServiceHubPages() {
-    const body = document.body;
-    if (!body || initializedBodies.has(body)) return;
-    initializedBodies.add(body);
+function updateFilePicker(input) {
+    const name = input.closest('[data-file-picker]').querySelector('.file-picker-name');
+    const files = Array.from(input.files, (file) => file.name);
+    name.textContent = files.join('، ') || name.dataset.empty;
+    name.title = files.join('، ');
+}
+
+document.addEventListener('change', (event) => {
+    if (event.target.matches('[data-file-picker] input[type="file"]')) updateFilePicker(event.target);
+});
+
+function initializePage() {
+    if (currentBody === document.body) return;
+    pageEvents?.abort();
+    currentBody = document.body;
+    pageEvents = new AbortController();
+    const { signal } = pageEvents;
+    document.querySelectorAll('[data-file-picker] input[type="file"]').forEach(updateFilePicker);
 
     const serviceDialog = document.getElementById('service-details-dialog');
     let serviceRequest;
@@ -72,7 +87,7 @@ function initializeServiceHubPages() {
         }
     }
 
-    body.addEventListener('click', (event) => {
+    document.addEventListener('click', (event) => {
         const archive = event.target.closest('[data-archive-action]');
         if (archive) {
             const dialog = document.getElementById('archive-dialog');
@@ -108,7 +123,7 @@ function initializeServiceHubPages() {
         }
 
         if (event.target.closest('[data-more-reviews]')) loadReviews();
-    });
+    }, { signal });
 
     document.querySelectorAll('[data-optional-image]').forEach((image) => {
         image.addEventListener('error', () => image.hidden = true);
@@ -126,28 +141,99 @@ function initializeServiceHubPages() {
     serviceDialog?.addEventListener('close', () => serviceRequest?.abort());
     document.querySelector('dialog[data-auto-dialog]')?.showModal();
 
-    const projectImages = document.getElementById('project-images');
-    let previews = [];
-    projectImages?.addEventListener('change', () => {
-        previews.forEach((url) => URL.revokeObjectURL(url));
-        previews = [];
-        const gallery = document.querySelector('[data-upload-previews]');
-        gallery.replaceChildren();
-        projectImages.setCustomValidity(projectImages.files.length > 8 ? 'يمكن رفع 8 صور كحد أقصى.' : '');
-        if (!projectImages.checkValidity()) return;
+    for (const fields of document.querySelectorAll('[data-project-image-fields]')) {
+        const rows = fields.querySelector('[data-image-rows]');
+        const add = fields.querySelector('[data-add-image-field]');
+        const removals = [...fields.querySelectorAll('[name="remove_images[]"]')];
+        const limit = fields.querySelector('[data-image-limit]');
+        const template = rows.firstElementChild.cloneNode(true);
+        const requiresImage = fields.hasAttribute('data-requires-image');
+        const previews = new Map();
 
-        for (const file of projectImages.files) {
-            if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) {
-                projectImages.setCustomValidity('اختر صور JPEG أو PNG أو WebP بحجم لا يتجاوز 5 ميغابايت لكل صورة.');
-                return;
+        if (rows.firstElementChild.hidden) rows.firstElementChild.remove();
+        add.hidden = false;
+
+        const update = () => {
+            const kept = removals.filter((checkbox) => !checkbox.checked).length;
+            const inputs = [...rows.querySelectorAll('input')];
+            const selected = inputs.filter((input) => input.files.length).length;
+            const total = kept + selected;
+            rows.querySelectorAll('[data-image-label]').forEach((label, index) => {
+                label.textContent = 'صورة جديدة ' + (index + 1);
+            });
+            inputs.forEach((input, index) => {
+                input.required = requiresImage && selected === 0 && index === 0;
+            });
+            const overflow = total > 8;
+            for (const checkbox of removals) {
+                checkbox.setCustomValidity(overflow ? 'احذف صورة أو أزل أحد الملفات الجديدة حتى يكون المجموع 8 صور.' : '');
             }
-            const image = document.createElement('img');
-            image.src = URL.createObjectURL(file);
-            image.alt = file.name;
-            previews.push(image.src);
-            gallery.append(image);
-        }
-    });
+            add.disabled = kept + inputs.length >= 8;
+            limit.textContent = overflow ? 'احذف صورة أو أزل أحد الملفات الجديدة.' : total + ' من 8 صور';
+        };
+
+        const clearPreview = (input) => {
+            if (previews.has(input)) URL.revokeObjectURL(previews.get(input));
+            previews.delete(input);
+            const preview = input.closest('[data-image-row]').querySelector('[data-image-preview]');
+            preview.hidden = true;
+            preview.removeAttribute('src');
+            return preview;
+        };
+
+        fields.addEventListener('click', (event) => {
+            if (event.target.closest('[data-add-image-field]')) {
+                const row = template.cloneNode(true);
+                const input = row.querySelector('input');
+                row.hidden = false;
+                input.disabled = false;
+                row.querySelector('[data-remove-image-field]').hidden = false;
+                rows.append(row);
+                update();
+                input.focus();
+            }
+
+            const remove = event.target.closest('[data-remove-image-field]');
+            if (remove) {
+                const row = remove.closest('[data-image-row]');
+                const input = row.querySelector('input');
+                clearPreview(input);
+                if (requiresImage && rows.children.length === 1) {
+                    input.value = '';
+                    updateFilePicker(input);
+                    input.setCustomValidity('');
+                    input.focus();
+                } else {
+                    row.remove();
+                    add.focus();
+                }
+                update();
+            }
+        });
+
+        fields.addEventListener('change', (event) => {
+            const input = event.target;
+            if (input.matches('input[type="file"]')) {
+                const preview = clearPreview(input);
+                const file = input.files[0];
+                const invalid = file && (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024);
+                input.setCustomValidity(invalid ? 'اختر صورة JPG أو PNG أو WebP بحجم لا يتجاوز 5 ميغابايت.' : '');
+                if (file && !invalid) {
+                    const url = URL.createObjectURL(file);
+                    previews.set(input, url);
+                    preview.src = url;
+                    preview.hidden = false;
+                }
+            }
+            update();
+        });
+
+        signal.addEventListener('abort', () => {
+            previews.forEach((url) => URL.revokeObjectURL(url));
+        });
+        rows.querySelector('[data-remove-image-field]')?.removeAttribute('hidden');
+        update();
+    }
 
     const assistant = document.querySelector('[data-maintenance-assistant]');
     assistant?.addEventListener('submit', async (event) => {
@@ -196,9 +282,9 @@ function initializeServiceHubPages() {
     });
 
     for (const notificationMenu of document.querySelectorAll('.notification-dropdown, .account-dropdown')) {
-        body.addEventListener('click', (event) => {
+        document.addEventListener('click', (event) => {
             if (notificationMenu.open && !notificationMenu.contains(event.target)) notificationMenu.open = false;
-        });
+        }, { signal });
         notificationMenu.addEventListener('keydown', (event) => {
             if (event.key !== 'Escape' || !notificationMenu.open) return;
             notificationMenu.open = false;
@@ -253,8 +339,19 @@ function initializeServiceHubPages() {
         });
         render();
     }
+
+    signal.addEventListener('abort', () => {
+        serviceRequest?.abort();
+    });
 }
 
-document.addEventListener('turbo:load', initializeServiceHubPages);
-document.addEventListener('DOMContentLoaded', initializeServiceHubPages, { once: true });
-if (document.readyState !== 'loading') initializeServiceHubPages();
+document.addEventListener('turbo:load', initializePage);
+document.addEventListener('turbo:before-cache', () => {
+    document.querySelectorAll('dialog[open]').forEach((dialog) => dialog.close());
+    const overlays = document.querySelectorAll('.user-modal:not([hidden]), .service-modal-backdrop:not([hidden]), #request-decision-modal:not([hidden])');
+    if (overlays.length) {
+        overlays.forEach((overlay) => overlay.hidden = true);
+        document.body.style.overflow = '';
+    }
+});
+initializePage();

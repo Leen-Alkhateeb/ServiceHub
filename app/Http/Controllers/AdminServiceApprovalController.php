@@ -15,6 +15,8 @@ class AdminServiceApprovalController extends Controller
     // عرض طلبات اعتماد الخدمات المقترحة
     public function index(Request $request): View
     {
+        $request->validate(['search' => ['nullable', 'string']]);
+
         $requests = VendorService::with([
             'vendor',
             'service.category',

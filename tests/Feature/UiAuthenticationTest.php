@@ -13,6 +13,20 @@ class UiAuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_admin_is_sent_to_the_dashboard_after_login(): void
+    {
+        $admin = $this->account(['role' => 'admin']);
+
+        $this->withSession(['url.intended' => route('customer.bookings')])
+            ->post(route('login'), [
+                'email' => $admin->email,
+                'password' => 'account-password',
+            ])->assertRedirect(route('admin.dashboard'));
+
+        $this->assertAuthenticatedAs($admin);
+        $this->get(route('admin.dashboard'))->assertOk();
+    }
+
     public function test_vendor_can_log_in_with_remember_me_and_log_out(): void
     {
         $vendor = $this->account(['role' => 'vendor']);

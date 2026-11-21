@@ -11,6 +11,7 @@ class CategoryController extends Controller
 {
     public function index(Request $request)
     {
+        $request->validate(['q' => ['nullable', 'string']]);
         $search = trim((string) $request->query('q', ''));
 
         $query = Category::where('is_deleted', false)

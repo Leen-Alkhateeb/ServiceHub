@@ -9,14 +9,15 @@
             <div class="dash-title">
                 <div>
                     <span class="small muted">لوحة الفني</span>
-                    <h1>مرحبًا {{ $vendorName }}</h1>
-                    @if ($vendor->vendorProfile && $vendor->vendorProfile->application_status !== 'approved')
-                        <a href="{{ route('vendor.apply') }}">حالة طلب الانضمام</a>
-                    @endif
+                    <h1>مرحبًا {{  auth()->user()->first_name }}</h1>
                 </div>
             </div>
 
-            <section class="stats" aria-label="إحصائيات الفني">
+                @if (in_array($applicationStatus ?? null, ['pending', 'rejected'], true))
+                    <p class="note">حالة طلب الانضمام{{ $applicationStatus === 'pending' ? ' قيد المراجعة' : ' مرفوض' }}</p>
+                @endif
+
+                <section class="stats" aria-label="إحصائيات الفني">
                 <article class="stat">
                     <strong>{{ $stats['pending'] }}</strong>
                     <span>طلبات بانتظار الرد</span>

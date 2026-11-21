@@ -175,7 +175,7 @@
                                                 title="{{ $user->status === 'active' ? 'تعطيل المستخدم' : 'تفعيل المستخدم' }}"
                                                 data-id="{{ $user->id }}"
                                                 data-name="{{ $user->first_name }} {{ $user->last_name }}"
-                                                data-status="{{ $user->status }}" onclick="openStatusModal(this)">
+                                                data-status="{{ $user->status }}" data-user-status>
                                                 @if ($user->status === 'active')
                                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                                         stroke-linecap="round" stroke-linejoin="round" width="20" height="20"
@@ -198,7 +198,7 @@
                                             <button type="button" class="action-btn delete-btn" aria-label="حذف المستخدم"
                                                 title="حذف المستخدم" data-id="{{ $user->id }}"
                                                 data-name="{{ $user->first_name }} {{ $user->last_name }}"
-                                                onclick="openDeleteModal(this)">
+                                                data-user-delete>
                                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                                                     stroke-linecap="round" stroke-linejoin="round">
                                                     <path d="M3 6h18" />
@@ -230,7 +230,7 @@
                         <div class="user-modal-header">
                             <h3 id="statusUserTitle">تأكيد تغيير حالة المستخدم</h3>
                             <button type="button" class="modal-close" aria-label="إغلاق"
-                                onclick="closeUserModal('statusUserModal')">&times;</button>
+                                data-user-close="statusUserModal">&times;</button>
                         </div>
                         <p>هل أنت متأكد من <strong id="statusUserAction"></strong> المستخدم
                             <strong id="statusUserName"></strong>؟
@@ -242,7 +242,7 @@
                             <input type="hidden" name="user_id" id="statusUserId">
                             <div class="modal-actions">
                                 <button type="button" class="btn btn-outline"
-                                    onclick="closeUserModal('statusUserModal')">إلغاء</button>
+                                    data-user-close="statusUserModal">إلغاء</button>
                                 <button type="submit" id="confirmStatusUserButton" class="btn btn-primary">
                                     تأكيد
                                 </button>
@@ -261,7 +261,7 @@
                             <h3 id="deleteUserTitle">تأكيد حذف المستخدم</h3>
 
                             <button type="button" class="modal-close" aria-label="إغلاق"
-                                onclick="closeUserModal('deleteUserModal')">
+                                data-user-close="deleteUserModal">
                                 &times;
                             </button>
                         </div>
@@ -276,7 +276,7 @@
                             @method('DELETE')
 
                             <div class="modal-actions">
-                                <button type="button" class="btn btn-outline" onclick="closeUserModal('deleteUserModal')">
+                                <button type="button" class="btn btn-outline" data-user-close="deleteUserModal">
                                     إلغاء
                                 </button>
 
@@ -297,80 +297,86 @@
     @include('components.mobile-nav-admin')
 
     <script>
-        let previousModalFocus = null;
+        (() => {
+            let previousModalFocus = null;
 
-        function showUserModal(modalId) {
-            const modal = document.getElementById(modalId);
+            function showUserModal(modalId) {
+                const modal = document.getElementById(modalId);
 
-            previousModalFocus = document.activeElement;
-            modal.hidden = false;
+                previousModalFocus = document.activeElement;
+                modal.hidden = false;
 
-            document.body.style.overflow = 'hidden';
+                document.body.style.overflow = 'hidden';
 
-            const closeButton = modal.querySelector('.modal-close');
+                const closeButton = modal.querySelector('.modal-close');
 
-            closeButton?.focus();
-        }
+                closeButton?.focus();
+            }
 
-        function openStatusModal(button) {
-            const isActive = button.dataset.status === 'active';
-            const action = isActive ? 'تعطيل' : 'تفعيل';
-            document.getElementById('statusUserTitle').textContent = 'تأكيد ' + action + ' المستخدم';
-            document.getElementById('statusUserAction').textContent = action;
-            document.getElementById('statusUserName').textContent = button.dataset.name;
-            document.getElementById('statusUserId').value = button.dataset.id;
-            document.getElementById('statusUserValue').value = isActive ? 'inactive' : 'active';
-            document.getElementById('confirmStatusUserButton').textContent = 'تأكيد ' + action;
-            const form = document.getElementById('statusUserForm');
+            function openStatusModal(button) {
+                const isActive = button.dataset.status === 'active';
+                const action = isActive ? 'تعطيل' : 'تفعيل';
+                document.getElementById('statusUserTitle').textContent = 'تأكيد ' + action + ' المستخدم';
+                document.getElementById('statusUserAction').textContent = action;
+                document.getElementById('statusUserName').textContent = button.dataset.name;
+                document.getElementById('statusUserId').value = button.dataset.id;
+                document.getElementById('statusUserValue').value = isActive ? 'inactive' : 'active';
+                document.getElementById('confirmStatusUserButton').textContent = 'تأكيد ' + action;
+                const form = document.getElementById('statusUserForm');
 
-            form.action = @json(route('admin.users.toggle-status', ['user' => '__USER_ID__']))
-                .replace('__USER_ID__', encodeURIComponent(button.dataset.id));
-            showUserModal('statusUserModal');
-        }
+                form.action = @json(route('admin.users.toggle-status', ['user' => '__USER_ID__']))
+                    .replace('__USER_ID__', encodeURIComponent(button.dataset.id));
+                showUserModal('statusUserModal');
+            }
 
-        function openDeleteModal(button) {
-            const id = button.dataset.id;
+            function openDeleteModal(button) {
+                const id = button.dataset.id;
 
-            document.getElementById('deleteUserName').textContent =
-                button.dataset.name;
+                document.getElementById('deleteUserName').textContent =
+                    button.dataset.name;
 
-            const form = document.getElementById('deleteUserForm');
+                const form = document.getElementById('deleteUserForm');
 
-            form.action = @json(route('admin.users.destroy', ['user' => '__USER_ID__']))
-                .replace('__USER_ID__', encodeURIComponent(id));
+                form.action = @json(route('admin.users.destroy', ['user' => '__USER_ID__']))
+                    .replace('__USER_ID__', encodeURIComponent(id));
 
 
-            showUserModal('deleteUserModal');
-        }
+                showUserModal('deleteUserModal');
+            }
 
-        function closeUserModal(modalId) {
-            const modal = document.getElementById(modalId);
+            function closeUserModal(modalId) {
+                const modal = document.getElementById(modalId);
 
-            modal.hidden = true;
-            document.body.style.overflow = '';
+                modal.hidden = true;
+                document.body.style.overflow = '';
 
-            previousModalFocus?.focus();
-        }
+                previousModalFocus?.focus();
+            }
 
-        // Close when clicking outside the popup
-        document.querySelectorAll('.user-modal').forEach(modal => {
-            modal.addEventListener('click', function (event) {
-                if (event.target === modal) {
-                    closeUserModal(modal.id);
-                }
-            });
-        });
+            document.querySelectorAll('[data-user-status]').forEach(button => button.addEventListener('click', () => openStatusModal(button)));
+            document.querySelectorAll('[data-user-delete]').forEach(button => button.addEventListener('click', () => openDeleteModal(button)));
+            document.querySelectorAll('[data-user-close]').forEach(button => button.addEventListener('click', () => closeUserModal(button.dataset.userClose)));
 
-        // Close with Escape
-        document.addEventListener('keydown', function (event) {
-            if (event.key === 'Escape') {
-                document.querySelectorAll('.user-modal').forEach(modal => {
-                    if (!modal.hidden) {
+            // Close when clicking outside the popup
+            document.querySelectorAll('.user-modal').forEach(modal => {
+                modal.addEventListener('click', function (event) {
+                    if (event.target === modal) {
                         closeUserModal(modal.id);
                     }
                 });
-            }
-        });
+            });
+
+            // Close with Escape
+            document.querySelectorAll('.user-modal').forEach(modal => modal.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape') {
+                    document.querySelectorAll('.user-modal').forEach(modal => {
+                        if (!modal.hidden) {
+                            closeUserModal(modal.id);
+                        }
+                    });
+                }
+            }));
+        })();
     </script>
 
 @endsection

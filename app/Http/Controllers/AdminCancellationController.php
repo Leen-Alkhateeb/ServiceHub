@@ -13,8 +13,7 @@ class AdminCancellationController extends Controller
     public function index()
     {
          $cancellations = Booking::with(['customer', 'cancelledByUser', 'vendorService.vendor'])
-            ->whereNotNull('cancelled_at')
-            ->orWhere('status', 'cancelled')
+            ->where(fn ($query) => $query->whereNotNull('cancelled_at')->orWhere('status', 'cancelled'))
             ->latest('cancelled_at')
             ->paginate(10);
 
@@ -66,7 +65,8 @@ class AdminCancellationController extends Controller
      */
     public function destroy(string $id)
     {
-        $booking = Booking::findOrFail($id);
+        $booking = Booking::where(fn ($query) => $query->whereNotNull('cancelled_at')->orWhere('status', 'cancelled'))
+            ->findOrFail($id);
         $booking->delete();
 
         return redirect()->route('admin.cancellations.index')

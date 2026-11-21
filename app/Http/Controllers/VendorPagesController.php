@@ -79,6 +79,7 @@ class VendorPagesController extends Controller
         $catalog = $ownProfile ? DB::table('services')
             ->join('categories', 'categories.id', '=', 'services.category_id')
             ->where('services.approval_status', 'approved')->where('services.is_deleted', false)
+            ->where('services.is_active', true)
             ->where('categories.is_deleted', false)
             ->whereNotExists(fn(Builder $offers) => $offers->selectRaw('1')->from('vendor_services')
                 ->whereColumn('vendor_services.service_id', 'services.id')
@@ -94,25 +95,80 @@ class VendorPagesController extends Controller
         return view('pages.vendor.vendor-profile', compact('profile', 'ownProfile', 'rating', 'projects', 'services', 'catalog', 'requests', 'categories', 'tab', 'tabs') + $historyData);
     }
 
-    public function dashboard(Request $request): View
-    {
-        $vendor = $request->user();
-        $bookings = Booking::whereHas('vendorService', fn($offer) => $offer->where('vendor_id', $vendor->id));
-        $pending = (clone $bookings)->where('status', 'pending');
-        $upcoming = (clone $bookings)->whereIn('status', ['approved', 'paid', 'confirmed', 'in_progress'])
-            ->whereDate('booking_date', '>=', today());
-        $stats = [
-            'pending' => (clone $pending)->count(),
-            'upcoming' => (clone $upcoming)->count(),
-            'completed' => (clone $bookings)->where('status', 'completed')->count(),
-            'rating' => $vendor->reviewsReceived()->where('is_active', true)->avg('rating'),
-        ];
-        $vendorName = $vendor->first_name.' '.$vendor->last_name;
-        $pendingBookings = $pending->with('customer')->latest('id')->limit(5)->get();
-        $upcomingBookings = $upcoming->with('customer')->oldest('booking_date')->oldest('start_time')->limit(5)->get();
+    
+public function dashboard(Request $request): View
+{
+    $vendor = $request->user();
+    $vendorId = $vendor->id;
+    $vendorName = $vendor->first_name;
 
-        return view('pages.vendor.vendor-dashboard', compact('stats', 'vendor', 'vendorName', 'pendingBookings', 'upcomingBookings'));
-    }
+    // جميع الحجوزات المرتبطة بخدمات هذا الفيندور
+    $bookings = Booking::query()
+        ->whereHas('vendorService', function ($offer) use ($vendorId) {
+            $offer->where('vendor_id', $vendorId);
+        });
+
+    $today = now()->toDateString();
+    $time = now()->format('H:i:s');
+
+    // المواعيد المؤكدة التي لم يبدأ وقتها بعد
+    $upcoming = function ($query) use ($today, $time) {
+        return $query
+            ->where('status', 'confirmed')
+            ->where(function ($dates) use ($today, $time) {
+                $dates->whereDate('booking_date', '>', $today)
+                    ->orWhere(function ($sameDay) use ($today, $time) {
+                        $sameDay
+                            ->whereDate('booking_date', $today)
+                            ->where('start_time', '>=', $time);
+                    });
+            });
+    };
+
+    // إحصائيات لوحة الفني
+    $stats = [
+        'pending' => (clone $bookings)
+            ->where('status', 'pending')
+            ->count(),
+
+        'upcoming' => $upcoming(clone $bookings)
+            ->count(),
+
+        'completed' => (clone $bookings)
+            ->where('status', 'completed')
+            ->count(),
+
+        'rating' => Review::query()
+            ->where('reviewed_user_id', $vendorId)
+            ->where('is_active', true)
+            ->avg('rating'),
+    ];
+
+    // آخر 5 طلبات حجز تنتظر رد الفيندور
+    $pendingBookings = (clone $bookings)
+        ->where('status', 'pending')
+        ->with('customer')
+        ->latest('id')
+        ->limit(5)
+        ->get();
+
+    // أقرب 5 مواعيد مؤكدة قادمة
+    $upcomingBookings = $upcoming(clone $bookings)
+        ->with('customer')
+        ->orderBy('booking_date')
+        ->orderBy('start_time')
+        ->limit(5)
+        ->get();
+
+    return view('pages.vendor.vendor-dashboard', compact(
+        'vendor',
+        'vendorName',
+        'stats',
+        'pendingBookings',
+        'upcomingBookings'
+    ));
+}
+
 
     public function serviceReviews(Request $request, VendorService $offer): JsonResponse
     {

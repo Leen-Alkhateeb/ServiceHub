@@ -13,6 +13,11 @@ class AdminServicesController extends Controller
     // عرض الخدمات
     public function adminServices(Request $request)
     {
+        $request->validate([
+            'search' => ['nullable', 'string'],
+            'category_id' => ['nullable', 'integer'],
+        ]);
+
         $services = Service::with('category')
             ->where('is_deleted', false)
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Booking;
 use App\Services\VendorSettlement;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -14,3 +15,11 @@ Artisan::command('wallet:release', function (VendorSettlement $settlement) {
 })->purpose('Credit paid, undisputed bookings after the 24-hour hold');
 
 Schedule::command('wallet:release')->everyMinute()->withoutOverlapping();
+
+Schedule::call(function () {
+    Booking::query()
+        ->whereIn('status', ['approved', 'awaiting_payment'])
+        ->where('payment_deadline', '<=', now())
+        ->whereDoesntHave('payment')
+        ->update(['status' => 'expired']);
+})->name('bookings:expire-unpaid')->everyMinute()->withoutOverlapping();

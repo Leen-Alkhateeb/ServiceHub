@@ -11,6 +11,15 @@
             <a href="{{ route('categories.index') }}">أقسام الصيانة</a>
             <a href="{{ route('market.index') }}">خدمات</a>
             <a href="{{ route('home') }}#how-it-works">كيف تعمل المنصة</a>
+            @auth
+                @if (auth()->user()->status === 'active' && auth()->user()->role === 'admin')
+                    @include('components.sidebars.admin')
+                @elseif (auth()->user()->status === 'active' && auth()->user()->role === 'vendor')
+                    @include('components.sidebars.vendor')
+                @elseif (auth()->user()->role === 'customer')
+                    @include('components.sidebars.customer')
+                @endif
+            @endauth
         </nav>
 
         <div class="nav-actions account-actions">
@@ -142,10 +151,12 @@
                 @elseif ($account->role === 'admin' && $account->status === 'active')
                     <a
                         class="btn btn-yellow btn-sm"
-                        href="{{ route('admin.service-requests.index') }}"
+                        href="{{ route('admin.dashboard') }}"
                     >
-                        طلبات الخدمات
+                        لوحة التحكم
                     </a>
+                @elseif ($account->role === 'vendor' && $account->status === 'active')
+                    <a class="btn btn-outline btn-sm" href="{{ route('vendor.dashboard') }}">لوحة الفني</a>
                 @endif
 
             @else
@@ -160,6 +171,8 @@
 
             <button
                 aria-label="القائمة"
+                aria-controls="navlinks"
+                aria-expanded="false"
                 class="btn btn-outline btn-sm menu-toggle"
                 id="menu-toggle"
                 type="button"

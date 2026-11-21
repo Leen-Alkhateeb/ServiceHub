@@ -136,7 +136,7 @@
                 <h2 id="service-edit-title">تعديل الخدمة</h2>
                 <button type="button" class="service-modal-close" data-service-close aria-label="إغلاق">&times;</button>
             </div>
-            <form id="service-edit-form" class="service-modal-form"  method="POST">
+            <form id="service-edit-form" class="service-modal-form"  method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="service_id" id="edit-service-id">

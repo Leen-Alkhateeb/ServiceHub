@@ -192,7 +192,7 @@ class AdminServiceApprovalController extends Controller
         return redirect()
             ->route('admin.service-requests.index')
             ->with(
-                'status',
+                'success',
                 $data['decision'] === 'active'
                 ? 'تمت الموافقة على الخدمة بنجاح.'
                 : 'تم رفض الخدمة بنجاح.'

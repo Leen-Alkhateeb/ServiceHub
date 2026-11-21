@@ -12,19 +12,6 @@
         padding-bottom: 60px;
     }
 
-    #admin-service-requests .requests-heading {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 24px;
-    }
-
-    #admin-service-requests .requests-heading h1 {
-        margin: 0 0 8px;
-        font-size: 29px;
-    }
-
     #admin-service-requests .requests-filters {
         display: flex;
         flex-wrap: wrap;
@@ -63,108 +50,11 @@
         flex-wrap: wrap;
     }
 
-    #admin-service-requests .requests-list {
-        display: grid;
-        gap: 16px;
-    }
-
-    #admin-service-requests .request-card {
-        padding: 22px;
-    }
-
-    #admin-service-requests .request-top {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 14px;
-        margin-bottom: 16px;
-    }
-
-    #admin-service-requests .request-top h2 {
-        font-size: 20px;
-        margin: 0 0 7px;
-    }
-
-    #admin-service-requests .request-description {
-        margin-bottom: 14px;
-        overflow-wrap: anywhere;
-    }
-
-    #admin-service-requests .request-details {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px 20px;
-        margin-bottom: 18px;
-        font-weight: 700;
-    }
-
-    #admin-service-requests .request-status {
-        display: inline-flex;
-        align-items: center;
-        border-radius: 30px;
-        padding: 6px 13px;
-        font-size: 13px;
-        font-weight: 800;
-    }
-
-    #admin-service-requests .status-pending {
-        background: #fff3bd;
-        color: #705600;
-    }
-
-    #admin-service-requests .status-active {
-        background: #dcfce7;
-        color: #166534;
-    }
-
-    #admin-service-requests .status-rejected {
-        background: #fee2e2;
-        color: #991b1b;
-    }
-
-    #admin-service-requests .request-actions {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
-        padding-top: 15px;
-        border-top: 1px solid #e5e7eb;
-    }
-
-    #admin-service-requests .request-approve {
-        background: #dcfce7;
-        color: #166534;
-        border: 1px solid #86efac;
-    }
-
-    #admin-service-requests .request-reject {
-        background: #fee2e2;
-        color: #991b1b;
-        border: 1px solid #fca5a5;
-    }
-
-    #admin-service-requests .request-approve:hover {
-        background: #bbf7d0;
-    }
-
-    #admin-service-requests .request-reject:hover {
-        background: #fecaca;
-    }
-
     #admin-service-requests .request-reason {
         padding: 12px;
         border-radius: 9px;
         background: #fef2f2;
         color: #991b1b;
-    }
-
-    #admin-service-requests .requests-empty {
-        text-align: center;
-        padding: 45px 20px;
-    }
-
-    #admin-service-requests .requests-pagination {
-        margin-top: 24px;
     }
 
     .request-modal-backdrop[hidden] {
@@ -253,10 +143,6 @@
             flex: 1;
         }
 
-        #admin-service-requests .request-card {
-            padding: 17px;
-        }
-
         .request-modal {
             padding: 18px;
         }
@@ -272,7 +158,7 @@
 
     @include('components.sidebars.admin')
 
-    <main id="admin-service-requests">
+    <main id="admin-service-requests" class="admin-request-review">
 
         <div class="requests-heading">
             <div>
@@ -530,6 +416,7 @@
         <form
             id="request-decision-form"
             method="POST"
+            data-turbo="false"
         >
             @csrf
 

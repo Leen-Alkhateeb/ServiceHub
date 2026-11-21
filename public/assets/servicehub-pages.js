@@ -10,7 +10,39 @@ function updateFilePicker(input) {
 
 document.addEventListener('change', (event) => {
     if (event.target.matches('[data-file-picker] input[type="file"]')) updateFilePicker(event.target);
+    if (event.target.matches('[data-offer-image-field] input[type="file"]')) {
+        const input = event.target;
+        const file = input.files[0];
+        const preview = input.closest('[data-offer-image-field]').querySelector('[data-offer-image-preview]');
+        const image = preview.querySelector('img');
+        const caption = preview.querySelector('figcaption');
+        image.dataset.original ??= image.getAttribute('src') ?? '';
+        if (image.dataset.original) image.src = image.dataset.original;
+        else image.removeAttribute('src');
+        preview.hidden = !image.dataset.original;
+        caption.textContent = 'الصورة الحالية';
+
+        if (file && ['image/jpeg', 'image/png', 'image/webp'].includes(file.type) && file.size <= 5 * 1024 * 1024) {
+            const reader = new FileReader();
+            reader.addEventListener('load', () => {
+                if (input.files[0] !== file) return;
+                image.src = reader.result;
+                caption.textContent = 'معاينة الصورة المختارة';
+                preview.hidden = false;
+            }, { once: true });
+            reader.readAsDataURL(file);
+        }
+    }
+    if (event.target.matches('[data-inline-choice] input[type="radio"]')) {
+        const choice = event.target.closest('[data-inline-choice]');
+        choice.querySelector('[data-choice-label]').textContent = event.target.nextElementSibling.textContent;
+    }
 });
+
+document.addEventListener('invalid', (event) => {
+    const choice = event.target.closest('[data-inline-choice]');
+    if (choice) choice.open = true;
+}, true);
 
 function initializePage() {
     if (currentBody === document.body) return;
@@ -88,6 +120,12 @@ function initializePage() {
     }
 
     document.addEventListener('click', (event) => {
+        const choiceDone = event.target.closest('[data-choice-done]');
+        if (choiceDone) {
+            const choice = choiceDone.closest('[data-inline-choice]');
+            choice.open = false;
+            choice.querySelector('summary').focus();
+        }
         const archive = event.target.closest('[data-archive-action]');
         if (archive) {
             const dialog = document.getElementById('archive-dialog');

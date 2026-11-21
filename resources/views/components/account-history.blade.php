@@ -1,7 +1,8 @@
 @props(['entries', 'tab', 'filters', 'categories', 'routeName'])
 @php
     $statusLabel = fn ($status) => match ($status) {
-        'pending', 'awaiting_payment' => 'قيد الانتظار', 'approved' => 'تمت الموافقة',
+        'pending' => 'بانتظار موافقة الفني',
+        'approved', 'awaiting_payment' => 'بانتظار الدفع',
         'paid', 'confirmed' => 'مدفوع', 'completed' => 'مكتمل',
         'cancelled' => 'ملغى', 'failed' => 'فشل الدفع', 'refunded' => 'مسترد',
         'credit', 'payout' => 'مبلغ محرّر', 'penalty' => 'غرامة', 'adjustment' => 'تسوية',

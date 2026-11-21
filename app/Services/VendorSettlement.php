@@ -30,8 +30,12 @@ class VendorSettlement
                 ->orWhereHas('refundRequest', $complaint));
         }
 
+        $comparison = $status === 'ready' ? '<=' : '>';
+
         return $query->whereHas('payment', $paid)->whereDoesntHave('refundRequest', $complaint)
-            ->where('completed_at', $status === 'ready' ? '<=' : '>', now()->subHours(24));
+            ->where(fn (Builder $rows) => $rows->where('objection_deadline', $comparison, now())
+                ->orWhere(fn (Builder $legacy) => $legacy->whereNull('objection_deadline')
+                    ->where('completed_at', $comparison, now()->subHours(24))));
     }
 
     public function release(): int

@@ -11,7 +11,7 @@
         @if ($showOfferErrors)
             <ul class="notice" role="alert">@foreach ($errors->offerEdit->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
         @endif
-        <form class="offer-edit-form" method="POST" action="{{ route('vendor.service-requests.update', $offer->id) }}">
+        <form class="offer-edit-form" method="POST" enctype="multipart/form-data" action="{{ route('vendor.service-requests.update', $offer->id) }}">
             @csrf
             @method('PATCH')
             <input type="hidden" name="editing_offer" value="{{ $offer->id }}">
@@ -29,6 +29,11 @@
                 <label for="edit-offer-description-{{ $offer->id }}">وصف العرض</label>
                 <textarea id="edit-offer-description-{{ $offer->id }}" name="description" rows="4" maxlength="3000" required>{{ $showOfferErrors ? old('description') : $offer->description }}</textarea>
             </div>
+            @include('pages.vendor.partials.offer-image-field', [
+                'imageFieldId' => 'edit-offer-image-'.$offer->id,
+                'imageFieldLabel' => 'استبدال الصورة (اختياري)',
+                'currentImageUrl' => $offer->image_url,
+            ])
             <div class="offer-edit-actions">
                 <button class="btn btn-yellow" type="submit">حفظ التعديلات</button>
             </div>

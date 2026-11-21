@@ -52,10 +52,10 @@ class BookingController extends Controller
 
             Notification::create([
                 'user_id' => $current->customer_id,
-                'title' => $data['status'] === 'approved' ? 'Booking approved' : 'Booking rejected',
+                'title' => $data['status'] === 'approved' ? 'تم قبول طلب الحجز' : 'تم رفض طلب الحجز',
                 'message' => $data['status'] === 'approved'
-                    ? "Your booking for {$current->service_name} was approved. Please pay within 30 minutes."
-                    : "Your booking request for {$current->service_name} was declined.",
+                    ? "وافق الفني على طلب حجز {$current->service_name}. يمكنك دفع كامل قيمة الخدمة خلال 30 دقيقة من سجل طلباتك."
+                    : "رفض الفني طلب حجز {$current->service_name}.",
                 'type' => 'booking',
             ]);
         });

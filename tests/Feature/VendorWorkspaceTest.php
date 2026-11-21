@@ -299,6 +299,7 @@ class VendorWorkspaceTest extends TestCase
         $this->actingAs($admin)->get(route('admin.service-requests.index'))->assertOk()->assertSee('Inspection and report.');
         $this->post($decision, ['decision' => 'rejected', 'rejection_reason' => 'Please clarify the coverage.'])
             ->assertRedirect(route('admin.service-requests.index'));
+        $this->get(route('admin.service-requests.index'))->assertOk()->assertSee('تم رفض الخدمة بنجاح.');
         $this->assertSame('rejected', $offer->fresh()->status);
         $this->assertSame('rejected', $offer->service->fresh()->approval_status);
         $this->assertDatabaseHas('notifications', ['user_id' => $vendor->id, 'type' => 'service']);
@@ -306,8 +307,42 @@ class VendorWorkspaceTest extends TestCase
         $this->actingAs($vendor)->post(route('vendor.service-suggestions.store'), $data)->assertRedirect();
         $newOffer = $vendor->vendorServices()->latest('id')->firstOrFail();
         $this->actingAs($admin)->post(route('admin.service-requests.decide', $newOffer), ['decision' => 'active'])->assertRedirect();
+        $this->get(route('admin.service-requests.index'))->assertOk()->assertSee('تمت الموافقة على الخدمة بنجاح.');
         $this->assertSame('approved', $newOffer->service->fresh()->approval_status);
         $this->get($publicUrl)->assertOk()->assertSee('Inspection and report.')->assertSee('54.25');
+    }
+
+    public function test_vendor_can_upload_and_replace_one_image_per_offer_or_suggestion(): void
+    {
+        $disk = Storage::fake('public');
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+Xk4QAAAAASUVORK5CYII=');
+        $image = fn () => UploadedFile::fake()->createWithContent('offer.png', $png);
+        $vendor = VendorProfile::factory()->create()->user;
+        $service = Service::factory()->create();
+        $details = ['price' => '24.00', 'description' => 'Service image test.'];
+        $this->actingAs($vendor);
+        $add = route('vendor.service-requests.store');
+        $this->post($add, $details + ['service_id' => $service->id, 'image' => [$image(), $image()]])
+            ->assertSessionHasErrorsIn('offer', 'image');
+        $this->post($add, $details + ['service_id' => $service->id, 'image' => $image()])
+            ->assertRedirect();
+        $this->post(route('vendor.service-suggestions.store'), $details + [
+            'category_id' => $service->category_id, 'name' => 'New service with photo', 'image' => $image(),
+        ])->assertRedirect();
+
+        foreach ($vendor->vendorServices()->get() as $offer) {
+            $original = $offer->image;
+            $disk->assertExists($original);
+            $this->get(route('vendor.service.image', $offer))->assertOk();
+            $this->patch(route('vendor.service-requests.update', $offer), $details + ['image' => $image()])
+                ->assertRedirect();
+            $disk->assertMissing($original);
+            $disk->assertExists($offer->refresh()->image);
+        }
+
+        $pending = $vendor->vendorServices()->where('status', 'pending')->firstOrFail();
+        $this->get(route('vendor.profile'))->assertOk()->assertSee(route('vendor.service.image', $pending));
+        $this->actingAs(User::factory()->create())->get(route('vendor.service.image', $pending))->assertNotFound();
     }
 
     public function test_vendor_can_edit_archive_and_rerate_the_same_booking(): void
@@ -399,11 +434,11 @@ class VendorWorkspaceTest extends TestCase
         $this->get(route('vendor.dashboard'))->assertOk()->assertSee('حالة طلب الانضمام');
     }
 
-    public function test_booking_is_restricted_to_customers_and_each_profile_shows_its_own_history(): void
+    public function test_active_accounts_can_request_another_vendors_service_and_see_their_own_history(): void
     {
         $seller = VendorProfile::factory()->create()->user;
         $buyer = VendorProfile::factory()->create()->user;
-        $offer = VendorService::factory()->for($seller, 'vendor')->create();
+        $offer = VendorService::factory()->for($seller, 'vendor')->create(['duration_minutes' => 60]);
         $tomorrow = now()->addDay()->startOfDay();
         $window = $seller->recurringAvailabilities()->create([
             'day_of_week' => $tomorrow->dayOfWeek, 'start_time' => '09:00:00', 'end_time' => '12:00:00',
@@ -411,8 +446,8 @@ class VendorWorkspaceTest extends TestCase
         $slot = fn (string $hour) => ['slot' => $tomorrow->format('Y-m-d').'|'.$hour.'|'.$window->id];
         $store = route('booking.store', $offer);
         $this->actingAs($seller)->post($store, $slot('09:00'))->assertForbidden();
-        $this->actingAs($buyer)->get(route('market.show', $offer))->assertOk()->assertDontSee('احجز الآن');
-        $this->post($store, $slot('09:00'))->assertForbidden();
+        $this->actingAs($buyer)->get(route('market.show', $offer))->assertOk()->assertSee('إرسال طلب الحجز');
+        $this->post($store, $slot('09:00'))->assertRedirect(route('account.profile', ['tab' => 'bookings']));
         $ownBooking = Booking::factory()->for($offer)->create([
             'customer_id' => $buyer->id,
             'booking_date' => $tomorrow->toDateString(),
@@ -437,7 +472,18 @@ class VendorWorkspaceTest extends TestCase
         $this->get(route('home'))->assertSee(route('vendor.dashboard'))->assertSee(route('account.profile'));
 
         $admin = User::factory()->admin()->create();
-        $this->actingAs($admin)->post($store, $slot('10:00'))->assertForbidden();
+        $history = route('account.profile', ['tab' => 'bookings']);
+        $this->actingAs($admin)->post($store, $slot('10:00'))->assertRedirect($history);
+        $request = $admin->bookingsAsCustomer()->firstOrFail();
+        $checkout = route('payment.checkout', $request);
+        $this->assertSame('pending', $request->status);
+        $this->get($history)->assertOk()->assertSee('بانتظار موافقة الفني')->assertDontSee($checkout);
+
+        $decision = route('vendor.vendor-bookings.update', $request);
+        $this->actingAs($seller)->get(route('vendor.vendor-bookings.index'))->assertOk()->assertSee($decision);
+        $this->patch($decision, ['status' => 'approved'])->assertRedirect();
+        $this->actingAs($admin)->get($history)->assertOk()->assertSee($checkout);
+        $this->get($checkout)->assertOk();
         $this->get(route('account.profile', ['tab' => 'payments']))->assertOk()->assertDontSee('77.55');
         $this->get(route('home'))->assertSee(route('admin.dashboard'));
         $this->actingAs(User::factory()->create())->get(route('home'))->assertDontSee('لوحة التحكم');

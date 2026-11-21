@@ -27,6 +27,9 @@
     @include('pages.customer.menu')
 
     <section class="stack">
+        @if (session('success'))
+            <div class="alert alert-success" role="status">{{ session('success') }}</div>
+        @endif
         @if ($errors->any())
             <div class="alert alert-danger">{{ $errors->first() }}</div>
         @endif
@@ -64,18 +67,14 @@
                             <a href="{{ route('payment.checkout', $booking) }}" class="btn btn-primary btn-sm">إتمام الدفع</a>
                         @endif
 
-                        @if (in_array($booking->status, ['pending', 'approved', 'awaiting_payment'], true) && ! $booking->payment)
-                            <form method="POST" action="{{ route('booking.cancel', $booking) }}">
-                                @csrf
-                                <button type="submit" class="btn btn-outline btn-sm">إلغاء الحجز</button>
-                            </form>
-                        @endif
-
                         @if ($booking->payment)
                             <a href="{{ route('payment.invoice', $booking) }}" class="btn btn-outline btn-sm">الفاتورة</a>
                         @endif
                     </div>
+                    @include('components.booking-cancellation-action', ['booking' => $booking])
+                    @include('components.booking-completion-actions', ['booking' => $booking])
                 </div>
+                @include('components.booking-follow-up-dialogs', ['booking' => $booking])
 
             @empty
                 <div class="card empty"><p class="muted">ما في حجوزات {{ $title }}.</p></div>

@@ -1,6 +1,47 @@
 /* Styles for admin management pages (categories, bookings, messages, payments).
    Every rule starts with .admin-manage so other pages are not affected. */
 
+.admin-manage.booking-inspect { min-width: 0; overflow-wrap: anywhere; }
+.admin-manage .booking-inspect-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-block-end: 1.25rem; }
+.admin-manage .booking-inspect-header h1 { margin: .15rem 0 0; font-size: clamp(1.6rem, 3vw, 2.35rem); }
+.admin-manage .booking-inspect-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+    margin: 0 0 1rem;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: #f4f8f6;
+}
+.admin-manage .booking-inspect-summary > div { padding: .85rem 1rem; }
+.admin-manage .booking-inspect-summary dt,
+.admin-manage .booking-inspect-fields dt { color: var(--muted); font-size: .875rem; }
+.admin-manage .booking-inspect-summary dd { margin: .25rem 0 0; font-size: 1.15rem; font-weight: 750; }
+.admin-manage .booking-inspect-summary small,
+.admin-manage .booking-inspect-fields small { display: block; margin-block-start: .2rem; font-weight: 400; color: var(--muted); }
+.admin-manage .booking-inspect-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+    gap: 1rem;
+    margin-block: 1rem;
+}
+.admin-manage .booking-inspect-section { min-width: 0; }
+.admin-manage .booking-inspect-section h2 { font-size: 1.15rem; margin: 0 0 .65rem; }
+.admin-manage .booking-inspect-description { margin: 0; line-height: 1.75; white-space: pre-line; }
+.admin-manage .booking-inspect-fields { margin: 0; }
+.admin-manage .booking-inspect-fields > div {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    gap: .2rem .75rem;
+    padding-block: .65rem;
+    border-block-end: 1px solid var(--line);
+}
+.admin-manage .booking-inspect-fields > div:last-child { border-block-end: 0; }
+.admin-manage .booking-inspect-fields dd { margin: 0; }
+.admin-manage .booking-inspect-timeline { grid-column: 1 / -1; }
+@media (max-width: 420px) {
+    .admin-manage .booking-inspect-fields > div { grid-template-columns: minmax(0, 1fr); }
+}
+
 .admin-manage .page-intro {
     margin: 6px 0 0;
     color: var(--muted);

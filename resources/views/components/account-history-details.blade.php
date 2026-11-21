@@ -19,7 +19,17 @@
             <dt>تاريخ ووقت الدفع</dt><dd><x-dialog-date-time :value="$payment->paid_at" /></dd>
         @endif
     </dl>
-    @if ($tab === 'bookings' && $booking->status === 'awaiting_payment')
+    @if ($tab === 'bookings' && ! $payment && in_array($booking->status, ['approved', 'awaiting_payment'], true))
         <a class="btn btn-yellow" href="{{ route('payment.checkout', $booking) }}">الدفع</a>
     @endif
+    @if ($tab === 'bookings' && $payment)
+        <a class="btn btn-outline btn-sm" href="{{ route('payment.invoice', $booking) }}">عرض الفاتورة</a>
+    @endif
+    @unless ($booking->trashed())
+        @include('components.booking-cancellation-action', ['booking' => $booking])
+        @include('components.booking-completion-actions', ['booking' => $booking])
+    @endunless
 </dialog>
+@unless ($booking->trashed())
+    @include('components.booking-follow-up-dialogs', ['booking' => $booking])
+@endunless

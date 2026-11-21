@@ -13,105 +13,117 @@
     <div class="container layout">
         @include('components.sidebars.admin')
 
-        <main class="dashboard-content admin-manage">
-            <div class="dash-title">
+        <main class="dashboard-content admin-manage booking-inspect">
+            @php
+                $payment = $booking->payment;
+                $refund = $booking->refundRequest;
+                $events = [
+                    'إنشاء الحجز' => $booking->created_at,
+                    'موافقة الفني' => $booking->approved_at,
+                    'تأكيد العميل للاكتمال' => $booking->customer_completed_at,
+                    'تأكيد الفني للاكتمال' => $booking->vendor_completed_at,
+                    'اكتمال الحجز' => $booking->completed_at,
+                    'إلغاء الحجز' => $booking->cancelled_at,
+                ];
+            @endphp
+            <div class="booking-inspect-header">
                 <div>
-                    <span class="small muted">لوحة الإدارة / الحجوزات</span>
-                    <h1>الحجز #{{ $booking->id }}</h1>
-                    <p class="page-intro">{{ $booking->service_name }}</p>
+                    <span class="muted">الحجز <bdi>#{{ $booking->id }}</bdi></span>
+                    <h1>{{ $booking->service_name }}</h1>
                 </div>
                 <a class="btn btn-outline" href="{{ route('admin.bookings.index', $booking->trashed() ? ['archived' => 1] : []) }}">رجوع للحجوزات</a>
             </div>
 
             @if ($booking->trashed())
                 <div class="admin-alert admin-alert-error" role="status">
-                    <span class="admin-alert-icon" aria-hidden="true">!</span>
                     <div>
                         <strong>حجز مؤرشف</strong>
-                        <p>تمت أرشفة هذا الحجز بتاريخ {{ $booking->deleted_at->format('Y-m-d H:i') }}. بيانات الدفع المرتبطة به محفوظة.</p>
+                        <x-dialog-date-time :value="$booking->deleted_at" />
                     </div>
                 </div>
             @endif
 
-            <div class="details-grid">
-                <section class="panel">
-                    <h3>بيانات الحجز</h3>
-                    <dl class="details-list">
-                        <dt>الحالة</dt>
-                        <dd><span class="pill {{ $statusColor }}">{{ $statusLabel }}</span></dd>
-                        <dt>الخدمة</dt>
-                        <dd>{{ $booking->service_name }}</dd>
-                        <dt>الوصف</dt>
-                        <dd>{{ $booking->service_description }}</dd>
-                        <dt>الموعد</dt>
-                        <dd>{{ $booking->booking_date->format('Y-m-d') }} · {{ substr($booking->start_time, 0, 5) }} إلى {{ substr($booking->end_time, 0, 5) }}</dd>
-                        <dt>سعر الحجز</dt>
-                        <dd>{{ number_format($booking->original_price, 2) }} د.أ</dd>
-                        <dt>تاريخ الإنشاء</dt>
-                        <dd>{{ $booking->created_at?->format('Y-m-d H:i') ?? '—' }}</dd>
-                        @if ($booking->approved_at)
-                            <dt>تاريخ القبول</dt>
-                            <dd>{{ $booking->approved_at->format('Y-m-d H:i') }}</dd>
+            <dl class="booking-inspect-summary">
+                <div>
+                    <dt>حالة الحجز</dt>
+                    <dd><span class="pill {{ $statusColor }}">{{ $statusLabel }}</span></dd>
+                </div>
+                <div>
+                    <dt>موعد الخدمة</dt>
+                    <dd>
+                        <bdi>{{ $booking->booking_date?->format('d/m/Y') ?? '—' }}</bdi>
+                        <small><bdi>{{ substr($booking->start_time, 0, 5) }} – {{ substr($booking->end_time, 0, 5) }}</bdi></small>
+                    </dd>
+                </div>
+                <div>
+                    <dt>قيمة الحجز</dt>
+                    <dd><bdi>{{ number_format($booking->original_price, 2) }}</bdi> د.أ</dd>
+                </div>
+            </dl>
+
+            @if (filled($booking->service_description))
+                <section class="panel booking-inspect-section">
+                    <h2>وصف الخدمة</h2>
+                    <p class="booking-inspect-description">{{ $booking->service_description }}</p>
+                </section>
+            @endif
+
+            <div class="booking-inspect-grid">
+                <section class="panel booking-inspect-section">
+                    <h2>أطراف الحجز</h2>
+                    <dl class="booking-inspect-fields">
+                        @foreach (['العميل' => $booking->customer, 'مقدّم الخدمة' => $booking->vendorService?->vendor] as $role => $participant)
+                            <div>
+                                <dt>{{ $role }}</dt>
+                                <dd>
+                                    <strong>{{ trim($participant?->first_name . ' ' . $participant?->last_name) ?: '—' }}</strong>
+                                    <small><bdi>{{ $participant?->email ?? '—' }}</bdi></small>
+                                </dd>
+                            </div>
+                        @endforeach
+                    </dl>
+                </section>
+
+                <section class="panel booking-inspect-section">
+                    <h2>الدفع والاسترداد</h2>
+                    <dl class="booking-inspect-fields">
+                        <div>
+                            <dt>حالة الدفع</dt>
+                            <dd>{{ $payment ? $paymentStatusLabel : 'لا توجد دفعة مسجّلة.' }}</dd>
+                        </div>
+                        @if ($payment)
+                            <div><dt>رقم الدفعة</dt><dd><bdi>#{{ $payment->id }}</bdi></dd></div>
+                            <div><dt>المبلغ المسجّل</dt><dd><bdi>{{ number_format($payment->amount, 2) }}</bdi> د.أ</dd></div>
+                            @if ($payment->paid_at)
+                                <div><dt>تاريخ الدفع</dt><dd><x-dialog-date-time :value="$payment->paid_at" /></dd></div>
+                            @endif
                         @endif
-                        @if ($booking->completed_at)
-                            <dt>تاريخ الإكمال</dt>
-                            <dd>{{ $booking->completed_at->format('Y-m-d H:i') }}</dd>
+                        <div><dt>طلب الاسترداد</dt><dd>{{ $refund ? $refundStatusLabel : 'لا يوجد.' }}</dd></div>
+                        @if ($refund?->refund_amount !== null)
+                            <div><dt>مبلغ الاسترداد</dt><dd><bdi>{{ number_format($refund->refund_amount, 2) }}</bdi> د.أ</dd></div>
                         @endif
+                        @if ($booking->objection_deadline)
+                            <div><dt>نهاية مهلة الاعتراض</dt><dd><x-dialog-date-time :value="$booking->objection_deadline" /></dd></div>
+                        @endif
+                        @if ($booking->cancellation_refund_amount !== null)
+                            <div><dt>استرداد الإلغاء للعميل</dt><dd><bdi>{{ number_format($booking->cancellation_refund_amount, 2) }}</bdi> د.أ</dd></div>
+                            <div><dt>حصة المنصة من الإلغاء</dt><dd><bdi>{{ number_format($booking->cancellation_platform_share, 2) }}</bdi> د.أ</dd></div>
+                        @endif
+                    </dl>
+                </section>
+
+                <section class="panel booking-inspect-section booking-inspect-timeline">
+                    <h2>سجل الحجز</h2>
+                    <dl class="booking-inspect-fields">
+                        @foreach (collect($events)->filter()->sortBy(fn ($date) => $date->timestamp) as $label => $time)
+                            <div><dt>{{ $label }}</dt><dd><x-dialog-date-time :value="$time" /></dd></div>
+                        @endforeach
                         @if ($booking->cancelled_at)
-                            <dt>تاريخ الإلغاء</dt>
-                            <dd>
-                                {{ $booking->cancelled_at->format('Y-m-d H:i') }}
-                                @if ($booking->cancelledByUser)
-                                    · بواسطة {{ $booking->cancelledByUser->first_name }} {{ $booking->cancelledByUser->last_name }}
-                                @endif
-                            </dd>
-                            <dt>غرامة الإلغاء</dt>
-                            <dd>{{ number_format($booking->cancellation_penalty, 2) }} د.أ</dd>
-                        @endif
-                    </dl>
-                </section>
-
-                <section class="panel">
-                    <h3>أطراف الحجز</h3>
-                    <dl class="details-list">
-                        <dt>العميل</dt>
-                        <dd>{{ trim($booking->customer?->first_name . ' ' . $booking->customer?->last_name) ?: '—' }}</dd>
-                        <dt>إيميل العميل</dt>
-                        <dd>{{ $booking->customer?->email ?? '—' }}</dd>
-                        <dt>المزوّد</dt>
-                        <dd>{{ trim($booking->vendorService?->vendor?->first_name . ' ' . $booking->vendorService?->vendor?->last_name) ?: '—' }}</dd>
-                        <dt>إيميل المزوّد</dt>
-                        <dd>{{ $booking->vendorService?->vendor?->email ?? '—' }}</dd>
-                    </dl>
-                </section>
-
-                <section class="panel">
-                    <h3>الدفع والاسترداد</h3>
-                    <dl class="details-list">
-                        <dt>الدفعة</dt>
-                        <dd>
-                            @if ($booking->payment)
-                                #{{ $booking->payment->id }} · {{ number_format($booking->payment->amount, 2) }} د.أ
-                                · {{ $paymentStatusLabel }}
-                            @else
-                                لا توجد دفعة مسجّلة.
+                            @if ($booking->cancelledByUser)
+                                <div><dt>ألغاه</dt><dd>{{ $booking->cancelledByUser->first_name }} {{ $booking->cancelledByUser->last_name }}</dd></div>
                             @endif
-                        </dd>
-                        @if ($booking->payment?->paid_at)
-                            <dt>تاريخ الدفع</dt>
-                            <dd>{{ $booking->payment->paid_at->format('Y-m-d H:i') }}</dd>
+                            <div><dt>غرامة الإلغاء</dt><dd><bdi>{{ number_format($booking->cancellation_penalty, 2) }}</bdi> د.أ</dd></div>
                         @endif
-                        <dt>طلب الاسترداد</dt>
-                        <dd>
-                            @if ($booking->refundRequest)
-                                {{ $refundStatusLabel }}
-                                @if ($booking->refundRequest->refund_amount)
-                                    · {{ number_format($booking->refundRequest->refund_amount, 2) }} د.أ
-                                @endif
-                            @else
-                                لا يوجد.
-                            @endif
-                        </dd>
                     </dl>
                 </section>
             </div>

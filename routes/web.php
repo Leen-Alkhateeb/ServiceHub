@@ -6,11 +6,8 @@ use App\Http\Controllers\AdminBookingController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\AdminPaymentController;
-<<<<<<< HEAD
 use App\Http\Controllers\AdminReviewController;
-=======
 use App\Http\Controllers\AdminServicesController;
->>>>>>> 1ae9934ce4e42692ffbe665e92e78e1ae8229b60
 use App\Http\Controllers\AdminUsersController;
 use App\Http\Controllers\AdminVendorApplicationController;
 use App\Http\Controllers\BookingController;

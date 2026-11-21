@@ -12,7 +12,7 @@ class AdminCancellationController extends Controller
      */
     public function index()
     {
-         $cancellations = Booking::with(['customer', 'cancelledByUser', 'vendorService.vendor'])
+         $cancellations = Booking::with(['customer', 'cancelledByUser', 'vendorService.vendor', 'walletTransactions'])
             ->where(fn ($query) => $query->whereNotNull('cancelled_at')->orWhere('status', 'cancelled'))
             ->latest('cancelled_at')
             ->paginate(10);

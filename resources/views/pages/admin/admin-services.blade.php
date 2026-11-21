@@ -28,6 +28,13 @@
             @if (session('error'))
                 <div class="services-alert services-alert-error" role="alert">{{ session('error') }}</div>
             @endif
+            @if ($errors->any())
+                <ul class="services-alert services-alert-error" role="alert">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            @endif
 
             <section class="panel services-panel" aria-label="الخدمات الموجودة">
                 <div class="services-panel-heading">
@@ -41,18 +48,14 @@
                 <div class="services-grid">
                     @forelse (($services ?? collect()) as $service)
                         @php
-                            $serviceImage = $service->image
-                                ? (\Illuminate\Support\Str::startsWith($service->image, ['http://', 'https://', '/'])
-                                    ? $service->image
-                                    : asset('storage/' . $service->image))
-                                : null;
+                            $serviceImage = $service->display_image_url;
                             $isDisabled = !$service->is_active;
                         @endphp
                         <article class="service-card">
                             <div class="service-card-image">
-                            @if ($service->image)
+                            @if ($serviceImage)
                                 <img
-                                    src="{{ asset('storage/' . $service->image) }}"
+                                    src="{{ $serviceImage }}"
                                     alt="صورة خدمة {{ $service->name }}"
                                     loading="lazy"
                                 >
@@ -69,7 +72,7 @@
                                         data-name="{{ $service->name }}"
                                         data-description="{{ $service->description }}"
                                         data-category="{{ $service->category_id }}"
-                                        data-price="{{ $service->base_price ?? '' }}">تعديل</button>
+                                        data-image="{{ $serviceImage }}">تعديل</button>
                                     <button type="button"
                                      class="services-btn services-btn-toggle {{ $isDisabled ? 'services-btn-deactivate' : 'services-btn-activate' }}"
                                      data-service-open="toggle"
@@ -109,7 +112,7 @@
                 <h2 id="service-create-title">إضافة خدمة جديدة</h2>
                 <button type="button" class="service-modal-close" data-service-close aria-label="إغلاق">&times;</button>
             </div>
-            <form id="service-create-form" class="service-modal-form" action="{{ route('admin.addServices') }}" method="post" enctype="multipart/form-data">
+            <form id="service-create-form" class="service-modal-form" action="{{ route('admin.addServices') }}" method="POST" enctype="multipart/form-data" data-turbo="false">
               @csrf
             <label>اسم الخدمة <input name="name" type="text" placeholder="أدخل اسم الخدمة" required></label>
                 <label>القسم
@@ -120,8 +123,9 @@
                         @endforeach
                     </select>
                 </label>
-                <label>الوصف <textarea name="description" rows="4" placeholder="اكتب وصف الخدمة"></textarea></label>
-                <label>صورة الخدمة <x-file-picker><input name="image" type="file" accept="image/*"></x-file-picker></label>
+                <label>الوصف <textarea name="description" rows="4" placeholder="اكتب وصف الخدمة" required></textarea></label>
+                <label>صورة الخدمة <x-file-picker><input name="image" type="file" accept="image/jpeg,image/png,image/webp" required aria-describedby="create-service-image-help"></x-file-picker></label>
+                <small id="create-service-image-help" class="muted">JPG أو PNG أو WebP، حتى 2 ميغابايت.</small>
                 <div class="service-modal-actions">
                     <button type="button" class="services-btn services-btn-neutral" data-service-close>إلغاء</button>
                     <button type="submit" class="services-btn services-btn-primary">حفظ الخدمة</button>
@@ -136,7 +140,7 @@
                 <h2 id="service-edit-title">تعديل الخدمة</h2>
                 <button type="button" class="service-modal-close" data-service-close aria-label="إغلاق">&times;</button>
             </div>
-            <form id="service-edit-form" class="service-modal-form"  method="POST" enctype="multipart/form-data">
+            <form id="service-edit-form" class="service-modal-form" method="POST" enctype="multipart/form-data" data-turbo="false">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="service_id" id="edit-service-id">
@@ -149,8 +153,13 @@
                         @endforeach
                     </select>
                 </label>
-                <label>الوصف <textarea id="edit-service-description" name="description" rows="4"></textarea></label>
-                <label>استبدال الصورة (اختياري) <x-file-picker><input name="image" type="file" accept="image/*"></x-file-picker></label>
+                <label>الوصف <textarea id="edit-service-description" name="description" rows="4" required></textarea></label>
+                <figure class="offer-image-preview" id="edit-service-image-preview" hidden>
+                    <img class="offer-image" width="480" height="270" alt="">
+                    <figcaption>الصورة الحالية</figcaption>
+                </figure>
+                <label>استبدال الصورة (اختياري) <x-file-picker><input name="image" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="edit-service-image-help"></x-file-picker></label>
+                <small id="edit-service-image-help" class="muted">JPG أو PNG أو WebP، حتى 2 ميغابايت.</small>
                 <div class="service-modal-actions">
                     <button type="button" class="services-btn services-btn-neutral" data-service-close>إلغاء</button>
                     <button type="submit" class="services-btn services-btn-primary">حفظ التعديلات</button>
@@ -166,9 +175,9 @@
                 <button type="button" class="service-modal-close" data-service-close aria-label="إغلاق">&times;</button>
             </div>
             <p id="service-toggle-message"></p>
-            <form id="service-toggle-form" method="post">
+            <form id="service-toggle-form" method="POST" data-turbo="false">
                 @csrf
-                @method('PUt')
+                @method('PUT')
                 <input type="hidden" name="service_id" id="toggle-service-id">
                 <div class="service-modal-actions">
                     <button type="button" class="services-btn services-btn-neutral" data-service-close>إلغاء</button>
@@ -185,7 +194,7 @@
                 <button type="button" class="service-modal-close" data-service-close aria-label="إغلاق">&times;</button>
             </div>
             <p id="service-delete-message"></p>
-            <form id="service-delete-form" method="post">
+            <form id="service-delete-form" method="POST" data-turbo="false">
                 @csrf
                 @method("DELETE")
                 <input type="hidden" name="service_id" id="delete-service-id">
@@ -222,6 +231,14 @@
                         document.getElementById('edit-service-description').value = button.dataset.description || '';
                         document.getElementById('edit-service-category').value = button.dataset.category || '';
                         const form = document.getElementById('service-edit-form');
+                        const input = form.elements.image;
+                        input.value = '';
+                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                        const preview = document.getElementById('edit-service-image-preview');
+                        const image = preview.querySelector('img');
+                        if (button.dataset.image) image.src = button.dataset.image;
+                        else image.removeAttribute('src');
+                        preview.hidden = !button.dataset.image;
                         form.action = @json(route('admin.editServices', ['service' => '__SERVICE_ID__']))
                        .replace('__SERVICE_ID__', encodeURIComponent(button.dataset.id));
                     }

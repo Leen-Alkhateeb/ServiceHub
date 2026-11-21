@@ -57,7 +57,7 @@ class ProfileController extends Controller
     public function bookings(Request $request)
     {
         $user = $this->customer($request);
-        $base = fn () => $user->bookingsAsCustomer()->with(['vendorService.vendor', 'payment'])->latest('id');
+        $base = fn () => $user->bookingsAsCustomer()->with(['vendorService.vendor', 'payment', 'refundRequest'])->latest('id');
 
         return view('pages.customer.customer-bookings', [
             'current' => $base()->whereIn('status', ['pending', 'approved', 'awaiting_payment', 'confirmed', 'paid', 'in_progress', 'objection_pending'])->get(),

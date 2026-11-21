@@ -15,6 +15,12 @@
 
         <section class="panel wallet-overview" aria-labelledby="wallet-overview-title">
             <h2 id="wallet-overview-title">ملخص الأرصدة</h2>
+            @if ($outstandingPenalty > 0)
+                <p class="notice">
+                    غرامة متبقية: <strong><bdi>{{ number_format($outstandingPenalty, 2) }}</bdi> د.أ</strong>.
+                    تُغطّى تلقائيًا من الدفعات القادمة عند تحريرها.
+                </p>
+            @endif
             @php
                 $scale = max(1, ...array_map(fn ($item) => abs((float) $item['amount']), array_values($summary)));
             @endphp
@@ -73,6 +79,28 @@
             </div>
             {{ $bookings->onEachSide(1)->links('components.pager') }}
         </section>
+
+        @if ($cancellationEntries?->isNotEmpty())
+            <section class="panel wallet-ledger" id="cancellation-adjustments">
+                <h2>تسويات الإلغاء</h2>
+                <div class="hub-table-wrap">
+                    <table class="hub-table">
+                        <thead><tr><th scope="col">الحجز</th><th scope="col">التسوية</th><th scope="col">تاريخ الإلغاء</th><th scope="col">المبلغ (د.أ)</th></tr></thead>
+                        <tbody>
+                            @foreach ($cancellationEntries as $entry)
+                                <tr>
+                                    <td>{{ $entry->booking->service_name }} <bdi>#{{ $entry->booking_id }}</bdi></td>
+                                    <td>{{ $entry->description }}</td>
+                                    <td><x-dialog-date-time :value="$entry->booking->cancelled_at" /></td>
+                                    <td><bdi>{{ number_format($entry->amount, 2) }}</bdi></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+                {{ $cancellationEntries->fragment('cancellation-adjustments')->onEachSide(1)->links('components.pager') }}
+            </section>
+        @endif
 
         @foreach ($bookings as $booking)
             <dialog class="hub-dialog" id="wallet-{{ $booking->id }}" aria-labelledby="wallet-title-{{ $booking->id }}">

@@ -19,7 +19,7 @@ class Booking extends Model
     public function scopeBlockingSlot(\Illuminate\Database\Eloquent\Builder $query): void
     {
         $query->where(function ($bookings) {
-            $bookings->whereIn('status', ['pending', 'confirmed', 'completed'])
+            $bookings->whereIn('status', ['pending', 'confirmed', 'paid', 'in_progress', 'completed'])
                 ->orWhere(function ($unpaid) {
                     $unpaid->whereIn('status', ['approved', 'awaiting_payment'])
                         ->where(fn ($deadline) => $deadline->whereNull('payment_deadline')
@@ -49,12 +49,16 @@ class Booking extends Model
         'cancelled_at',
         'cancelled_by',
         'cancellation_penalty',
+        'cancellation_refund_amount',
+        'cancellation_platform_share',
     ];
 
     protected $casts = [
         'booking_date' => 'date',
         'approved_at' => 'datetime',
         'payment_deadline' => 'datetime',
+        'customer_completed_at' => 'datetime',
+        'vendor_completed_at' => 'datetime',
         'completed_at' => 'datetime',
         'objection_deadline' => 'datetime',
         'cancelled_at' => 'datetime',
@@ -63,6 +67,33 @@ class Booking extends Model
     public function customer(): BelongsTo
     {
         return $this->belongsTo(User::class, 'customer_id');
+    }
+
+    public function acceptsCompletionConfirmation(): bool
+    {
+        return in_array($this->status, ['confirmed', 'paid', 'in_progress'], true)
+            && $this->payment?->status === 'paid';
+    }
+
+    public function scheduledStart(): ?\Illuminate\Support\Carbon
+    {
+        return $this->booking_date?->copy()->setTimeFromTimeString($this->start_time);
+    }
+
+    public function canBeCancelled(): bool
+    {
+        if (! in_array($this->status, ['pending', 'awaiting_payment', 'approved', 'confirmed', 'paid'], true)
+            || $this->customer_completed_at || $this->vendor_completed_at || ! $this->scheduledStart()?->isFuture()) {
+            return false;
+        }
+
+        if ($this->payment?->status !== 'paid') {
+            return true;
+        }
+
+        $paidAt = $this->payment->paid_at ?? $this->payment->created_at;
+
+        return $paidAt !== null && now()->lte($paidAt->copy()->addHours(2));
     }
 
     public function vendorService(): BelongsTo

@@ -4,9 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Service;
+use App\Models\VendorService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminServicesController extends Controller
 {
@@ -44,7 +47,19 @@ class AdminServicesController extends Controller
 
             ->latest()
             ->paginate(6)
-            ->withQueryString();
+            ->withQueryString()
+            ->through(function (Service $service) {
+                $image = $service->image;
+                $path = ltrim($image ?? '', '/');
+                $service->display_image_url = match (true) {
+                    str_starts_with($image ?? '', 'https://'), str_starts_with($image ?? '', 'http://') => $image,
+                    str_starts_with($path, 'assets/') && ! str_contains($path, '..') && is_file(public_path($path)) => asset($path),
+                    $this->storedImagePath($image) !== null => route('admin.services.image', $service),
+                    default => null,
+                };
+
+                return $service;
+            });
 
         $categories = Category::where('is_deleted', false)
             ->orderBy('name')
@@ -54,6 +69,32 @@ class AdminServicesController extends Controller
             'pages.admin.admin-services',
             compact('services', 'categories')
         );
+    }
+
+    public function image(Service $service): StreamedResponse
+    {
+        abort_if($service->is_deleted, 404);
+        $path = $this->storedImagePath($service->image);
+        abort_unless($path, 404);
+
+        $disk = Storage::disk('public');
+        $type = $disk->mimeType($path);
+        abort_unless(in_array($type, ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'], true), 404);
+
+        return $disk->response($path, null, [
+            'Content-Type' => $type,
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-cache',
+        ]);
+    }
+
+    private function storedImagePath(?string $image): ?string
+    {
+        $path = ltrim(str_replace('\\', '/', $image ?? ''), '/');
+        $path = str_starts_with($path, 'storage/') ? substr($path, 8) : $path;
+
+        return ! str_contains($path, '..') && preg_match('/\.(jpe?g|png|webp|gif|avif)$/i', $path)
+            && Storage::disk('public')->exists($path) ? $path : null;
     }
 
     // إضافة خدمة
@@ -67,7 +108,7 @@ class AdminServicesController extends Controller
                 'required',
                 'integer',
                 Rule::exists('categories', 'id')
-                    ->where('is_deleted', false),
+                    ->where('is_deleted', 0),
             ],
 
             'image' => [
@@ -80,6 +121,9 @@ class AdminServicesController extends Controller
 
         $imagePath = $request->file('image')
             ->store('services', 'public');
+        if ($imagePath === false) {
+            throw ValidationException::withMessages(['image' => 'تعذر حفظ صورة الخدمة.']);
+        }
 
         try {
             Service::create([
@@ -87,6 +131,7 @@ class AdminServicesController extends Controller
                 'description' => $newServices['description'],
                 'category_id' => $newServices['category_id'],
                 'image' => $imagePath,
+                'approval_status' => 'approved',
                 'is_active' => true,
                 'is_deleted' => false,
             ]);
@@ -112,7 +157,7 @@ class AdminServicesController extends Controller
                 'required',
                 'integer',
                 Rule::exists('categories', 'id')
-                    ->where('is_deleted', false),
+                    ->where('is_deleted', 0),
             ],
 
             'image' => [
@@ -131,6 +176,9 @@ class AdminServicesController extends Controller
 
             $newImage = $request->file('image')
                 ->store('services', 'public');
+            if ($newImage === false) {
+                throw ValidationException::withMessages(['image' => 'تعذر حفظ صورة الخدمة.']);
+            }
 
             $newServices['image'] = $newImage;
         }
@@ -145,7 +193,9 @@ class AdminServicesController extends Controller
             throw $e;
         }
 
-        if ($newImage && $oldImage && $oldImage !== $newImage) {
+        if ($newImage && $oldImage && str_starts_with($oldImage, 'services/')
+            && ! Service::where('image', $oldImage)->exists()
+            && ! VendorService::where('image', $oldImage)->exists()) {
             Storage::disk('public')->delete($oldImage);
         }
 

@@ -1,9 +1,9 @@
 @if ($paginator->hasPages())
     <nav class="hub-pager" aria-label="صفحات النتائج">
         @if ($paginator->onFirstPage())
-            <span class="pager-direction is-disabled" aria-disabled="true"><span aria-hidden="true">→</span> السابق</span>
+            <span class="pager-direction is-disabled" aria-disabled="true">@if ($showArrows ?? true)<span aria-hidden="true">→</span> @endifالسابق</span>
         @else
-            <a class="pager-direction" href="{{ $paginator->previousPageUrl() }}" rel="prev"><span aria-hidden="true">→</span> السابق</a>
+            <a class="pager-direction" href="{{ $paginator->previousPageUrl() }}" rel="prev">@if ($showArrows ?? true)<span aria-hidden="true">→</span> @endifالسابق</a>
         @endif
         <div class="pager-numbers">
             @foreach ($elements as $element)
@@ -21,9 +21,9 @@
             @endforeach
         </div>
         @if ($paginator->hasMorePages())
-            <a class="pager-direction" href="{{ $paginator->nextPageUrl() }}" rel="next">التالي <span aria-hidden="true">←</span></a>
+            <a class="pager-direction" href="{{ $paginator->nextPageUrl() }}" rel="next">التالي@if ($showArrows ?? true) <span aria-hidden="true">←</span>@endif</a>
         @else
-            <span class="pager-direction is-disabled" aria-disabled="true">التالي <span aria-hidden="true">←</span></span>
+            <span class="pager-direction is-disabled" aria-disabled="true">التالي@if ($showArrows ?? true) <span aria-hidden="true">←</span>@endif</span>
         @endif
     </nav>
 @endif

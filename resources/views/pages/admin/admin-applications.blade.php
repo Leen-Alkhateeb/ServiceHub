@@ -10,160 +10,139 @@
     <div class="container layout" id="admin-applications">
         @include('components.sidebars.admin')
 
-        <div>
-            <div class="dash-title">
+        <main class="applications-main admin-request-review">
+            <div class="requests-heading">
                 <div>
                     <span class="small muted">لوحة الإدارة</span>
                     <h1>طلبات انضمام الفنيين</h1>
+                    <p class="muted">راجع بيانات الفنيين وتصاريح العمل قبل الموافقة أو الرفض.</p>
                 </div>
             </div>
 
             @if (session('success'))
-                <div class="alert alert-success" role="status">
+                <div class="admin-alert admin-alert-success" role="status">
                     {{ session('success') }}
                 </div>
             @endif
 
             @if (session('error'))
-                <div class="alert alert-danger" role="alert">
+                <div class="admin-alert admin-alert-error" role="alert">
                     {{ session('error') }}
                 </div>
             @endif
 
-            <div class="panel">
-                <h3>مراجعة طلبات الانضمام</h3>
-                <p class="muted">
-                    مراجعة بيانات الفنيين وتصاريح العمل قبل اتخاذ قرار الموافقة أو الرفض.
-                </p>
-
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>الرقم</th>
-                                <th>اسم المستخدم</th>
-                                <th>نوع العمل</th>
-                                <th>سنوات الخبرة</th>
-                                <th>تصريح العمل</th>
-                                <th>انتهاء التصريح</th>
-                                <th>تاريخ التقديم</th>
-                                <th>الحالة</th>
-                                <th>الإجراء</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            @forelse ($applications as $application)
-                                <tr>
-                                    <td>{{ $applications->firstItem() + $loop->index }}</td>
-
-                                    <td>
-                                        <strong>
-                                            {{ $application->user->first_name ?? '' }}
-                                            {{ $application->user->last_name ?? '' }}
-                                        </strong>
-                                    </td>
-
-                                    <td>{{ $application->work_type }}</td>
-
-                                    <td>{{ $application->experience_years }}</td>
-
-                                    <td>
-                                        @if ($application->work_permit_path && \Illuminate\Support\Facades\Storage::disk('local')->exists($application->work_permit_path))
-                                            <a href="{{ route('admin.applications.permit', $application) }}"
-                                               target="_blank"
-                                               rel="noopener noreferrer">
-                                                عرض التصريح
-                                            </a>
-                                        @else
-                                            <span class="muted">غير متوفر</span>
-                                        @endif
-                                    </td>
-
-                                    <td>
-                                        {{ $application->permit_expiry_date
-                                            ? \Carbon\Carbon::parse($application->permit_expiry_date)->format('Y-m-d')
-                                            : '—' }}
-                                    </td>
-
-                                    <td>
-                                        {{ $application->applied_at
-                                            ? \Carbon\Carbon::parse($application->applied_at)->format('Y-m-d')
-                                            : '—' }}
-                                    </td>
-
-                                    <td>
-                                        @switch($application->application_status)
-                                            @case('pending')
-                                                <span class="pill yellow">قيد المراجعة</span>
-                                                @break
-
-                                            @case('approved')
-                                                <span class="pill green">مقبول</span>
-                                                @break
-
-                                            @case('rejected')
-                                                <span class="pill red">مرفوض</span>
-                                                @break
-
-                                            @default
-                                                <span class="pill">
-                                                    {{ $application->application_status }}
-                                                </span>
-                                        @endswitch
-                                    </td>
-
-                                    <td>
-                                        @if ($application->application_status === 'pending')
-                                            <div class="application-actions">
-                                                <form action="{{ route('admin.admin-applications.approved' , $application->id) }}" method="post"
-                                                onsubmit="return confirm('هل أنت متأكد من الموافقة على طلب انضمام هذا الفني؟');">
-                                                    @csrf
-                                                    @method("PUT")
-                                                <button
-                                                    type="submit"
-                                                    class="btn btn-primary">
-                                                    موافقة
-                                                </button>
-                                                </form>
-                                                <form action="{{ route('admin.admin-applications.rejected' , $application->id) }}" method="post"
-                                                 onsubmit="return confirm('هل أنت متأكد من رفض طلب انضمام هذا الفني؟');">
-                                                    @csrf
-                                                    @method("PUT")
-                                                <button
-                                                    type="submit"
-                                                    class="btn btn-outline"
-                                                    onsubmit=""
-                                                    ">
-
-                                                    رفض
-                                                </button>
-                                                </form>
-
-                                            </div>
-                                        @else
-                                            <span class="muted">تمت المراجعة</span>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="9" class="muted" style="text-align:center;">
-                                        لا توجد طلبات انضمام حاليًا.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+            @if ($errors->any())
+                <div class="admin-alert admin-alert-error" role="alert">
+                    تأكد من صحة الفلاتر، وأن نهاية كل نطاق تساوي بدايته أو تأتي بعدها.
                 </div>
+            @endif
 
-                @if (method_exists($applications, 'links'))
-                    <div class="pagination-wrap">
-                        {{ $applications->onEachSide(1)->links('components.pager') }}
+            <form class="panel hub-filters application-filters" method="GET" action="{{ route('admin.admin-applications') }}" aria-label="تصفية طلبات الانضمام">
+                <div class="field">
+                    <label for="applications-search">بحث</label>
+                    <input id="applications-search" name="search" type="search" maxlength="100" value="{{ $filters['search'] ?? '' }}" placeholder="الاسم أو البريد أو النبذة">
+                </div>
+                <div class="field">
+                    <label for="applications-status">حالة الطلب</label>
+                    <select id="applications-status" name="status">
+                        <option value="">كل الحالات</option>
+                        @foreach (['pending' => 'قيد المراجعة', 'reviewed' => 'تمت مراجعتها', 'approved' => 'مقبولة', 'rejected' => 'مرفوضة'] as $value => $label)
+                            <option value="{{ $value }}" @selected(($filters['status'] ?? null) === $value)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="applications-work-type">المهنة</label>
+                    <select id="applications-work-type" name="work_type">
+                        <option value="">كل المهن</option>
+                        @foreach ($workTypes as $workType)
+                            <option value="{{ $workType }}" @selected(($filters['work_type'] ?? null) === $workType)>{{ $workType }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                @foreach ([
+                    'experience_from' => 'الخبرة من (سنوات)',
+                    'experience_to' => 'الخبرة إلى (سنوات)',
+                    'applied_from' => 'تاريخ التقديم من',
+                    'applied_to' => 'تاريخ التقديم إلى',
+                    'permit_from' => 'انتهاء التصريح من',
+                    'permit_to' => 'انتهاء التصريح إلى',
+                ] as $key => $label)
+                    <div class="field">
+                        <label for="applications-{{ $key }}">{{ $label }}</label>
+                        <input id="applications-{{ $key }}" name="{{ $key }}" value="{{ $filters[$key] ?? '' }}"
+                            type="{{ str_starts_with($key, 'experience') ? 'number' : 'date' }}" @if (str_starts_with($key, 'experience')) min="0" @endif>
                     </div>
-                @endif
+                @endforeach
+                <div class="filter-actions">
+                    <button class="btn btn-yellow" type="submit">تصفية</button>
+                    <a class="btn btn-outline" href="{{ route('admin.admin-applications') }}">مسح</a>
+                </div>
+            </form>
+
+            <div class="requests-list">
+                @forelse ($applications as $application)
+                    @php
+                        [$statusLabel, $statusTone] = match ($application->application_status) {
+                            'pending' => ['قيد المراجعة', 'status-pending'],
+                            'approved' => ['مقبول', 'status-active'],
+                            'rejected' => ['مرفوض', 'status-rejected'],
+                            default => ['حالة غير معروفة', ''],
+                        };
+                    @endphp
+
+                    <article class="panel request-card">
+                        <div class="request-top">
+                            <div>
+                                <h2>{{ $application->user?->first_name }} {{ $application->user?->last_name }}</h2>
+                                <p class="muted">{{ $application->work_type }}</p>
+                            </div>
+                            <span class="request-status {{ $statusTone }}">{{ $statusLabel }}</span>
+                        </div>
+
+                        @if (filled($application->bio))
+                            <p class="request-description">{{ $application->bio }}</p>
+                        @endif
+
+                        <div class="request-details">
+                            <span>الخبرة: {{ $application->experience_years }} سنة</span>
+                            <span>تاريخ التقديم: <bdi>{{ $application->applied_at ? \Carbon\Carbon::parse($application->applied_at)->toDateString() : '—' }}</bdi></span>
+                            <span>انتهاء التصريح: <bdi>{{ $application->permit_expiry_date ? \Carbon\Carbon::parse($application->permit_expiry_date)->toDateString() : '—' }}</bdi></span>
+                            @if ($application->work_permit_path && str_starts_with($application->work_permit_path, 'vendor-permits/') && \Illuminate\Support\Facades\Storage::disk('local')->exists($application->work_permit_path))
+                                <a href="{{ route('admin.applications.permit', $application) }}" target="_blank" rel="noopener noreferrer">عرض التصريح</a>
+                            @else
+                                <span class="muted">التصريح غير متوفر</span>
+                            @endif
+                        </div>
+
+                        @if ($application->application_status === 'pending')
+                            <div class="request-actions">
+                                <form action="{{ route('admin.admin-applications.approved', $application) }}" method="POST" data-turbo="false"
+                                    onsubmit="return confirm('هل أنت متأكد من الموافقة على طلب انضمام هذا الفني؟');">
+                                    @csrf
+                                    @method('PUT')
+                                    <button type="submit" class="btn request-approve">موافقة</button>
+                                </form>
+                                <form action="{{ route('admin.admin-applications.rejected', $application) }}" method="POST" data-turbo="false"
+                                    onsubmit="return confirm('هل أنت متأكد من رفض طلب انضمام هذا الفني؟');">
+                                    @csrf
+                                    @method('PUT')
+                                    <button type="submit" class="btn request-reject">رفض</button>
+                                </form>
+                            </div>
+                        @endif
+                    </article>
+                @empty
+                    <div class="panel requests-empty">{{ $filters ? 'لا توجد طلبات مطابقة للفلاتر.' : 'لا توجد طلبات انضمام حاليًا.' }}</div>
+                @endforelse
             </div>
-        </div>
+
+            @if ($applications->hasPages())
+                <div class="requests-pagination">
+                    {{ $applications->onEachSide(1)->links('components.pager', ['showArrows' => false]) }}
+                </div>
+            @endif
+        </main>
     </div>
 
     @include('components.footer')

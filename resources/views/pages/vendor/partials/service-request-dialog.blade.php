@@ -12,21 +12,10 @@
         <p>جميع الخدمات المعتمدة مضافة إلى ملفك.</p>
     @else
         <p class="muted">اختر خدمة معتمدة من الدليل وحدد تفاصيل عرضك. يظهر العرض فورًا على ملفك.</p>
-        <form action="{{ route('vendor.service-requests.store') }}" method="POST">
+        <form action="{{ route('vendor.service-requests.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
-            <div class="field">
-                <label for="offer-service">الخدمة</label>
-                <select id="offer-service" name="service_id" required>
-                    <option value="">اختر من دليل الخدمات</option>
-                    @foreach ($catalog->groupBy('category_name') as $category => $options)
-                        <optgroup label="{{ $category }}">
-                            @foreach ($options as $option)
-                                <option value="{{ $option->id }}" @selected((string) $option->id === old('service_id'))>{{ $option->name }}</option>
-                            @endforeach
-                        </optgroup>
-                    @endforeach
-                </select>
-            </div>
+            <x-inline-choice name="service_id" label="الخدمة" placeholder="اختر من دليل الخدمات"
+                :groups="$catalog->groupBy('category_name')" :selected="old('service_id')" />
             @include('pages.vendor.partials.service-offer-fields', ['prefix' => 'offer'])
             <button type="submit" class="btn btn-yellow">إضافة إلى الملف</button>
         </form>

@@ -88,7 +88,11 @@ class VendorPagesController extends Controller
             ->get(['services.id', 'services.name', 'categories.name as category_name']) : collect();
         $requests = $ownProfile ? VendorService::with('service')->where('vendor_id', $vendorId)
             ->whereIn('status', ['pending', 'rejected'])->latest('updated_at')->latest('id')
-            ->paginate(5, ['*'], 'requests_page')->withQueryString() : null;
+            ->paginate(5, ['*'], 'requests_page')->withQueryString()->through(function (VendorService $offer) {
+                $offer->image_url = $this->resolveImage($offer->id, $offer->image, $offer->service->image)[0] ?? null;
+
+                return $offer;
+            }) : null;
 
         $categories = $ownProfile ? DB::table('categories')->where('is_deleted', false)->orderBy('name')->get(['id', 'name']) : collect();
 
@@ -217,7 +221,12 @@ public function dashboard(Request $request): View
 
     public function serviceImage(Request $request, VendorService $offer): StreamedResponse
     {
-        $this->authorizeOffer($request, $offer);
+        $user = $request->user();
+        $ownsRequest = $user && $user->status === 'active' && (int) $user->id === (int) $offer->vendor_id
+            && in_array($offer->status, ['pending', 'rejected'], true);
+        if (! $ownsRequest) {
+            $this->authorizeOffer($request, $offer);
+        }
         $path = $this->resolveImage($offer->id, $offer->image, $offer->service->image)[1] ?? null;
         abort_unless($path, 404);
 

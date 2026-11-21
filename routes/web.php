@@ -197,6 +197,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/services/{vendorService}/favorite', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
     Route::post('/services/{vendorService}/book', [BookingProfileController::class, 'store'])->name('booking.store');
     Route::post('/bookings/{booking}/cancel', [BookingProfileController::class, 'cancel'])->name('booking.cancel');
+    Route::post('/bookings/{booking}/completion', [\App\Http\Controllers\BookingCompletionController::class, 'confirm'])->name('booking.completion');
+    Route::post('/bookings/{booking}/review', [\App\Http\Controllers\BookingCompletionController::class, 'review'])->name('booking.review');
+    Route::post('/bookings/{booking}/objection', [\App\Http\Controllers\BookingCompletionController::class, 'object'])->name('booking.objection');
     Route::post('/bookings/{booking}/payment', [PaymentController::class, 'store'])->name('payment.store');
     Route::get('/bookings/{booking}/checkout', [PaymentController::class, 'checkout'])->name('payment.checkout');
     Route::get('/bookings/{booking}/invoice', [PaymentController::class, 'invoice'])->withTrashed()->name('payment.invoice');
@@ -375,6 +378,9 @@ Route::middleware('auth')->group(function () {
 
                 Route::get('/admin-services', [AdminServicesController::class, 'adminServices'])
                     ->name('admin-services');
+
+                Route::get('/admin-services/{service}/image', [AdminServicesController::class, 'image'])
+                    ->name('services.image');
 
                 Route::post('/addServices', [AdminServicesController::class, 'addServices'])
                     ->name('addServices');

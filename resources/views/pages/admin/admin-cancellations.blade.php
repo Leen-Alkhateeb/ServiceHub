@@ -25,7 +25,7 @@
 
             <div class="panel" style="background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                 <h3 style="margin-top: 0; margin-bottom: 6px;">سجل الحجوزات الملغاة</h3>
-                <p class="muted" style="margin-top: 0; margin-bottom: 20px;">مراجعة الطرف الملغي والغرامة 15% بعد أول ساعتين من الموافقة.</p>
+                <p class="muted" style="margin-top: 0; margin-bottom: 20px;">يمكن إلغاء الحجز المدفوع خلال أول ساعتين من الدفع. عند الإلغاء، غرامة العميل 30٪ إذا ألغى العميل، وغرامة الفني 15٪ إذا ألغى الفني.</p>
 
                 <div class="table-wrap">
                     <table style="width: 100%; border-collapse: collapse; text-align: right;">
@@ -83,9 +83,15 @@
 
                                     <td style="padding: 16px 10px; font-weight: bold; color: {{ $cancellation->cancellation_penalty > 0 ? '#dc2626' : '#64748b' }};">
                                         {{ $cancellation->cancellation_penalty ? number_format($cancellation->cancellation_penalty, 2) . ' د.أ ' : '0.00 ' }}
+                                        @if ($cancellation->cancellation_refund_amount !== null)
+                                            <div class="small">استرداد العميل: <bdi>{{ number_format($cancellation->cancellation_refund_amount, 2) }}</bdi> د.أ</div>
+                                            <div class="small">حصة المنصة: <bdi>{{ number_format($cancellation->cancellation_platform_share, 2) }}</bdi> د.أ</div>
+                                            <div class="small">تسوية الفني: <bdi>{{ number_format($cancellation->walletTransactions->whereIn('transaction_type', ['penalty', 'refund_share'])->sum('amount'), 2) }}</bdi> د.أ</div>
+                                        @endif
                                     </td>
 
                                     <td style="padding: 16px 10px;">
+                                        <a class="btn btn-outline btn-sm" href="{{ route('admin.bookings.show', $cancellation) }}">عرض الحجز</a>
                                         <form action="{{ route('admin.cancellations.destroy', $cancellation->id) }}" method="POST" style="margin: 0;"
                                               onsubmit="if (!window.Swal) return confirm('هل أنت متأكد من حذف هذا السجل نهائياً؟'); event.preventDefault(); Swal.fire({
                                                   title: 'تأكيد الحذف',

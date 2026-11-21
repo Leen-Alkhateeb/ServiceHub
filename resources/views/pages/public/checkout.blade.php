@@ -1,12 +1,10 @@
 @extends('layouts.app')
-@section('title', 'دفع عربون الحجز')
+@section('title', 'دفع قيمة الحجز')
 @section('page_id', 'checkout')
 @section('content')
 @include('components.navbar')
 @php
     $total = round((float) $booking->original_price, 2);
-    $deposit = round($total * 0.5, 2);
-    $remaining = round($total - $deposit, 2);
     $deadlineIso = $booking->payment_deadline?->toIso8601String();
 @endphp
 <style>
@@ -14,7 +12,7 @@
 </style>
 <main class="checkout-page"><div class="checkout-wrap">
 <a class="checkout-back" href="{{ route('market.index') }}">← العودة إلى الخدمات</a>
-<header class="checkout-head"><h1>تأكيد الحجز والدفع</h1><p>ادفع 50٪ الآن، والمبلغ المتبقي عند وصول مقدّم الخدمة.</p></header>
+<header class="checkout-head"><h1>تأكيد الحجز والدفع</h1><p>ادفع كامل قيمة الخدمة لتأكيد الحجز.</p></header>
 @if($errors->any())<div class="errors">{{ $errors->first() }}</div>@endif
 <p class="note">الدفع تجريبي. استخدم بيانات اختبار فقط. لا يُخصم أي مبلغ.</p>
 <div class="checkout-grid">
@@ -23,14 +21,13 @@
 <div class="checkout-row"><span>مقدّم الخدمة</span><strong>{{ $booking->vendorService->vendor->first_name }} {{ $booking->vendorService->vendor->last_name }}</strong></div>
 <div class="checkout-row"><span>الموعد</span><strong>{{ $booking->booking_date->format('Y-m-d') }} · {{ substr($booking->start_time,0,5) }}</strong></div>
 <div class="checkout-row"><span>قيمة الخدمة كاملة</span><strong>{{ number_format($total,2) }} د.أ</strong></div>
-<div class="breakdown"><div class="deposit"><span>العربون الآن (50٪)</span><strong>{{ number_format($deposit,2) }} د.أ</strong></div><div class="remaining"><span>المتبقي عند الاستلام</span><strong>{{ number_format($remaining,2) }} د.أ</strong></div></div>
 </section>
-<section class="checkout-card"><h2>تأكيد دفع العربون</h2>
+<section class="checkout-card"><h2>تأكيد الدفع</h2>
 <div class="expired" id="expired-message">انتهت مهلة الدفع. ارجع للحجوزات واختر موعدًا آخر.</div>
 <form id="checkout-form" method="POST" action="{{ route('payment.store',$booking) }}">@csrf<input type="hidden" name="payment_method" value="card">
 <div class="field"><label for="card_name">الاسم على البطاقة</label><input id="card_name" name="card_name" value="{{ old('card_name') }}" autocomplete="cc-name"></div>
 <div class="field"><label for="card_number">رقم البطاقة</label><input id="card_number" name="card_number" dir="ltr" inputmode="numeric" autocomplete="cc-number" maxlength="19" placeholder="4242 4242 4242 4242"></div>
-<button class="pay-button" id="pay-button" type="submit">تأكيد العربون {{ number_format($deposit,2) }} د.أ</button>
+<button class="pay-button" id="pay-button" type="submit">ادفع {{ number_format($total,2) }} د.أ</button>
 <p class="deadline">الوقت المتبقي للدفع: <span class="timer" id="countdown">30:00</span></p>
 </form></section></div></div></main>
 <script>

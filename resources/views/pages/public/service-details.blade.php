@@ -537,7 +537,7 @@
                     <section class="sd-card sd-aside-card" id="booking">
                         <h2 class="sd-heading">المواعيد المتاحة</h2>
                         <p class="sd-booking-intro">
-                            اختر موعدًا مناسبًا وانتقل إلى صفحة العربون لتأكيد الحجز.
+                            اختر موعدًا مناسبًا وأرسل الطلب للفني. يمكنك دفع كامل قيمة الخدمة بعد موافقته.
                         </p>
 
                         @if ($hasSlots)
@@ -579,7 +579,7 @@
                                     </div>                                </div>
 
                                 <button class="sd-button" type="submit" style="margin-top:18px">
-                                    متابعة إلى دفع العربون
+                                    إرسال طلب الحجز
                                 </button>
                             </form>
                         @else

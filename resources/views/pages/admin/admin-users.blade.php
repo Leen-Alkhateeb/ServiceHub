@@ -144,7 +144,7 @@
                         <tbody>
                             @forelse($users as $user)
                                 <tr>
-                                    <td>{{ ++$count }}</td>
+                                    <td>{{ $users->firstItem() + $loop->index }}</td>
 
                                     <td>
                                         <a href="{{ route('users.profile.show', $user) }}"> {{ $user->first_name }}
@@ -222,6 +222,7 @@
                         </tbody>
                     </table>
                 </div>
+                {{ $users->onEachSide(1)->links('components.pager') }}
 
 
                 <div id="statusUserModal" class="user-modal" role="dialog" aria-modal="true"

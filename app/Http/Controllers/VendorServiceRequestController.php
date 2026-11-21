@@ -9,6 +9,7 @@ use App\Models\VendorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
@@ -18,6 +19,7 @@ class VendorServiceRequestController extends Controller
         'price' => ['required', 'numeric', 'decimal:0,2', 'between:0.01,99999999.99'],
         'description' => ['required', 'string', 'max:3000'],
         'duration_minutes' => ['nullable', 'integer', 'between:5,1440'],
+        'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:max_width=5000,max_height=5000'],
     ];
 
     public function store(Request $request): RedirectResponse
@@ -25,7 +27,7 @@ class VendorServiceRequestController extends Controller
         $data = $request->validateWithBag('offer', ['service_id' => ['required', 'integer']] + self::OFFER_RULES);
         $vendor = $request->user();
 
-        DB::transaction(function () use ($vendor, $data) {
+        $this->withOfferImage($request, 'offer', function (?string $image) use ($vendor, $data) {
             User::query()->lockForUpdate()->findOrFail($vendor->id);
             $service = Service::query()->whereKey($data['service_id'])
                 ->where('approval_status', 'approved')->where('is_deleted', false)
@@ -41,13 +43,16 @@ class VendorServiceRequestController extends Controller
 
             // Reuse offers submitted under the previous catalog approval workflow.
             $offer = $offers->whereIn('status', ['pending', 'rejected', 'inactive'])->latest('id')->first();
-            $attributes = $data + ['status' => 'active', 'rejection_reason' => null];
+            $attributes = array_diff_key($data, ['image' => true]) + ['status' => 'active', 'rejection_reason' => null];
             if ($offer) {
-                $offer->update($attributes + ['image' => $offer->image ?: $service->image]);
+                $previousImage = $offer->image;
+                $offer->update($attributes + ['image' => $image ?? ($previousImage ?: $service->image)]);
+
+                return $previousImage;
             } else {
-                $vendor->vendorServices()->create($attributes + ['image' => $service->image]);
+                $vendor->vendorServices()->create($attributes + ['image' => $image ?? $service->image]);
             }
-        }, 3);
+        });
 
         return redirect(route('vendor.profile') . '#services')->with('offer_status', 'تمت إضافة الخدمة إلى ملفك.');
     }
@@ -60,7 +65,7 @@ class VendorServiceRequestController extends Controller
         ] + self::OFFER_RULES);
         $vendor = $request->user();
 
-        DB::transaction(function () use ($vendor, $data) {
+        $this->withOfferImage($request, 'suggestion', function (?string $image) use ($vendor, $data) {
             User::query()->lockForUpdate()->findOrFail($vendor->id);
             $category = Category::where('is_deleted', false)->lockForUpdate()->find($data['category_id']);
             if (!$category) {
@@ -85,10 +90,10 @@ class VendorServiceRequestController extends Controller
                 'price' => $data['price'],
                 'description' => $data['description'],
                 'duration_minutes' => $data['duration_minutes'] ?? null,
-                'image' => '',
+                'image' => $image ?? '',
                 'status' => 'pending',
             ]);
-        }, 3);
+        });
 
         return redirect(route('vendor.profile') . '#services')->with('offer_status', 'تم إرسال اقتراح الخدمة إلى الإدارة.');
     }
@@ -105,19 +110,45 @@ class VendorServiceRequestController extends Controller
     public function update(Request $request, VendorService $offer): RedirectResponse
     {
         $data = $request->validateWithBag('offerEdit', ['editing_offer' => ['nullable', 'integer']] + self::OFFER_RULES);
-        DB::transaction(function () use ($request, $offer, $data) {
+        $this->withOfferImage($request, 'offerEdit', function (?string $image) use ($request, $offer, $data) {
             $current = $request->user()->vendorServices()->whereIn('status', ['active', 'pending'])->lockForUpdate()->findOrFail($offer->id);
+            $previousImage = $current->image;
             $current->update([
                 'price' => $data['price'],
                 'description' => $data['description'],
                 'duration_minutes' => $data['duration_minutes'] ?? null,
+                'image' => $image ?? $previousImage,
             ]);
             if ($current->status === 'pending') {
                 $current->service()->where('approval_status', 'pending')->update(['description' => $data['description']]);
             }
+
+            return $previousImage;
         });
 
         return redirect(route('vendor.profile') . '#services')->with('offer_status', 'تم تعديل العرض.');
+    }
+
+    private function withOfferImage(Request $request, string $bag, callable $save): void
+    {
+        $image = $request->file('image')?->store('vendor-offer-images', 'public');
+        if ($image === false) {
+            throw ValidationException::withMessages(['image' => 'تعذر حفظ الصورة. حاول مرة أخرى.'])->errorBag($bag);
+        }
+
+        try {
+            $previousImage = DB::transaction(fn () => $save($image), 3);
+        } catch (\Throwable $exception) {
+            if ($image) {
+                Storage::disk('public')->delete($image);
+            }
+
+            throw $exception;
+        }
+
+        if ($image && str_starts_with($previousImage ?? '', 'vendor-offer-images/')) {
+            Storage::disk('public')->delete($previousImage);
+        }
     }
 
     public function destroy(Request $request, VendorService $offer): RedirectResponse

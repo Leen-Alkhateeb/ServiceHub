@@ -40,7 +40,7 @@
                                 @csrf
                                 @method('PATCH')
                                 <input type="hidden" name="status" value="approved">
-                                <button class="btn btn-yellow btn-sm" type="submit">موافقة</button>
+                                <button class="btn btn-yellow btn-sm" type="submit">قبول</button>
                             </form>
                             
                             <form method="POST" action="{{ route('vendor.vendor-bookings.update', $booking) }}">
@@ -85,6 +85,11 @@
                             </p>
                             @if ($booking->status === 'approved' && $booking->payment_deadline)
                                 <p class="muted">آخر موعد للدفع: {{ \Illuminate\Support\Carbon::parse($booking->payment_deadline)->format('Y-m-d H:i') }}</p>
+                            @endif
+                            @include('components.booking-completion-actions', ['booking' => $booking])
+                            @include('components.booking-cancellation-action', ['booking' => $booking])
+                            @if ($booking->status === 'completed' && $booking->completed_at)
+                                <a href="{{ route('vendor.reviews') }}" class="btn btn-outline btn-sm">تقييم العميل</a>
                             @endif
                         </div>
                         <span class="badge badge-{{ $statusTone }}">{{ $statusLabel }}</span>

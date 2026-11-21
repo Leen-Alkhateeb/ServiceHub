@@ -45,11 +45,9 @@ public function index(Request $request)
         $query->where('status', $request->input('status'));
     }
 
-    $users = $query->orderByDesc('role')->get();
+    $users = $query->latest('id')->paginate(5)->withQueryString();
 
-    $count = 0;
-
-    return view('pages.admin.admin-users', compact('users', 'count'));
+    return view('pages.admin.admin-users', compact('users'));
 }
 
 public function toggleStatus(User $user)
@@ -90,7 +88,7 @@ public function destroy(User $user)
 
     return redirect()
         ->route('admin.admin.Users')
-        ->with('status', 'تم حذف المستخدم نهائيًا بنجاح.');
+        ->with('success', 'تم حذف المستخدم نهائيًا بنجاح.');
 }
 
 

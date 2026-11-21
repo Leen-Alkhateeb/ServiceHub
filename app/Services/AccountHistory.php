@@ -30,7 +30,7 @@ class AccountHistory
             ]);
 
             $historyCategories = Category::orderBy('name')->get(['id', 'name']);
-            $query = $account->bookingsAsCustomer()->with(['vendorService.vendor', 'vendorService.service.category', 'payment']);
+            $query = $account->bookingsAsCustomer()->with(['vendorService.vendor', 'vendorService.service.category', 'payment', 'refundRequest']);
             if ($tab === 'payments') {
                 $query->withTrashed()->whereHas('payment', fn (Builder $payment) => $this->filterDates(
                     $payment, DB::raw('COALESCE(paid_at, created_at)'), $filters,

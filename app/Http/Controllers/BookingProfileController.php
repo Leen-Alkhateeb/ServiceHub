@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class BookingProfileController extends Controller
 {
-    /** إنشاء الحجز وتحويل العميل مباشرةً إلى صفحة دفع العربون. */
+    /** إرسال طلب الحجز إلى الفني للموافقة. */
     public function store(Request $request, VendorService $vendorService)
     {
         $customer = $request->user();
@@ -114,7 +114,6 @@ class BookingProfileController extends Controller
                 return null;
             }
 
-            // يبقى الحجز بانتظار تعبئة الدفع، والموعد محجوز لمدة 30 دقيقة.
             $booking = Booking::create([
                 'customer_id' => $customer->id,
                 'vendor_service_id' => $vendorService->id,
@@ -126,13 +125,12 @@ class BookingProfileController extends Controller
                 'service_description' => $vendorService->description
                     ?? $vendorService->service->description,
                 'original_price' => $vendorService->price,
-                'status' => 'awaiting_payment',
-                'payment_deadline' => now()->addMinutes(30),
+                'status' => 'pending',
             ]);
 
             Notification::create([
                 'user_id' => $vendorService->vendor_id,
-                'title' => 'حجز جديد بانتظار العربون',
+                'title' => 'طلب حجز جديد بانتظار ردك',
                 'message' => "اختار {$customer->first_name} {$customer->last_name} خدمة {$booking->service_name} بتاريخ {$startAt->format('Y-m-d H:i')}.",
                 'type' => 'booking',
             ]);
@@ -148,41 +146,63 @@ class BookingProfileController extends Controller
                 ->withInput();
         }
 
-        return redirect()->route('payment.checkout', $booking);
+        $historyPage = $customer->role === 'customer'
+            ? route('customer.bookings')
+            : route('account.profile', ['tab' => 'bookings']);
+
+        return redirect($historyPage)
+            ->with('success', 'تم إرسال طلب الحجز. يمكنك دفع كامل قيمة الخدمة بعد موافقة الفني.');
     }
 
-    /** إلغاء الحجز قبل دفع العربون. */
     public function cancel(Request $request, Booking $booking)
     {
-        DB::transaction(function () use ($request, $booking) {
-            $booking = Booking::query()->lockForUpdate()->findOrFail($booking->id);
-            abort_unless(
-                $booking->customer_id === $request->user()->id
-                && in_array(
-                    $booking->status,
-                    ['pending', 'awaiting_payment', 'approved'],
-                    true
-                )
-                && ! $booking->payment()->exists(),
-                403
-            );
+        $actor = $request->user();
+        DB::transaction(function () use ($actor, $booking) {
+            $booking = Booking::query()->with(['vendorService', 'payment'])->lockForUpdate()->findOrFail($booking->id);
+            $vendorId = (int) $booking->vendorService->vendor_id;
+            $customerId = (int) $booking->customer_id;
+            $actorId = (int) $actor->id;
+            $byCustomer = $actorId === $customerId;
+            abort_unless($actor->status === 'active' && ($byCustomer || $actorId === $vendorId) && $booking->canBeCancelled(), 403);
+            abort_if(! $byCustomer && $booking->status === 'pending', 403);
+
+            $now = now();
+            $paid = $booking->payment?->status === 'paid' ? (int) round($booking->payment->amount * 100) : 0;
+            $price = (int) round($booking->original_price * 100);
+            $penalty = $paid > 0 ? ($byCustomer ? min($paid, (int) round($price * 0.30)) : (int) round($price * 0.15)) : 0;
+            $vendorAmount = $byCustomer ? intdiv($penalty, 2) : -$penalty;
+            $platformAmount = $byCustomer ? $penalty - $vendorAmount : 0;
+            $refund = $paid - ($byCustomer ? $penalty : 0);
 
             $booking->update([
                 'status' => 'cancelled',
-                'cancelled_at' => now(),
-                'cancelled_by' => $request->user()->id,
+                'cancelled_at' => $now,
+                'cancelled_by' => $actorId,
+                'cancellation_penalty' => $penalty / 100,
+                'cancellation_refund_amount' => $refund / 100,
+                'cancellation_platform_share' => $platformAmount / 100,
             ]);
+
+            if ($paid > 0 && $refund === $paid) {
+                $booking->payment->update(['status' => 'refunded']);
+            }
+            if ($vendorAmount !== 0) {
+                $booking->walletTransactions()->create([
+                    'vendor_id' => $vendorId,
+                    'transaction_type' => $byCustomer ? 'refund_share' : 'penalty',
+                    'amount' => $vendorAmount / 100,
+                    'description' => $byCustomer ? 'حصة الفني من غرامة إلغاء العميل' : 'غرامة إلغاء الحجز من الفني',
+                ]);
+            }
 
             Notification::create([
-                'user_id' => $booking->vendorService->vendor_id,
+                'user_id' => $byCustomer ? $vendorId : $customerId,
                 'title' => 'تم إلغاء الحجز',
-                'message' => "ألغى العميل {$request->user()->first_name} حجز خدمة {$booking->service_name}.",
+                'message' => "ألغى {$actor->first_name} حجز خدمة {$booking->service_name}.",
                 'type' => 'booking',
             ]);
-        });
+        }, 3);
 
-        return redirect()
-            ->route('market.index')
-            ->with('success', 'تم إلغاء الحجز.');
+        return back()->with('success', 'تم إلغاء الحجز وتسجيل التسوية المالية.');
     }
 }

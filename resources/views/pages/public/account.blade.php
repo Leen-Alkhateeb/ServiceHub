@@ -12,7 +12,7 @@
             @include('components.account-details-editor')
         </div>
     </header>
-    <x-account-tabs :tab="$tab" :tabs="['overview' => 'معلوماتي', 'payments' => 'مدفوعاتي']" route-name="account.profile" />
+    <x-account-tabs :tab="$tab" :tabs="['overview' => 'معلوماتي', 'bookings' => 'طلباتي']" route-name="account.profile" />
     @if ($entries)
         <x-account-history :tab="$tab" :entries="$entries" :filters="$filters" :categories="$historyCategories" route-name="account.profile" />
     @else

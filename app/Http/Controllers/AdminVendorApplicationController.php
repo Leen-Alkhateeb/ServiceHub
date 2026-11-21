@@ -4,16 +4,66 @@ namespace App\Http\Controllers;
 
 use App\Models\VendorProfile;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class AdminVendorApplicationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $applications = VendorProfile::paginate(5);
+        $filters = $request->validate([
+            'search' => ['nullable', 'string', 'max:100'],
+            'status' => ['nullable', 'in:pending,approved,rejected,reviewed'],
+            'work_type' => ['nullable', 'string', 'max:255'],
+            'experience_from' => ['nullable', 'integer', 'min:0'],
+            'experience_to' => ['nullable', 'integer', 'min:0', ...($request->filled('experience_from') ? ['gte:experience_from'] : [])],
+            'applied_from' => ['nullable', 'date_format:Y-m-d'],
+            'applied_to' => ['nullable', 'date_format:Y-m-d', ...($request->filled('applied_from') ? ['after_or_equal:applied_from'] : [])],
+            'permit_from' => ['nullable', 'date_format:Y-m-d'],
+            'permit_to' => ['nullable', 'date_format:Y-m-d', ...($request->filled('permit_from') ? ['after_or_equal:permit_from'] : [])],
+        ]);
 
-        return view('pages.admin.admin-applications', compact('applications'));
+        $query = VendorProfile::with('user');
+        if ($search = $filters['search'] ?? null) {
+            $query->where(function ($rows) use ($search) {
+                $rows->where('bio', 'like', '%'.$search.'%')
+                    ->orWhereHas('user', function ($users) use ($search) {
+                        foreach (preg_split('/\s+/u', $search, -1, PREG_SPLIT_NO_EMPTY) as $word) {
+                            $users->where(fn ($match) => $match
+                                ->where('first_name', 'like', '%'.$word.'%')
+                                ->orWhere('last_name', 'like', '%'.$word.'%')
+                                ->orWhere('email', 'like', '%'.$word.'%'));
+                        }
+                    });
+            });
+        }
+        if ($status = $filters['status'] ?? null) {
+            $query->whereIn('application_status', $status === 'reviewed' ? ['approved', 'rejected'] : [$status]);
+        }
+        if ($workType = $filters['work_type'] ?? null) {
+            $query->where('work_type', $workType);
+        }
+
+        foreach (['applied' => 'applied_at', 'permit' => 'permit_expiry_date', 'experience' => 'experience_years'] as $filter => $column) {
+            foreach (['from' => '>=', 'to' => '<='] as $bound => $operator) {
+                $value = $filters[$filter.'_'.$bound] ?? null;
+                if ($value !== null) {
+                    $filter === 'experience'
+                        ? $query->where($column, $operator, $value)
+                        : $query->whereDate($column, $operator, $value);
+                }
+            }
+        }
+
+        $applications = $query
+            ->orderByRaw("CASE WHEN application_status = 'pending' THEN 0 ELSE 1 END")
+            ->orderByRaw("CASE WHEN application_status = 'pending' THEN COALESCE(applied_at, created_at) ELSE updated_at END DESC")
+            ->latest('id')->paginate(5)->withQueryString();
+        $workTypes = VendorProfile::query()->whereNotNull('work_type')->where('work_type', '!=', '')
+            ->distinct()->orderBy('work_type')->pluck('work_type');
+
+        return view('pages.admin.admin-applications', compact('applications', 'filters', 'workTypes'));
     }
 
     public function approved(int $id): RedirectResponse

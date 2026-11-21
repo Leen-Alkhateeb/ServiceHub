@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 class PaymentController extends Controller
 {
     /**
-     * تسجيل عربون 50٪ بعد تعبئة بيانات الدفع.
+     * تسجيل كامل قيمة الحجز بعد تعبئة بيانات الدفع.
      */
     public function store(Request $request, Booking $booking)
     {
@@ -61,11 +61,9 @@ class PaymentController extends Controller
                 return 'expired';
             }
 
-            $deposit = round((float) $lockedBooking->original_price * 0.5, 2);
-
             Payment::create([
                 'booking_id' => $lockedBooking->id,
-                'amount' => $deposit,
+                'amount' => $lockedBooking->original_price,
                 'payment_method' => $data['payment_method'],
                 'status' => 'paid',
                 'paid_at' => now(),
@@ -76,14 +74,14 @@ class PaymentController extends Controller
             Notification::create([
                 'user_id' => $lockedBooking->vendorService->vendor_id,
                 'title' => 'تم تأكيد الحجز',
-                'message' => "تم تسجيل عربون 50% لحجز {$lockedBooking->service_name}. المبلغ المتبقي يُدفع عند الاستلام.",
+                'message' => "تم دفع كامل قيمة حجز {$lockedBooking->service_name}.",
                 'type' => 'payment',
             ]);
 
             Notification::create([
                 'user_id' => $lockedBooking->customer_id,
                 'title' => 'تم تأكيد الحجز',
-                'message' => "تم تسجيل العربون لحجز {$lockedBooking->service_name}. المبلغ المتبقي يُدفع عند وصول الفني.",
+                'message' => "تم تسجيل دفع كامل قيمة حجز {$lockedBooking->service_name}.",
                 'type' => 'payment',
             ]);
 
@@ -98,11 +96,11 @@ class PaymentController extends Controller
 
         return redirect()
             ->route('payment.invoice', $booking)
-            ->with('success', 'تم تأكيد الحجز وتسجيل العربون.');
+            ->with('success', 'تم تأكيد الحجز وتسجيل كامل المبلغ.');
     }
 
     /**
-     * صفحة دفع العربون قبل تأكيد الحجز.
+     * صفحة دفع قيمة الحجز قبل تأكيده.
      */
     public function checkout(Request $request, Booking $booking)
     {
@@ -131,7 +129,7 @@ class PaymentController extends Controller
     }
 
     /**
-     * فاتورة العميل بعد تسجيل العربون.
+     * فاتورة العميل بعد تسجيل الدفع.
      */
     public function invoice(Request $request, Booking $booking)
     {

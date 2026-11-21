@@ -37,7 +37,7 @@
     <x-account-tabs :tab="$tab" :tabs="$tabs" route-name="vendor.profile" :route-params="$ownProfile ? [] : ['vendor' => $profile->id]" />
 
     @if ($tab === 'services')
-    <section class="section" id="services">
+    <section @class(['section', 'owner-services' => $ownProfile]) id="services">
         <div class="section-head">
             <h2>الخدمات المتاحة</h2>
             @if ($ownProfile)
@@ -48,14 +48,12 @@
             @endif
         </div>
         @if (session('offer_status'))<div class="notice" role="status">{{ session('offer_status') }}</div>@endif
-        <div class="grid">
+        <div class="grid profile-service-cards">
             @forelse ($services as $service)
-                <article class="panel">
-                    @if ($service->image_url)
-                        <img class="offer-image" src="{{ $service->image_url }}" alt="" width="480" height="270" loading="lazy" data-optional-image>
-                    @endif
+                <article class="panel profile-service-card">
+                    <img class="offer-image" src="{{ $service->image_url ?? asset('assets/demo/directory/category-maintenance.jpg') }}" alt="" width="480" height="270" loading="lazy">
                     <h3>{{ $service->name }}</h3>
-                    <p>{{ $service->description ?: $service->default_description }}</p>
+                    <p class="profile-service-description">{{ $service->description ?: $service->default_description }}</p>
                     <strong class="price">{{ number_format($service->price, 2) }} د.أ</strong>
                     @if ($service->duration_minutes)<p class="muted">{{ $service->duration_minutes }} دقيقة تقريبًا</p>@endif
                     <button type="button" class="btn btn-outline" data-service-dialog
@@ -75,17 +73,22 @@
         </div>
         {{ $services->fragment('services')->onEachSide(1)->links('components.pager') }}
         @if ($ownProfile && $requests->isNotEmpty())
-            <section class="panel offer-history">
+            <section class="offer-history" aria-label="طلبات واقتراحات الخدمات">
                 <h3>طلبات واقتراحات الخدمات</h3>
+                <div class="profile-service-cards">
                 @foreach ($requests as $requestRow)
-                    <article class="item-row">
-                        <div><strong>{{ $requestRow->service->name }}</strong>
-                            @if ($requestRow->rejection_reason)<p>{{ $requestRow->rejection_reason }}</p>@endif
+                    <article class="panel profile-service-card">
+                        <img class="offer-image" src="{{ $requestRow->image_url ?? asset('assets/demo/directory/category-maintenance.jpg') }}" alt="" width="480" height="270" loading="lazy">
+                        <div class="offer-request-heading">
+                            <h4>{{ $requestRow->service->name }}</h4>
+                            <span class="hub-status" data-status="{{ $requestRow->status === 'pending' ? 'held' : 'issue' }}">{{ $requestRow->status === 'pending' ? 'قيد المراجعة' : 'مرفوض' }}</span>
                         </div>
-                        <span class="hub-status" data-status="{{ $requestRow->status === 'pending' ? 'held' : 'issue' }}">{{ $requestRow->status === 'pending' ? 'قيد المراجعة' : 'مرفوض' }}</span>
+                        <p class="profile-service-description">{{ $requestRow->rejection_reason ?: $requestRow->description }}</p>
+                        <p class="offer-request-price"><bdi>{{ number_format($requestRow->price, 2) }}</bdi> د.أ</p>
                         <div class="moderation-actions">@include('pages.vendor.partials.offer-management', ['offer' => $requestRow])</div>
                     </article>
                 @endforeach
+                </div>
                 {{ $requests->fragment('services')->onEachSide(1)->links('components.pager') }}
             </section>
         @endif

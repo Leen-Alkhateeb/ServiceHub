@@ -15,5 +15,5 @@
         <a class="" href="/admin-wallet">حركات المحفظة</a>
         <a class="" href="/admin-refunds">طلبات الاسترداد</a>
         <a class="" href="/admin-reviews">التقييمات</a>
-        <a class=""  href="/admin-messages">رسائل التواصل</a>
+        <a class="" href="{{ route('admin.messages.index') }}">رسائل التواصل</a>
 </aside>

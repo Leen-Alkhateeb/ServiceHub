@@ -4,6 +4,7 @@ use App\Http\Controllers\AccountDetailsController;
 use App\Http\Controllers\AccountPictureController;
 use App\Http\Controllers\AdminBookingController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\AdminUsersController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingProfileController;
@@ -341,6 +342,11 @@ Route::middleware(ActiveAdmin::class)
             Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
             Route::get('/bookings/{booking}', [AdminBookingController::class, 'show'])->withTrashed()->name('bookings.show');
             Route::delete('/bookings/{booking}', [AdminBookingController::class, 'destroy'])->name('bookings.destroy');
+
+            // Contact Messages
+            Route::get('/messages', [AdminMessageController::class, 'index'])->name('messages.index');
+            Route::get('/messages/{message}', [AdminMessageController::class, 'show'])->name('messages.show');
+            Route::patch('/messages/{message}', [AdminMessageController::class, 'update'])->name('messages.update');
 
             // Vendor Service Requests
             Route::get('/vendor-service-requests', [VendorServiceRequestController::class, 'index'])

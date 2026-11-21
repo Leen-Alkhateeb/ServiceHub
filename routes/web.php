@@ -6,6 +6,7 @@ use App\Http\Controllers\AdminBookingController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\AdminPaymentController;
+use App\Http\Controllers\AdminReviewController;
 use App\Http\Controllers\AdminUsersController;
 use App\Http\Controllers\AdminVendorApplicationController;
 use App\Http\Controllers\BookingController;
@@ -357,6 +358,16 @@ Route::middleware('auth')->group(function () {
                 Route::get('/messages', [AdminMessageController::class, 'index'])->name('messages.index');
                 Route::get('/messages/{message}', [AdminMessageController::class, 'show'])->name('messages.show');
                 Route::patch('/messages/{message}', [AdminMessageController::class, 'update'])->name('messages.update');
+                
+            // Reviews (التقييمات)
+            Route::get('/admin-reviews', [AdminReviewController::class, 'index'])
+            ->name('reviews.index');
+
+            Route::put('/admin-reviews/{id}', [AdminReviewController::class, 'update'])
+            ->name('reviews.update');
+
+             Route::delete('/admin-reviews/{id}', [AdminReviewController::class, 'destroy'])
+             ->name('reviews.destroy');
 
                 // Payments (read only)
                 Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');

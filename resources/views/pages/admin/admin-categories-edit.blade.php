@@ -3,66 +3,40 @@
 @section('title', 'تعديل قسم | ServiceHub')
 @section('page_id', 'admin-categories')
 
+@push('styles')
+    <link rel="stylesheet" href="/assets/admin-management.css">
+@endpush
+
 @section('content')
     @include('components.navbar')
 
     <div class="container layout">
         @include('components.sidebars.admin')
 
-        <div class="panel">
-            <h2>تعديل القسم</h2>
+        <main class="dashboard-content admin-manage">
+            <div class="dash-title">
+                <div>
+                    <span class="small muted">لوحة الإدارة / الأقسام</span>
+                    <h1>تعديل قسم: {{ $category->name }}</h1>
+                    <p class="page-intro">اترك حقل الصورة فارغاً إذا لا تريد تغيير الصورة الحالية.</p>
+                </div>
+                <a href="{{ route('admin.categories') }}" class="btn btn-outline">رجوع للأقسام</a>
+            </div>
 
-            <form action="{{ route('admin.categories.update', $category->id) }}"
-                  method="POST"
-                  enctype="multipart/form-data">
+            <div class="panel form-panel">
+                <form action="{{ route('admin.categories.update', $category) }}" method="POST" enctype="multipart/form-data">
+                    @csrf
+                    @method('PUT')
 
-                @csrf
-                @method('PUT')
+                    @include('pages.admin.partials.category-form-fields', ['category' => $category])
 
-                <div class="field">
-    <label for="name">اسم القسم</label>
-    <input
-        type="text"
-        id="name"
-        name="name"
-        value="{{ old('name', $category->name) }}"
-        required
-    >
-    @error('name')
-        <span style="color: #b42318">{{ $message }}</span>
-    @enderror
-</div>
-
-<div class="field">
-    <label for="description">وصف القسم</label>
-    <textarea
-        id="description"
-        name="description"
-        required
-    >{{ old('description', $category->description) }}</textarea>
-    @error('description')
-        <span style="color: #b42318">{{ $message }}</span>
-    @enderror
-</div>
-
-<div class="field">
-    <label for="image">تغيير صورة القسم (اختياري)</label>
-    <input
-        type="file"
-        id="image"
-        name="image"
-        accept="image/*"
-    >
-    @error('image')
-        <span style="color: #b42318">{{ $message }}</span>
-    @enderror
-</div>
-
-<button type="submit" class="btn btn-yellow">
-    حفظ التعديلات
-</button>
-            </form>
-        </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-yellow">حفظ التعديلات</button>
+                        <a href="{{ route('admin.categories') }}" class="btn btn-outline">إلغاء</a>
+                    </div>
+                </form>
+            </div>
+        </main>
     </div>
 
     @include('components.footer')

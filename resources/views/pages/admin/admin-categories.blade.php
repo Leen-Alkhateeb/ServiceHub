@@ -3,79 +3,110 @@
 @section('title', 'الأقسام | ServiceHub')
 @section('page_id', 'admin-categories')
 
+@push('styles')
+    <link rel="stylesheet" href="/assets/admin-management.css">
+@endpush
+
 @section('content')
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
     @include('components.navbar')
 
     <div class="container layout">
         @include('components.sidebars.admin')
 
-        <div>
+        <main class="dashboard-content admin-manage">
             <div class="dash-title">
                 <div>
                     <span class="small muted">لوحة الإدارة</span>
                     <h1>الأقسام</h1>
+                    <p class="page-intro">إدارة أقسام الخدمات التي تظهر للعملاء في الموقع.</p>
                 </div>
-                <a href="{{ route('admin.categories.create') }}" class="btn btn-yellow">
-                    <i class="fa-solid fa-plus" aria-hidden="true"></i>
-                    إضافة قسم جديد
-                </a>
+                <a href="{{ route('admin.categories.create') }}" class="btn btn-yellow">+ إضافة قسم جديد</a>
             </div>
 
+            @include('pages.admin.partials.flash-messages')
+
+            <form method="GET" action="{{ route('admin.categories') }}" class="panel hub-filters">
+                <div class="field">
+                    <label for="category-search">بحث باسم القسم</label>
+                    <input id="category-search" name="q" value="{{ $search }}" maxlength="100" placeholder="مثال: سباكة">
+                </div>
+                <div class="filter-actions">
+                    <button class="btn btn-yellow" type="submit">بحث</button>
+                    <a class="btn btn-outline" href="{{ route('admin.categories') }}">مسح</a>
+                </div>
+            </form>
+
             <div class="panel">
-                <h3>الأقسام</h3>
-                <p>إدارة اسم القسم ووصفه وصورته وحالة الحذف.</p>
+                <div class="panel-head">
+                    <h3>قائمة الأقسام</h3>
+                    <span class="results-count">
+                        @if ($search !== '')
+                            {{ $categories->total() }} نتيجة من أصل {{ $totalCategories }} قسم
+                        @else
+                            {{ $totalCategories }} قسم نشط
+                        @endif
+                    </span>
+                </div>
 
                 <div class="table-wrap">
                     <table>
                         <thead>
                             <tr>
                                 <th>الرقم</th>
-                                <th>العنصر</th>
+                                <th>القسم</th>
+                                <th>الخدمات النشطة</th>
                                 <th>الحالة</th>
-                                <th>الإجراء</th>
+                                <th>الإجراءات</th>
                             </tr>
                         </thead>
 
                         <tbody>
                             @forelse ($categories as $category)
                                 <tr>
-                                    <td>{{ $category->id }}</td>
-                                    <td>{{ $category->name }}</td>
+                                    <td>#{{ $category->id }}</td>
                                     <td>
-                                        <span class="pill">نشط</span>
+                                        <div class="category-cell">
+                                            <x-directory-photo :picture="$category->image" :trade="$category->name" kind="category" />
+                                            <div>
+                                                <span class="cell-title">{{ $category->name }}</span>
+                                                <span class="cell-sub">{{ \Illuminate\Support\Str::limit($category->description, 60) }}</span>
+                                            </div>
+                                        </div>
                                     </td>
+                                    <td>{{ $category->services_count }}</td>
+                                    <td><span class="pill green">نشط</span></td>
                                     <td>
-                                        <a href="{{ route('admin.categories.edit', $category->id) }}"
-                                            class="btn btn-outline btn-sm" title="تعديل القسم" aria-label="تعديل القسم">
-                                            <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
-                                        </a>
-
-                                        <form action="{{ route('admin.categories.destroy', $category->id) }}" method="POST"
-                                            style="display: inline-block;"
-                                            onsubmit="return confirm('هل أنت متأكد من حذف هذا القسم؟');">
-
-                                            @csrf
-                                            @method('DELETE')
-
-                                            <button type="submit" class="btn btn-danger btn-sm" title="حذف القسم"
-                                                aria-label="حذف القسم">
-                                                <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
-                                            </button>
-                                        </form>
-                                    </td>
+                                        <div class="row-actions">
+                                            <a href="{{ route('admin.categories.edit', $category) }}" class="btn btn-outline btn-sm">تعديل</a>
+                                            <x-archive-button
+                                                :action="route('admin.categories.destroy', $category)"
+                                                :message="'هل تريد حذف قسم ' . $category->name . '؟ سيختفي القسم من الموقع، وتبقى الخدمات والحجوزات المرتبطة به محفوظة.'"
+                                                label="حذف" />
+                                        </div>
                                     </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="4">لا توجد أقسام حالياً</td>
+                                    <td colspan="5">
+                                        <div class="empty-state">
+                                            @if ($search !== '')
+                                                <strong>لا توجد أقسام مطابقة للبحث</strong>
+                                                جرّب كلمة بحث أخرى أو امسح البحث.
+                                            @else
+                                                <strong>لا توجد أقسام بعد</strong>
+                                                ابدأ بإضافة أول قسم من زر "إضافة قسم جديد".
+                                            @endif
+                                        </div>
+                                    </td>
                                 </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div>
+
+            {{ $categories->onEachSide(1)->links('components.pager') }}
+        </main>
     </div>
 
     @include('components.footer')

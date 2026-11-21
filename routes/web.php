@@ -2,7 +2,10 @@
 
 use App\Http\Controllers\AccountDetailsController;
 use App\Http\Controllers\AccountPictureController;
+use App\Http\Controllers\AdminBookingController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminMessageController;
+use App\Http\Controllers\AdminPaymentController;
 use App\Http\Controllers\AdminUsersController;
 use App\Http\Controllers\AdminVendorApplicationController;
 use App\Http\Controllers\BookingController;
@@ -182,7 +185,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/bookings/{booking}/cancel', [BookingProfileController::class, 'cancel'])->name('booking.cancel');
     Route::post('/bookings/{booking}/payment', [PaymentController::class, 'store'])->name('payment.store');
     Route::get('/bookings/{booking}/checkout', [PaymentController::class, 'checkout'])->name('payment.checkout');
-    Route::get('/bookings/{booking}/invoice', [PaymentController::class, 'invoice'])->name('payment.invoice');
+    Route::get('/bookings/{booking}/invoice', [PaymentController::class, 'invoice'])->withTrashed()->name('payment.invoice');
     Route::get('/AdminDashboard', [AdminDashboardController::class, 'index'])->middleware(ActiveAdmin::class);
 
     Route::middleware(['auth', ActiveVendor::class])
@@ -345,6 +348,19 @@ Route::middleware('auth')->group(function () {
 
                 Route::delete('/deleteUser/{user}', [AdminUsersController::class, 'destroy'])
                     ->name('users.destroy');
+
+                Route::get('/bookings', [AdminBookingController::class, 'index'])->name('bookings.index');
+                Route::get('/bookings/{booking}', [AdminBookingController::class, 'show'])->withTrashed()->name('bookings.show');
+                Route::delete('/bookings/{booking}', [AdminBookingController::class, 'destroy'])->name('bookings.destroy');
+
+                // Contact Messages
+                Route::get('/messages', [AdminMessageController::class, 'index'])->name('messages.index');
+                Route::get('/messages/{message}', [AdminMessageController::class, 'show'])->name('messages.show');
+                Route::patch('/messages/{message}', [AdminMessageController::class, 'update'])->name('messages.update');
+
+                // Payments (read only)
+                Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
+                Route::get('/payments/{payment}', [AdminPaymentController::class, 'show'])->name('payments.show');
 
                 Route::get('/admin-applications', [AdminVendorApplicationController::class, 'index'])
                     ->name('admin-applications');

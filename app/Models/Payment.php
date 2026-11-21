@@ -27,6 +27,6 @@ class Payment extends Model
 
     public function booking(): BelongsTo
     {
-        return $this->belongsTo(Booking::class, 'booking_id');
+        return $this->belongsTo(Booking::class, 'booking_id')->withTrashed();
     }
 }

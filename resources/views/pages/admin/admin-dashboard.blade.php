@@ -39,7 +39,7 @@
                 <span>إجمالي الحجوزات</span>
                 <strong>{{ number_format($stats['bookings']) }}</strong>
                 <small>جميع حالات الحجز</small>
-                <a href="#" class="admin-card-link" data-page="bookings">عرض الحجوزات <span aria-hidden="true">←</span></a>
+                <a href="{{ route('admin.bookings.index') }}" class="admin-card-link">عرض الحجوزات <span aria-hidden="true">←</span></a>
             </div>
 
             <div class="admin-stat">

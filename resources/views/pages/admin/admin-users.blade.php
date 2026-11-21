@@ -172,8 +172,8 @@
                                                 title="حذف المستخدم" data-id="{{ $user->id }}"
                                                 data-name="{{ $user->first_name }} {{ $user->last_name }}"
                                                 onclick="openDeleteModal(this)">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                                    stroke-linecap="round" stroke-linejoin="round">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                                     <path d="M3 6h18" />
                                                     <path d="M8 6V4h8v2" />
                                                     <path d="M19 6l-1 14H6L5 6" />
@@ -283,7 +283,7 @@
 
         // Close when clicking outside the popup
         document.querySelectorAll('.user-modal').forEach(modal => {
-            modal.addEventListener('click', function (event) {
+            modal.addEventListener('click', function(event) {
                 if (event.target === modal) {
                     closeUserModal(modal.id);
                 }
@@ -291,7 +291,7 @@
         });
 
         // Close with Escape
-        document.addEventListener('keydown', function (event) {
+        document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
                 document.querySelectorAll('.user-modal').forEach(modal => {
                     if (!modal.hidden) {
@@ -300,8 +300,6 @@
                 });
             }
         });
-
-
     </script>
 
 @endsection

@@ -135,6 +135,44 @@ document.addEventListener('DOMContentLoaded', setTopbarHeight);
 document.addEventListener('turbo:load', setTopbarHeight);
 window.addEventListener('resize', setTopbarHeight);
 
+// Admin sidebar always stays between the header and the footer:
+// when the footer scrolls into view the sidebar gets shorter (its links scroll inside it)
+// instead of being pushed up under the header.
+var sidebarFrame = null;
+
+function fitAdminSidebar() {
+    sidebarFrame = null;
+
+    var sidebar = document.querySelector('.admin-sidebar');
+
+    if (!sidebar || getComputedStyle(sidebar).position !== 'sticky') {
+        return;
+    }
+
+    var gap = 16;
+    var topbar = document.querySelector('.topbar');
+    var footer = document.querySelector('.footer');
+    var top = (topbar ? topbar.getBoundingClientRect().height : 73) + gap;
+    var bottom = window.innerHeight - gap;
+
+    if (footer) {
+        bottom = Math.min(bottom, footer.getBoundingClientRect().top - gap);
+    }
+
+    sidebar.style.height = Math.max(180, bottom - top) + 'px';
+}
+
+function requestFitAdminSidebar() {
+    if (!sidebarFrame) {
+        sidebarFrame = window.requestAnimationFrame(fitAdminSidebar);
+    }
+}
+
+window.addEventListener('scroll', requestFitAdminSidebar, { passive: true });
+window.addEventListener('resize', requestFitAdminSidebar);
+document.addEventListener('DOMContentLoaded', fitAdminSidebar);
+document.addEventListener('turbo:load', fitAdminSidebar);
+
 // Keep the active admin link visible inside the sidebar when the list is long.
 function revealActiveSidebarLink() {
     markActiveLinks();

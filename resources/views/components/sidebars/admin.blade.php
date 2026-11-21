@@ -11,7 +11,7 @@
         <a class="" href="/admin-approvals">اعتماد الخدمات</a>
         <a class="" href="{{ route('admin.bookings.index') }}">الحجوزات</a>
         <a class="" href="/admin-cancellations">الإلغاءات</a>
-        <a class="" href="/admin-payments">المدفوعات</a>
+        <a class="" href="{{ route('admin.payments.index') }}">المدفوعات</a>
         <a class="" href="/admin-wallet">حركات المحفظة</a>
         <a class="" href="/admin-refunds">طلبات الاسترداد</a>
         <a class="" href="/admin-reviews">التقييمات</a>

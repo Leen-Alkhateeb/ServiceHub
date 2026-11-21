@@ -1,5 +1,5 @@
 <?php
-
+use App\Http\Controllers\AdminServicesController;
 use App\Http\Controllers\AccountDetailsController;
 use App\Http\Controllers\AccountPictureController;
 use App\Http\Controllers\AdminBookingController;

@@ -4,6 +4,7 @@
 use App\Http\Controllers\AccountDetailsController;
 use App\Http\Controllers\AccountPictureController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminUsersController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingProfileController;
 use App\Http\Controllers\DashboardController;

@@ -3,11 +3,11 @@
 @section('page_id', 'vendor-profile')
 @section('content')
 @include('components.navbar')
-<main @class(['container', 'layout vendor-profile-layout' => $ownProfile, 'page-head' => ! $ownProfile])>
+<main @class(['container', 'layout vendor-profile-layout vendor-workspace' => $ownProfile, 'page-head' => ! $ownProfile])>
     @if ($ownProfile)
         @include('components.sidebars.vendor')
     @endif
-    <div class="technician-profile dashboard-content">
+    <div @class(['technician-profile dashboard-content', 'vendor-workspace-content' => $ownProfile])>
     <header class="technician-hero">
         <x-account-picture :account="$profile" class="technician-avatar" aria-hidden="true" />
         <div class="technician-heading">

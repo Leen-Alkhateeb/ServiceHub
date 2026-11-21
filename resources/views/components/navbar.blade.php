@@ -15,7 +15,7 @@
                 @if (auth()->user()->status === 'active' && auth()->user()->role === 'admin')
                     @include('components.sidebars.admin')
                 @elseif (auth()->user()->status === 'active' && auth()->user()->role === 'vendor')
-                    @include('components.sidebars.vendor')
+                    @include('components.sidebars.vendor', ['hideOverview' => true])
                 @elseif (auth()->user()->role === 'customer')
                     @include('components.sidebars.customer')
                 @endif
@@ -47,7 +47,7 @@
                 @endphp
 
                 @if ($dashboard && $account->status === 'active')
-                    <a class="btn btn-yellow btn-sm" href="{{ route($dashboard) }}">لوحة التحكم</a>
+                    <a class="btn btn-yellow btn-sm" href="{{ route($dashboard) }}">{{ $account->role === 'vendor' ? 'لوحة الفني' : 'لوحة التحكم' }}</a>
                 @endif
                 <details class="account-dropdown">
                     <summary class="account-picture-link" aria-label="قائمة الحساب"><x-account-picture :account="$account" /></summary>
@@ -148,15 +148,6 @@
                     <a class="btn btn-yellow btn-sm" href="{{ route('vendor.apply') }}">
                         انضم كفني
                     </a>
-                @elseif ($account->role === 'admin' && $account->status === 'active')
-                    <a
-                        class="btn btn-yellow btn-sm"
-                        href="{{ route('admin.dashboard') }}"
-                    >
-                        لوحة التحكم
-                    </a>
-                @elseif ($account->role === 'vendor' && $account->status === 'active')
-                    <a class="btn btn-outline btn-sm" href="{{ route('vendor.dashboard') }}">لوحة الفني</a>
                 @endif
 
             @else

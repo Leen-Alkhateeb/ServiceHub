@@ -25,6 +25,25 @@ class VendorWorkspaceTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_vendor_dashboard_chart_counts_only_own_bookings_and_nav_has_one_dashboard_link(): void
+    {
+        $vendor = VendorProfile::factory()->create()->user;
+        $offer = VendorService::factory()->for($vendor, 'vendor')->create();
+        Booking::factory()->for($offer)->pending()->create();
+        Booking::factory()->for($offer)->create();
+        Booking::factory()->create();
+
+        $response = $this->actingAs($vendor)->get(route('vendor.dashboard'))->assertOk()
+            ->assertSee('توزيع حالات الحجوزات')
+            ->assertSee('id="bookingsChart"', false)->assertSee('id="statusChart"', false)
+            ->assertViewHas('bookingChart', fn ($chart) => count($chart['labels']) === 7 && array_sum($chart['values']) === 1)
+            ->assertViewHas('bookingStatusCounts', fn ($counts) => $counts->count() === 2
+                && (int) $counts['pending'] === 1 && (int) $counts['completed'] === 1);
+
+        $navbar = str($response->getContent())->betweenFirst('<header class="topbar">', '</header>');
+        $this->assertSame(1, substr_count((string) $navbar, 'href="'.route('vendor.dashboard').'"'));
+    }
+
     public function test_visitors_switch_between_services_and_portfolio_without_seeing_private_tabs(): void
     {
         $vendor = VendorProfile::factory()->create()->user;

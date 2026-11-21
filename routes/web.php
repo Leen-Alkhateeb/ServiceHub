@@ -286,10 +286,6 @@ Route::middleware('auth')->group(function () {
         ->name('vendor.')
         ->group(function () {
 
-            Route::get('/vendor-dashboard', [DashboardController::class, 'index'])
-                ->name('dashboard');
-
-            // Wallet
             Route::get('/vendor-dashboard', [VendorPagesController::class, 'dashboard'])->name('dashboard');
             Route::redirect('/vendor-settings', '/vendor-profile')->name('settings.redirect');
             Route::redirect('/vendor-services', '/vendor-profile?tab=services')->name('services.redirect');

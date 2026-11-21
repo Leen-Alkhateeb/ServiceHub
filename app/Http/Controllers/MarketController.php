@@ -28,8 +28,7 @@ class MarketController extends Controller
 
         $activeReviews = fn ($reviews) => $reviews->where('is_active', true);
 
-        $query = VendorService::query()
-            ->where('status', 'active')
+        $query = VendorService::query()->publiclyVisible()
             ->with([
                 'service.category',
                 'vendor' => fn ($q) => $q
@@ -109,7 +108,7 @@ class MarketController extends Controller
     /** تفاصيل الخدمة والتقييمات والمواعيد المتاحة */
     public function show(VendorService $vendorService)
     {
-        abort_unless($vendorService->status === 'active', 404);
+        abort_unless(VendorService::publiclyVisible()->whereKey($vendorService)->exists(), 404);
 
         $vendorService->load(['service.category', 'vendor.vendorProfile']);
         $vendor = $vendorService->vendor;

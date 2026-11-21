@@ -25,7 +25,6 @@ class BookingProfileController extends Controller
 
         abort_unless(
             $customer
-            && $customer->role === 'customer'
             && $customer->status === 'active'
             && $vendorService->status === 'active'
             && $vendorService->vendor?->status === 'active'

@@ -299,3 +299,8 @@ a.btn-dark, .btn-dark { color: #fff; background: #202124; }
     .account-dropdown { position: static; }
     .account-menu { inset-block-start: 100%; inset-inline-end: 12px; }
 }
+
+.hub-error-page { min-height: 100svh; display: grid; place-items: center; padding-block: 1.5rem; }
+.hub-error-panel { width: min(100%, 610px); padding: clamp(1.35rem, 5vw, 3.5rem); }
+.hub-error-code { margin: .85rem 0 0; color: #215c52; font-size: clamp(3rem, 11vw, 6rem); font-weight: 850; line-height: 1.1; }
+.hub-error-panel h1 { font-size: clamp(1.5rem, 6vw, 2.55rem); }

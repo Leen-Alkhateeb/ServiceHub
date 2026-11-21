@@ -468,6 +468,14 @@ private function seedServiceSuggestions(): void
         array $attributes = []
     ): Model {
         $model = $factory->newModel();
+        $query = $model->newQuery();
+        foreach ($identity as $column => $value) {
+            if ($model instanceof Booking && $column === 'booking_date') {
+                $query->whereDate($column, $value);
+            } else {
+                $query->where($column, $value);
+            }
+        }
 
         $query = $model->newQuery();
         $lookup = $identity;

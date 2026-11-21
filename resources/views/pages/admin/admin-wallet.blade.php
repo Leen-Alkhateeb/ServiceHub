@@ -1,12 +1,18 @@
 @extends('layouts.app')
 @section('title', 'حركات المحفظة | ServiceHub')
 @section('page_id', 'admin-wallet')
+
 @section('content')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @include('components.navbar')
-    <div class="container layout">@include('components.sidebars.admin')
+
+    <div class="container layout">
+        @include('components.sidebars.admin')
+
         <div>
             <div class="dash-title">
-                <div><span class="small muted">لوحة الإدارة</span>
+                <div>
+                    <span class="small muted">لوحة الإدارة</span>
                     <h1>حركات المحفظة</h1>
                 </div>
             </div>
@@ -21,7 +27,7 @@
                     ];
                 @endphp
                 <div class="table-wrap">
-                    <table>
+                    <table style="width: 100%; border-collapse: collapse; text-align: right;">
                         <thead>
                             <tr>
                                 <th>الرقم</th>

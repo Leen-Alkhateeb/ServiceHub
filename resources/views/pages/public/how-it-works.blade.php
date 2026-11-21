@@ -20,7 +20,7 @@
                         <div class="feature-icon">✓</div>
                         <h3>٢ · قارن الفنيين والخدمات</h3>
                         <p>شوف الأسعار والتقييمات والأعمال السابقة.</p>
-                    </a><a class="feature" href="/booking">
+                    </a><a class="feature" href="{{ route('market.index') }}">
                         <div class="feature-icon">✓</div>
                         <h3>٣ · احجز الموعد المناسب</h3>
                         <p>اختار نافذة من جدول الفني الأسبوعي.</p>

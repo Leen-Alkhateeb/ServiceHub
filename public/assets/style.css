@@ -4225,3 +4225,249 @@ td {
 .admin-refunds dialog.refund-dialog::backdrop {
     background: rgba(0, 0, 0, 0.55);
 }
+
+.refunds-page .dash-title {
+
+    margin-bottom: 24px;
+
+}
+
+/* Statistics */
+
+.refunds-page .stats-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+
+    gap: 16px;
+
+    margin-bottom: 24px;
+
+}
+
+.refunds-page .stats-grid > .panel {
+
+    min-width: 0;
+
+    min-height: 125px;
+
+    padding: 20px;
+
+    margin: 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    gap: 12px;
+
+}
+
+.refunds-page .stats-grid h2 {
+
+    font-size: 30px;
+
+    line-height: 1.2;
+
+    margin: 0;
+
+}
+
+/* Search and filters */
+
+.refunds-page .filter-form {
+
+    margin-top: 20px;
+
+}
+
+.refunds-page .filter-form .form-grid {
+
+    display: grid;
+
+    grid-template-columns: minmax(0, 2fr) minmax(180px, 1fr);
+
+    gap: 16px;
+
+    align-items: end;
+
+}
+
+.refunds-page .filter-form .form-grid > div {
+
+    min-width: 0;
+
+}
+
+.refunds-page .filter-form label {
+
+    display: block;
+
+    margin-bottom: 8px;
+
+    font-weight: 600;
+
+}
+
+.refunds-page .filter-form input,
+
+.refunds-page .filter-form select {
+
+    display: block;
+
+    width: 100%;
+
+    min-width: 0;
+
+    height: 46px;
+
+    padding: 10px 14px;
+
+    box-sizing: border-box;
+
+    font: inherit;
+
+}
+
+.refunds-page .moderation-actions {
+
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 12px;
+
+    margin-top: 20px;
+
+}
+
+/* Tables */
+
+.refunds-page .table-wrap {
+
+    width: 100%;
+
+    overflow-x: auto;
+
+}
+
+.refunds-page .table-wrap table {
+
+    width: 100%;
+
+    border-collapse: collapse;
+
+}
+
+.refunds-page .table-wrap th,
+
+.refunds-page .table-wrap td {
+
+    padding: 16px 12px;
+
+    text-align: right;
+
+    vertical-align: middle;
+
+}
+
+/* Dialogs */
+
+.refunds-page .refund-dialog {
+
+    width: min(720px, calc(100% - 32px));
+
+    max-height: 85vh;
+
+    overflow-y: auto;
+
+    margin: auto;
+
+    padding: 24px;
+
+    border-radius: 16px;
+
+    box-sizing: border-box;
+
+}
+
+.refunds-page .refund-dialog::backdrop {
+
+    background: rgba(0, 0, 0, 0.55);
+
+}
+
+.refunds-page .refund-info-grid,
+
+.refunds-page .refund-financial-grid {
+
+    display: grid;
+
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    gap: 16px;
+
+}
+
+.refunds-page .refund-confirm-dialog {
+
+    width: min(440px, calc(100% - 32px));
+
+}
+
+/* Responsive */
+
+@media (max-width: 1100px) {
+
+    .refunds-page .stats-grid {
+
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    }
+
+}
+
+@media (max-width: 650px) {
+
+    .refunds-page .stats-grid,
+
+    .refunds-page .filter-form .form-grid,
+
+    .refunds-page .refund-info-grid,
+
+    .refunds-page .refund-financial-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+    .refunds-page .stats-grid > .panel {
+
+        min-height: 100px;
+
+    }
+
+    .refunds-page .refund-dialog {
+
+        padding: 16px;
+
+    }
+
+}
+/* Admin Refunds - Dialog visibility */
+.admin-refunds dialog.refund-dialog:not([open]) {
+    display: none !important;
+}
+
+.admin-refunds dialog.refund-dialog[open] {
+    z-index: 1000;
+}
+
+.admin-refunds dialog.refund-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+}

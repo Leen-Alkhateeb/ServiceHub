@@ -26,6 +26,11 @@
             @auth
                 @php
                     $account = auth()->user();
+                    $dashboard = match ($account->role) {
+                        'vendor' => 'vendor.dashboard',
+                        'admin' => 'admin.dashboard',
+                        default => null,
+                    };
 
                     $favoriteCount = $account->role === 'customer'
                         ? $account->favorites()->count()
@@ -41,13 +46,19 @@
                         ->get();
                 @endphp
 
-                <a
-                    class="account-picture-link"
-                    href="{{ route('account.profile') }}"
-                    aria-label="فتح ملفي الشخصي"
-                >
-                    <x-account-picture :account="$account" />
-                </a>
+                @if ($dashboard && $account->status === 'active')
+                    <a class="btn btn-yellow btn-sm" href="{{ route($dashboard) }}">لوحة التحكم</a>
+                @endif
+                <details class="account-dropdown">
+                    <summary class="account-picture-link" aria-label="قائمة الحساب"><x-account-picture :account="$account" /></summary>
+                    <div class="account-menu">
+                        <a href="{{ route('account.profile') }}">ملفي الشخصي</a>
+                        <form method="POST" action="{{ route('logout') }}">
+                            @csrf
+                            <button type="submit">تسجيل الخروج</button>
+                        </form>
+                    </div>
+                </details>
 
                 <details class="notification-dropdown">
                     <summary
@@ -148,12 +159,6 @@
                     <a class="btn btn-outline btn-sm" href="{{ route('vendor.dashboard') }}">لوحة الفني</a>
                 @endif
 
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="btn btn-outline btn-sm" type="submit">
-                        تسجيل الخروج
-                    </button>
-                </form>
             @else
                 <a class="btn btn-outline btn-sm" href="{{ route('login') }}">
                     تسجيل الدخول

@@ -22,7 +22,6 @@
             </div>
 
 
-            {{-- Success Message --}}
             @if (session('success'))
                 <div class="admin-alert admin-alert-success" role="status">
                     <span class="admin-alert-icon">✓</span>
@@ -33,7 +32,6 @@
                 </div>
             @endif
 
-            {{-- Error Message --}}
             @if (session('error'))
                 <div class="admin-alert admin-alert-error" role="alert">
                     <span class="admin-alert-icon">!</span>
@@ -44,7 +42,6 @@
                 </div>
             @endif
 
-            {{-- Laravel Validation Errors --}}
             @if ($errors->any())
                 <div class="admin-alert admin-alert-error" role="alert">
                     <span class="admin-alert-icon">!</span>
@@ -63,6 +60,72 @@
             <div class="panel">
                 <h3>المستخدمون</h3>
                 <p>إدارة حسابات العملاء والفنيين وحالة الحساب.</p>
+
+                <form method="GET" action="{{ url()->current() }}" class="admin-users-filters">
+
+                    <div class="admin-filter-field admin-search-field">
+                        <label for="userSearch">البحث عن مستخدم</label>
+
+                        <input type="search" id="userSearch" name="search" value="{{ request('search') }}"
+                            placeholder="ابحث بالاسم أو البريد الإلكتروني...">
+                    </div>
+
+                    <div class="admin-filter-field">
+                        <label for="roleFilter">الدور</label>
+
+                        <select id="roleFilter" name="role">
+                            <option value="">جميع الأدوار</option>
+                            <option value="customer" @selected(request('role') === 'customer')>
+                                عميل
+                            </option>
+                            <option value="vendor" @selected(request('role') === 'vendor')>
+                                فني
+                            </option>
+                            <option value="admin" @selected(request('role') === 'admin')>
+                                أدمن
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="admin-filter-field">
+                        <label for="genderFilter">الجنس</label>
+
+                        <select id="genderFilter" name="gender">
+                            <option value="">جميع الأجناس</option>
+                            <option value="male" @selected(request('gender') === 'male')>
+                                ذكر
+                            </option>
+                            <option value="female" @selected(request('gender') === 'female')>
+                                أنثى
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="admin-filter-field">
+                        <label for="statusFilter">الحالة</label>
+
+                        <select id="statusFilter" name="status">
+                            <option value="">جميع الحالات</option>
+                            <option value="active" @selected(request('status') === 'active')>
+                                فعال
+                            </option>
+                            <option value="inactive" @selected(request('status') === 'inactive')>
+                                غير فعال
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="admin-filter-actions">
+                        <button type="submit" class="btn btn-primary">
+                            بحث
+                        </button>
+
+                        <a href="{{ url()->current() }}" class="btn btn-outline">
+                            إعادة ضبط
+                        </a>
+                    </div>
+
+                </form>
 
                 <div class="table-wrap">
                     <table class="admin-users-table">
@@ -84,8 +147,8 @@
                                     <td>{{ ++$count }}</td>
 
                                     <td>
-                                        {{ $user->first_name }}
-                                        {{ $user->last_name }}
+                                       <a href="{{ route('users.profile.show', $user) }}"> {{ $user->first_name }}
+                                        {{ $user->last_name }}</a>
                                     </td>
 
                                     <td>
@@ -100,7 +163,7 @@
                                     </td>
 
                                     <td>{{ $user->email }}</td>
-                                    <td>{{ $user->role }}</td>
+                                    <td>{{ $user->role === "customer" ? 'عميل': ($user->role === 'admin'? 'ادمين' : 'فني') }}</td>
                                     <td>
                                         <div class="user-actions">
 
@@ -124,7 +187,7 @@
 
                             @empty
                                 <tr>
-                                    <td colspan="6" class="empty-users">
+                                    <td colspan="7" class="empty-users">
                                         لا يوجد مستخدمون حاليًا
                                     </td>
                                 </tr>

@@ -21,7 +21,7 @@
                 <article class="review-booking">
                     <div>
                         <h2>{{ $booking->service_name }} <bdi>#{{ $booking->id }}</bdi></h2>
-                        <p>{{ $booking->customer->first_name }} {{ $booking->customer->last_name }} · <bdi>{{ $booking->booking_date }}</bdi></p>
+                        <p><a href="{{ route('users.profile.show', $booking->customer) }}">{{ $booking->customer->first_name }} {{ $booking->customer->last_name }}</a> · <bdi>{{ $booking->booking_date }}</bdi></p>
                         @if ($review)
                             <p><strong class="rating-display" aria-label="{{ $ratedStars }} من 5">{{ str_repeat('★', $ratedStars).str_repeat('☆', 5 - $ratedStars) }}</strong></p>
                             @if ($review->comment)<p>{{ $review->comment }}</p>@endif
@@ -44,7 +44,7 @@
                                 <h2 id="rate-title-{{ $booking->id }}">{{ $review ? 'تعديل التقييم' : 'تقييم العميل' }}</h2>
                                 <button class="btn btn-outline btn-sm" type="button" data-close-dialog>إغلاق</button>
                             </div>
-                            <p>{{ $booking->customer->first_name }} {{ $booking->customer->last_name }} · {{ $booking->service_name }}</p>
+                            <p><a href="{{ route('users.profile.show', $booking->customer) }}">{{ $booking->customer->first_name }} {{ $booking->customer->last_name }}</a> · {{ $booking->service_name }}</p>
                             @if ($failedRating)
                                 <ul class="notice" role="alert">@foreach (array_merge($errors->get('rating'), $errors->get('comment')) as $message)<li>{{ $message }}</li>@endforeach</ul>
                             @endif

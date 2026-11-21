@@ -82,7 +82,7 @@
                 </div>
                 <p>{{ $booking->service_description }}</p>
                 <dl class="booking-details">
-                    <dt>العميل</dt><dd>{{ $booking->customer->first_name }} {{ $booking->customer->last_name }}</dd>
+                    <dt>العميل</dt><dd><a href="{{ route('users.profile.show', $booking->customer) }}">{{ $booking->customer->first_name }} {{ $booking->customer->last_name }}</a></dd>
                     <dt>تاريخ الحجز</dt><dd><bdi>{{ \Illuminate\Support\Carbon::parse($booking->booking_date)->format('d/m/Y') }}</bdi></dd>
                     <dt>وقت الخدمة</dt><dd><bdi>{{ substr($booking->start_time, 0, 5) }} – {{ substr($booking->end_time, 0, 5) }}</bdi></dd>
                     <dt>قيمة الطلب</dt><dd><bdi>{{ number_format((float) $booking->original_price, 2) }}</bdi> د.أ</dd>

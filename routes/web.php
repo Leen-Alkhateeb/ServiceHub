@@ -135,6 +135,11 @@ Route::name('vendor.')->group(function () {
 
 Route::middleware('auth')->group(function () {
 
+    // Read-only user profiles for admins and vendors.
+    Route::get('/users/{user}/profile', [\App\Http\Controllers\UserPublicProfileController::class, 'show'])
+        ->name('users.profile.show');
+
+
     /*
     |--------------------------------------------------------------------------
     | Customer Pages
@@ -334,7 +339,7 @@ Route::middleware(ActiveAdmin::class)
 
         // Admin Management
             Route::prefix('admin')->group(function () {
-            Route::get('/Dashboard', [AdminDashboardController::class, 'index'])
+            Route::get('/dashboard', [AdminDashboardController::class, 'index'])
             ->name('dashboard');
 
             Route::get('/Users', [AdminUsersController::class, 'index'])

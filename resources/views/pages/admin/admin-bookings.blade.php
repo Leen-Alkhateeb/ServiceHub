@@ -69,11 +69,11 @@
                                     <td><span class="cell-title">{{ $booking->service_name }}</span></td>
                                     <td>{{ trim($booking->customer?->first_name . ' ' . $booking->customer?->last_name) ?: '—' }}</td>
                                     <td>{{ trim($booking->vendorService?->vendor?->first_name . ' ' . $booking->vendorService?->vendor?->last_name) ?: '—' }}</td>
-                                    <td>
+                                    <td class="nowrap">
                                         <span class="cell-title">{{ $booking->booking_date->format('Y-m-d') }}</span>
-                                        <span class="cell-sub">{{ substr($booking->start_time, 0, 5) }} - {{ substr($booking->end_time, 0, 5) }}</span>
+                                        <span class="cell-sub"><bdi dir="ltr">{{ substr($booking->start_time, 0, 5) }} – {{ substr($booking->end_time, 0, 5) }}</bdi></span>
                                     </td>
-                                    <td>{{ number_format($booking->original_price, 2) }} د.أ</td>
+                                    <td class="nowrap">{{ number_format($booking->original_price, 2) }} د.أ</td>
                                     <td>
                                         <span class="pill {{ $statusColors[$booking->status] ?? '' }}">{{ $statuses[$booking->status] ?? $booking->status }}</span>
                                     </td>

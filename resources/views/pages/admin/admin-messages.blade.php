@@ -89,7 +89,7 @@
                                         <span class="cell-title">{{ trim($message->sender?->first_name . ' ' . $message->sender?->last_name) ?: '—' }}</span>
                                         <span class="cell-sub">{{ $roles[$message->sender?->role] ?? '' }}</span>
                                     </td>
-                                    <td>{{ $message->created_at?->format('Y-m-d H:i') ?? '—' }}</td>
+                                    <td class="nowrap">{{ $message->created_at?->format('Y-m-d H:i') ?? '—' }}</td>
                                     <td>
                                         <span class="pill {{ $message->status === 'pending' ? 'yellow' : 'green' }}">{{ $statuses[$message->status] ?? $message->status }}</span>
                                     </td>

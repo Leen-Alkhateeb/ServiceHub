@@ -6,7 +6,7 @@
         <a class="" href="/admin/Users">المستخدمون</a>
         <a class="" href="/admin-vendors">الفنيون</a>
         <a class="" href="/admin-applications">طلبات الانضمام</a>
-        <a class="" href="/admin-categories">الأقسام</a>
+        <a class="" href="{{ route('admin.categories') }}">الأقسام</a>
         <a class="" href="/admin-services">كتالوج الخدمات</a>
         <a class="" href="/admin-approvals">اعتماد الخدمات</a>
         <a class="" href="{{ route('admin.bookings.index') }}">الحجوزات</a>

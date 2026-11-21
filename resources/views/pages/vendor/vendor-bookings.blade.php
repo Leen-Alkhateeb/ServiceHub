@@ -3,10 +3,10 @@
 @section('page_id', 'vendor-bookings')
 @section('content')
     @include('components.navbar')
-    <div class="container layout">
+    <div class="container layout vendor-workspace">
         @include('components.sidebars.vendor')
-        <main>
-            <div class="dash-title">
+        <main class="vendor-workspace-content">
+            <div class="dash-title vendor-page-header">
                 <div>
                     <span class="small muted">لوحة الفني</span>
                     <h1>طلبات الحجز</h1>
@@ -35,24 +35,24 @@
                             </p>
                             <p>{{ number_format((float) $booking->original_price, 2) }} د.أ</p>
                         </div>
-                        <div class="row">
+                        <div class="vendor-booking-actions">
                             <form method="POST" action="{{ route('vendor.vendor-bookings.update', $booking) }}">
                                 @csrf
                                 @method('PATCH')
                                 <input type="hidden" name="status" value="approved">
-                                <button class="btn btn-yellow btn-sm" style="width:50px"  type="submit">موافقة</button>
+                                <button class="btn btn-yellow btn-sm" type="submit">موافقة</button>
                             </form>
                             
                             <form method="POST" action="{{ route('vendor.vendor-bookings.update', $booking) }}">
                                 @csrf
                                 @method('PATCH')
                                 <input type="hidden" name="status" value="rejected">
-                                <button class="btn btn-outline btn-sm" style="width:50px; margin-top:10px;"   type="submit">رفض</button>
+                                <button class="btn btn-outline btn-sm" type="submit">رفض</button>
                             </form>
                         </div>
                     </article>
                 @empty
-                    <p class="muted">ما عندك طلبات جديدة بانتظار الرد.</p>
+                    <p class="vendor-empty">ما عندك طلبات جديدة بانتظار الرد.</p>
                 @endforelse
             </section>
             <section class="panel">
@@ -90,7 +90,7 @@
                         <span class="badge badge-{{ $statusTone }}">{{ $statusLabel }}</span>
                     </article>
                 @empty
-                    <p class="muted">ما في حجوزات أخرى لعرضها.</p>
+                    <p class="vendor-empty">ما في حجوزات أخرى لعرضها.</p>
                 @endforelse
             </section>
         </main>

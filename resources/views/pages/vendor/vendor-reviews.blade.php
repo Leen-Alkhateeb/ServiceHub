@@ -3,10 +3,10 @@
 @section('page_id', 'vendor-reviews')
 @section('content')
 @include('components.navbar')
-<main class="container layout">
+<main class="container layout vendor-workspace">
     @include('components.sidebars.vendor')
-    <div class="dashboard-content">
-        <div class="dash-title">
+    <div class="dashboard-content vendor-workspace-content">
+        <div class="dash-title vendor-page-header">
             <div><h1>تقييم العملاء</h1><p class="muted">يمكنك تقييم العميل مرة واحدة بعد إتمام الحجز.</p></div>
             <a class="btn btn-outline" href="{{ route('vendor.profile') }}">ملف الفني</a>
         </div>

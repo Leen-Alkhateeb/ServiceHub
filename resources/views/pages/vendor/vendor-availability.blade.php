@@ -199,10 +199,10 @@ body[data-page="vendor-availability"] .availability-actions .btn {
 @endpush
 @section('content')
     @include('components.navbar')
-    <div class="container layout">
+    <div class="container layout vendor-workspace">
         @include('components.sidebars.vendor')
-        <main>
-            <div class="dash-title">
+        <main class="vendor-workspace-content">
+            <div class="dash-title vendor-page-header">
                 <div>
                     <span class="small muted">لوحة الفني</span>
                     <h1>الجدول الأسبوعي</h1>

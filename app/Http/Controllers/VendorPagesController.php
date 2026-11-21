@@ -160,12 +160,39 @@ public function dashboard(Request $request): View
         ->limit(5)
         ->get();
 
+    $bookingStatusCounts = (clone $bookings)
+        ->selectRaw('status, COUNT(*) AS total')
+        ->groupBy('status')
+        ->pluck('total', 'status');
+    $statusChart = [
+        'labels' => $bookingStatusCounts->keys()->all(),
+        'values' => $bookingStatusCounts->map(fn ($count) => (int) $count)->values()->all(),
+    ];
+    $chartStart = now()->startOfDay()->subDays(6);
+    $dailyCounts = (clone $bookings)
+        ->where('created_at', '>=', $chartStart)
+        ->where('created_at', '<', $chartStart->copy()->addDays(7))
+        ->selectRaw('DATE(created_at) AS day, COUNT(*) AS total')
+        ->groupBy('day')
+        ->pluck('total', 'day');
+    $bookingChart = ['labels' => [], 'values' => []];
+    for ($offset = 0; $offset < 7; $offset++) {
+        $day = $chartStart->copy()->addDays($offset);
+        $bookingChart['labels'][] = $day->format('m/d');
+        $bookingChart['values'][] = (int) ($dailyCounts[$day->toDateString()] ?? 0);
+    }
+    $applicationStatus = $vendor->vendorProfile?->application_status;
+
     return view('pages.vendor.vendor-dashboard', compact(
         'vendor',
         'vendorName',
         'stats',
         'pendingBookings',
-        'upcomingBookings'
+        'upcomingBookings',
+        'bookingStatusCounts',
+        'bookingChart',
+        'statusChart',
+        'applicationStatus'
     ));
 }
 

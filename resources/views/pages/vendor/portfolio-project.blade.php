@@ -3,7 +3,7 @@
 @section('page_id', 'portfolio-project')
 @section('content')
 @include('components.navbar')
-<main class="container project-page">
+<main @class(['container project-page', 'vendor-project-page' => $isOwner])>
     <a class="project-back" href="{{ route('vendor.profile', ['tab' => 'portfolio'] + ($isOwner ? [] : ['vendor' => $project->vendor_id])) }}#portfolio">→ العودة إلى معرض الأعمال</a>
     @if (session('status'))<p class="notice" role="status">{{ session('status') }}</p>@endif
     <div class="product-project">
@@ -55,4 +55,5 @@
     </div>
 </main>
 @include('components.footer')
+@include($isOwner ? 'components.mobile-nav-vendor' : 'components.mobile-nav-public')
 @endsection

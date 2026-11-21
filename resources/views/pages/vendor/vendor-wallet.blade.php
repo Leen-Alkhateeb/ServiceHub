@@ -3,10 +3,10 @@
 @section('page_id', 'vendor-wallet')
 @section('content')
 @include('components.navbar')
-<main class="container layout">
+<main class="container layout vendor-workspace">
     @include('components.sidebars.vendor')
-    <div class="dashboard-content">
-        <div class="dash-title">
+    <div class="dashboard-content vendor-workspace-content">
+        <div class="dash-title vendor-page-header">
             <div><h1>السجل المالي</h1><p class="muted">يُحتجز المبلغ لمدة 24 ساعة بعد إتمام الخدمة. يظهر أي اعتراض أو مشكلة دفع ضمن الحالات التي تتطلب متابعة.</p></div>
             <a class="btn btn-outline" href="{{ route('vendor.profile') }}">ملف الفني</a>
         </div>

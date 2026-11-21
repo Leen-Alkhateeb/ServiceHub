@@ -1,6 +1,7 @@
 @extends('layouts.app')
 @section('title', 'التقييمات | ServiceHub')
 @section('page_id', 'admin-reviews')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 @section('content')
     @include('components.navbar')
@@ -17,14 +18,13 @@
                 </div>
             </div>
 
-            <!-- رسائل النجاح -->
             @if(session('success'))
                 <div class="alert alert-success" style="background: #e6f9e6; color: #1e7e34; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
                     {{ session('success') }}
                 </div>
             @endif
 
-            <!-- جدول التقييمات مباشرة بدون فلتر -->
+            
             <div class="panel" style="background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                 <h3 style="margin-top: 0; margin-bottom: 6px;">التقييمات</h3>
                 <p class="muted" style="margin-top: 0; margin-bottom: 20px;">مراجعة التقييمات وحذف المخالف منها أو تغيير حالة ظهوره.</p>
@@ -94,6 +94,7 @@
                 <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
             </svg>
         @else
+            
             <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
@@ -104,18 +105,27 @@
 </form>
 
                                             
-                                            <form action="{{ route('admin.reviews.destroy', $review->id) }}" method="POST" 
-                                                  onsubmit="return confirm('هل أنت متأكد من حذف هذا التقييم نهائياً؟');" style="margin: 0;">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" title="حذف"
-                                                    style="background: #fee2e2; color: #dc2626; border: none; width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                                        <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                                                        <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-                                                    </svg>
-                                                </button>
-                                            </form>
+                                            <form action="{{ route('admin.reviews.destroy', $review->id) }}" method="POST" style="margin: 0;"
+      onsubmit="event.preventDefault(); Swal.fire({
+          title: 'هل أنت متأكد؟',
+          text: 'لن تتمكن من استرجاع هذا التقييم بعد حذفه !',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#dc2626',
+          cancelButtonColor: '#64748b',
+          confirmButtonText: 'نعم، احذف',
+          cancelButtonText: 'إلغاء'
+      }).then((result) => { if (result.isConfirmed) this.submit(); });">
+    @csrf
+    @method('DELETE')
+    <button type="submit" title="حذف"
+        style="background: #fee2e2; color: #dc2626; border: none; width: 34px; height: 34px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+        </svg>
+    </button>
+</form>
                                         </div>
                                     </td>
                                 </tr>

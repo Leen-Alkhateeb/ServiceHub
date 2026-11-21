@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\AdminRefundsController;
 use App\Http\Controllers\AdminServicesController;
 use App\Http\Controllers\AccountDetailsController;
 use App\Http\Controllers\AccountPictureController;
@@ -8,9 +9,9 @@ use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\AdminPaymentController;
 use App\Http\Controllers\AdminReviewController;
-use App\Http\Controllers\AdminServicesController;
 use App\Http\Controllers\AdminUsersController;
 use App\Http\Controllers\AdminVendorApplicationController;
+use App\Http\Controllers\AdminWalletController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingProfileController;
 use App\Http\Controllers\CategoryController;
@@ -378,16 +379,16 @@ Route::middleware('auth')->group(function () {
                 Route::get('/messages', [AdminMessageController::class, 'index'])->name('messages.index');
                 Route::get('/messages/{message}', [AdminMessageController::class, 'show'])->name('messages.show');
                 Route::patch('/messages/{message}', [AdminMessageController::class, 'update'])->name('messages.update');
-                
-            // Reviews (التقييمات)
-            Route::get('/admin-reviews', [AdminReviewController::class, 'index'])
-            ->name('reviews.index');
 
-            Route::put('/admin-reviews/{id}', [AdminReviewController::class, 'update'])
-            ->name('reviews.update');
+                // Reviews (التقييمات)
+                Route::get('/admin-reviews', [AdminReviewController::class, 'index'])
+                    ->name('reviews.index');
 
-             Route::delete('/admin-reviews/{id}', [AdminReviewController::class, 'destroy'])
-             ->name('reviews.destroy');
+                Route::put('/admin-reviews/{id}', [AdminReviewController::class, 'update'])
+                    ->name('reviews.update');
+
+                Route::delete('/admin-reviews/{id}', [AdminReviewController::class, 'destroy'])
+                    ->name('reviews.destroy');
 
              // Cancellation 
              Route::get('/admin-cancellations', [AdminCancellationController::class, 'index'])
@@ -395,6 +396,13 @@ Route::middleware('auth')->group(function () {
 
             Route::delete('/admin-cancellations/{id}', [AdminCancellationController::class, 'destroy'])
             ->name('cancellations.destroy');
+            
+            // Wallet
+            Route::get('/admin-wallet', [AdminWalletController::class, 'index'])
+            ->name('wallet.index');
+
+            Route::delete('/admin-wallet/{id}', [AdminWalletController::class, 'destroy'])
+            ->name('wallet.destroy');
 
                 // Payments (read only)
                 Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
@@ -413,16 +421,24 @@ Route::middleware('auth')->group(function () {
                     [AdminVendorApplicationController::class, 'rejected']
                 )->name('admin-applications.rejected');
 
+                Route::put(
+                    '/admin-applications/{id}/rejected',
+                    [AdminVendorApplicationController::class, 'rejected']
+                )->name('admin-applications.rejected');
+
                 // Vendor Service Requests
                 Route::get(
                     '/vendor-service-requests',
                     [AdminServiceApprovalController::class, 'index']
                 )->name('service-requests.index');
 
-                Route::post(
-                    '/vendor-service-requests/{offer}',
-                    [AdminServiceApprovalController::class, 'decide']
-                )->name('service-requests.decide');
+                Route::get(
+                    '/admin-refunds',
+                    [AdminRefundsController::class, 'index']
+                )->name('refunds.index');
+
+                Route::post('/refunds/{refund}/decide', [AdminRefundsController::class, 'decide'])
+                    ->name('refunds.decide');
 
 
 

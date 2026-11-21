@@ -4,15 +4,16 @@ use App\Http\Controllers\AccountDetailsController;
 use App\Http\Controllers\AccountPictureController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminUsersController;
+use App\Http\Controllers\AdminVendorApplicationController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\BookingProfileController;
+use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MaintenanceAssistantController;
 use App\Http\Controllers\MarketController;
 use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\ProfileController;
@@ -185,14 +186,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/AdminDashboard', [AdminDashboardController::class, 'index'])->middleware(ActiveAdmin::class);
 
     Route::middleware(['auth', ActiveVendor::class])
-    ->name('vendor.')
-    ->group(function () {
-        Route::get('/vendor-availability', [VendorAvailabilityController::class, 'index'])->name('availability.index');
-        Route::post('/vendor-availability', [VendorAvailabilityController::class, 'store'])->name('availability.store');
-        Route::patch('/vendor-availability/{availability}', [VendorAvailabilityController::class, 'update'])->name('availability.update');
-        Route::delete('/vendor-availability/{availability}', [VendorAvailabilityController::class, 'destroy'])->name('availability.destroy');
-        Route::resource('vendor-bookings', BookingController::class)->only(['index', 'update'])->parameters(['vendor-bookings' => 'booking']);
-    });
+        ->name('vendor.')
+        ->group(function () {
+            Route::get('/vendor-availability', [VendorAvailabilityController::class, 'index'])->name('availability.index');
+            Route::post('/vendor-availability', [VendorAvailabilityController::class, 'store'])->name('availability.store');
+            Route::patch('/vendor-availability/{availability}', [VendorAvailabilityController::class, 'update'])->name('availability.update');
+            Route::delete('/vendor-availability/{availability}', [VendorAvailabilityController::class, 'destroy'])->name('availability.destroy');
+            Route::resource('vendor-bookings', BookingController::class)->only(['index', 'update'])->parameters(['vendor-bookings' => 'booking']);
+        });
 
     Route::patch('/my-profile', AccountDetailsController::class)->name('account.details.update');
     Route::post('/my-profile/photo', [AccountPictureController::class, 'update'])->middleware('throttle:10,1')->name('account.picture.update');
@@ -210,8 +211,8 @@ Route::middleware('auth')->group(function () {
             return redirect()->route(
                 'vendor.profile',
                 $request->has('tab') && is_string($tab)
-                    ? ['tab' => $tab]
-                    : []
+                ? ['tab' => $tab]
+                : []
             );
         }
 
@@ -321,49 +322,64 @@ Route::middleware('auth')->group(function () {
 
 
 
-/*
-|--------------------------------------------------------------------------
-| Admin Routes
-|--------------------------------------------------------------------------
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | Admin Routes
+    |--------------------------------------------------------------------------
+    */
 
-Route::middleware(ActiveAdmin::class)
-    ->name('admin.')
-    ->group(function () {
+    Route::middleware(ActiveAdmin::class)
+        ->name('admin.')
+        ->group(function () {
 
-        // Admin Dashboard
-        
+            // Admin Dashboard
+    
 
-        // Admin Management
+            // Admin Management
             Route::prefix('admin')->group(function () {
-            Route::get('/dashboard', [AdminDashboardController::class, 'index'])
-            ->name('dashboard');
+                Route::get('/dashboard', [AdminDashboardController::class, 'index'])
+                    ->name('dashboard');
 
-            Route::get('/Users', [AdminUsersController::class, 'index'])
-            ->name('admin.Users');
+                Route::get('/Users', [AdminUsersController::class, 'index'])
+                    ->name('admin.Users');
 
-            // Vendor Service Requests
-            Route::get('/vendor-service-requests', [VendorServiceRequestController::class, 'index'])
-                ->name('service-requests.index');
+                Route::delete('/deleteUser/{user}', [AdminUsersController::class, 'destroy'])
+                    ->name('users.destroy');
 
-            Route::post('/vendor-service-requests/{offer}', [VendorServiceRequestController::class, 'decide'])
-                ->name('service-requests.decide');
+                Route::get('/admin-applications', [AdminVendorApplicationController::class, 'index'])
+                    ->name('admin-applications');
 
-            Route::delete('/deleteUser/{user}', [AdminUsersController::class, 'destroy'])
-                ->name('users.destroy');
+                Route::put(
+                    '/admin-applications/{id}/approved',[AdminVendorApplicationController::class, 'approved']
+                )->name('admin-applications.approved');
 
-            Route::get('/categories', [CategoryController::class, 'index'])
-                ->name('categories');
-            Route::get('/categories/create', [CategoryController::class, 'create'])
-                ->name('categories.create');
-            Route::post('/categories', [CategoryController::class, 'store'])
-                ->name('categories.store');
-            Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])
-                ->name('categories.edit');
-            Route::put('/categories/{category}', [CategoryController::class, 'update'])
-                ->name('categories.update');
-            Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])
-                ->name('categories.destroy');
+                Route::put(
+                    '/admin-applications/{id}/rejected',[AdminVendorApplicationController::class, 'rejected']
+                )->name('admin-applications.rejected');
+
+                // Vendor Service Requests
+                Route::get('/vendor-service-requests', [VendorServiceRequestController::class, 'index'])
+                    ->name('service-requests.index');
+
+                Route::post('/vendor-service-requests/{offer}', [VendorServiceRequestController::class, 'decide'])
+                    ->name('service-requests.decide');
+
+
+
+                Route::get('/categories', [CategoryController::class, 'index'])
+                    ->name('categories');
+                Route::get('/categories/create', [CategoryController::class, 'create'])
+                    ->name('categories.create');
+                Route::post('/categories', [CategoryController::class, 'store'])
+                    ->name('categories.store');
+                Route::get('/categories/{category}/edit', [CategoryController::class, 'edit'])
+                    ->name('categories.edit');
+                Route::put('/categories/{category}', [CategoryController::class, 'update'])
+                    ->name('categories.update');
+                Route::delete('/categories/{category}', [CategoryController::class, 'destroy'])
+                    ->name('categories.destroy');
+
+
+            });
         });
-    });
 });

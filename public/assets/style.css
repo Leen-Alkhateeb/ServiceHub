@@ -1322,3 +1322,182 @@ tr:last-child td {
         flex: 1;
     }
 }
+
+/* Admin applications table */
+#admin-applications .table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+}
+
+#admin-applications .table-wrap table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+#admin-applications .table-wrap th,
+#admin-applications .table-wrap td {
+    padding: 16px 12px;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+#admin-applications .table-wrap th {
+    background: #f8fafc;
+    font-weight: 700;
+    font-size: 14px;
+    color: #1f2937;
+}
+
+#admin-applications .table-wrap td {
+    font-size: 14px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+#admin-applications .table-wrap tbody tr:last-child td {
+    border-bottom: none;
+}
+
+#admin-applications .table-wrap tbody tr:hover {
+    background: #fafbfc;
+}
+
+/* Allow longer names and work types to wrap */
+#admin-applications .table-wrap th:nth-child(2),
+#admin-applications .table-wrap td:nth-child(2),
+#admin-applications .table-wrap th:nth-child(3),
+#admin-applications .table-wrap td:nth-child(3) {
+    white-space: normal;
+    min-width: 125px;
+}
+
+/* Compact action buttons */
+#admin-applications .application-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+}
+
+#admin-applications .application-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 68px;
+    height: 36px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color .2s, border-color .2s;
+}
+
+#admin-applications .application-btn-approve {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #bbf7d0;
+}
+
+#admin-applications .application-btn-approve:hover {
+    background: #bbf7d0;
+}
+
+#admin-applications .application-btn-reject {
+    background: #fee2e2;
+    color: #991b1b;
+    border-color: #fecaca;
+}
+
+#admin-applications .application-btn-reject:hover {
+    background: #fecaca;
+}
+
+#admin-applications .application-btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+/* Pagination */
+#admin-applications .pagination-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    direction: rtl;
+
+}
+#admin-applications .layout {
+    min-width: 0;
+}
+
+#admin-applications .layout > div {
+    min-width: 0;
+}
+
+#admin-applications .table-wrap {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+}
+
+#admin-applications .table-wrap table {
+    width: 100%;
+    min-width: 950px;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+#admin-applications .application-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+}
+#admin-applications .pagination-wrap {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    direction: rtl;
+}
+
+#admin-applications .pagination-wrap nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+#admin-applications .pagination-wrap a,
+#admin-applications .pagination-wrap span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    min-height: 36px;
+    padding: 8px 12px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    color: #1f2937;
+    font-size: 14px;
+    text-decoration: none;
+}
+
+#admin-applications .pagination-wrap a:hover {
+    background: #f3f4f6;
+    border-color: #d1d5db;
+}

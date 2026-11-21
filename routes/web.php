@@ -91,6 +91,12 @@ Route::get('/services/{vendorService}', [MarketController::class, 'show'])
 Route::view('/faq', 'pages.public.faq')
     ->name('faq');
 
+Route::view('/about', 'pages.public.about')
+    ->name('about');
+
+Route::view('/contact', 'pages.public.contact')
+    ->name('contact');
+
 Route::get('/profile-pictures/{account}', [AccountPictureController::class, 'show'])
     ->name('account.picture.show');
 
@@ -431,6 +437,12 @@ Route::middleware('auth')->group(function () {
                     '/vendor-service-requests',
                     [AdminServiceApprovalController::class, 'index']
                 )->name('service-requests.index');
+
+                // Approve / reject a vendor's service request (used by the page's decision dialog)
+                Route::post(
+                    '/vendor-service-requests/{offer}/decide',
+                    [VendorServiceRequestController::class, 'decide']
+                )->name('service-requests.decide');
 
                 Route::get(
                     '/admin-refunds',

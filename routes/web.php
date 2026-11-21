@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminServicesController;
 use App\Http\Controllers\AccountDetailsController;
 use App\Http\Controllers\AccountPictureController;
 use App\Http\Controllers\AdminBookingController;
+use App\Http\Controllers\AdminCancellationController;
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\AdminPaymentController;
@@ -387,6 +388,13 @@ Route::middleware('auth')->group(function () {
 
                 Route::delete('/admin-reviews/{id}', [AdminReviewController::class, 'destroy'])
                     ->name('reviews.destroy');
+
+             // Cancellation 
+             Route::get('/admin-cancellations', [AdminCancellationController::class, 'index'])
+            ->name('cancellations.index');
+
+            Route::delete('/admin-cancellations/{id}', [AdminCancellationController::class, 'destroy'])
+            ->name('cancellations.destroy');
 
                 // Payments (read only)
                 Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');

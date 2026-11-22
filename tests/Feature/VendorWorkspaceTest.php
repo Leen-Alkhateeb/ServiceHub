@@ -490,12 +490,15 @@ class VendorWorkspaceTest extends TestCase
         $this->assertDatabaseMissing('users', ['email' => $data['email']]);
         $this->post(route('register'), $data + [
             'work_permit' => UploadedFile::fake()->create('permit.pdf', 10, 'application/pdf'),
+            'profile_image' => UploadedFile::fake()->createWithContent('profile.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+Xk4QAAAAASUVORK5CYII=')),
         ])->assertRedirect(route('vendor.dashboard'));
         $vendor = User::whereEmail($data['email'])->firstOrFail();
         $this->assertAuthenticatedAs($vendor);
         $this->assertSame('vendor', $vendor->role);
         $this->assertSame('pending', $vendor->vendorProfile->application_status);
         $disk->assertExists($vendor->vendorProfile->work_permit_path);
+        $disk->assertExists($vendor->profile_image);
+        $this->get(route('account.picture.show', $vendor))->assertOk()->assertHeader('Content-Type', 'image/png');
         $this->get(route('vendor.dashboard'))->assertOk()->assertSee('حالة طلب الانضمام');
     }
 

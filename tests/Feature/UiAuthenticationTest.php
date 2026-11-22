@@ -5,8 +5,10 @@ namespace Tests\Feature;
 use App\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class UiAuthenticationTest extends TestCase
@@ -76,6 +78,30 @@ class UiAuthenticationTest extends TestCase
         $this->post(route('register'), $registration + ['password' => 'Strong9!', 'password_confirmation' => 'Strong8!'])
             ->assertSessionHasErrors('password');
         $this->assertDatabaseMissing('users', ['email' => $registration['email']]);
+    }
+
+    public function test_registration_saves_an_optional_profile_image(): void
+    {
+        $disk = Storage::fake('local');
+        $data = [
+            'first_name' => 'Demo', 'last_name' => 'Photo', 'email' => 'photo@example.test',
+            'phone' => '0700000000', 'location' => 'عمّان', 'gender' => 'female', 'account_type' => 'customer',
+            'password' => 'Strong9!', 'password_confirmation' => 'Strong9!',
+        ];
+        $this->get(route('register'))->assertOk()->assertSee('name="profile_image"', false);
+        $this->post(route('register'), $data + ['profile_image' => UploadedFile::fake()->create('document.pdf')])
+            ->assertSessionHasErrors('profile_image');
+        $this->assertDatabaseMissing('users', ['email' => $data['email']]);
+
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+Xk4QAAAAASUVORK5CYII=');
+        $this->post(route('register'), $data + [
+            'profile_image' => UploadedFile::fake()->createWithContent('profile.png', $png),
+        ])->assertRedirect(route('home'));
+        $user = User::whereEmail($data['email'])->firstOrFail();
+        $disk->assertExists($user->profile_image);
+        $imageUrl = route('account.picture.show', $user);
+        $this->get(route('account.profile'))->assertOk()->assertSee($imageUrl);
+        $this->get($imageUrl)->assertOk()->assertHeader('Content-Type', 'image/png');
     }
 
     public function test_password_reset_sends_notification_and_consumes_token(): void

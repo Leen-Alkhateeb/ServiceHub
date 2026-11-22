@@ -16,7 +16,7 @@
         <div class="field"><label for="edit-project-name">اسم المشروع</label><input id="edit-project-name" name="name" value="{{ old('name', $project->name) }}" maxlength="255" required></div>
         <div class="field"><label for="edit-project-description">الوصف</label><textarea id="edit-project-description" name="description" rows="4" maxlength="5000" required>{{ old('description', $project->description) }}</textarea></div>
         <div class="field"><label for="edit-project-price">قيمة المشروع (د.أ)</label><input id="edit-project-price" name="project_price" value="{{ old('project_price', $project->project_price) }}" type="number" min="0" max="99999999.99" step="0.01"></div>
-        <div class="field"><label for="edit-project-date">تاريخ الإنجاز</label><input id="edit-project-date" name="completion_date" value="{{ old('completion_date', $project->completion_date) }}" type="date" max="{{ now()->toDateString() }}"></div>
+        <div class="field"><label for="edit-project-date">تاريخ الإنجاز</label><input id="edit-project-date" name="completion_date" value="{{ old('completion_date', $project->completion_date) }}" type="date" min="1900-01-01" max="{{ now()->toDateString() }}"></div>
         @include('pages.vendor.partials.project-image-fields', ['projectImages' => $editableImages, 'requiresImage' => false])
         <button class="btn btn-yellow" type="submit">حفظ التعديلات</button>
     </form>

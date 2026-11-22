@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', $project->name.' | ServiceHub')
+@section('title', $project->name.'')
 @section('page_id', 'portfolio-project')
 @section('content')
 @include('components.navbar')

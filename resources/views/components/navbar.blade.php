@@ -3,7 +3,7 @@
     <div class="container nav">
         <a class="brand" href="{{ route('home') }}">
             <span class="brandmark">✓</span>
-            <span class="word">ServiceHub</span>
+            <span class="word">{{ config('app.site_name') }}</span>
         </a>
 
         <nav class="navlinks" id="navlinks">

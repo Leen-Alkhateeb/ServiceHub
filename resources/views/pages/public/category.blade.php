@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', $category->name.' | ServiceHub')
+@section('title', $category->name.'')
 @section('content')
 @include('components.navbar')
 <main class="container page-head directory-page">

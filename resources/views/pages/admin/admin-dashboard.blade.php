@@ -1,7 +1,7 @@
 
 @extends('layouts.app')
 
-@section('title', 'لوحة الإدارة | ServiceHub')
+@section('title', 'لوحة الإدارة')
 @section('page_id', 'admin-dashboard')
 
 @section('content')
@@ -15,7 +15,7 @@
             <div>
                 <span class="small muted">لوحة الإدارة</span>
                 <h1>إحصائيات المنصة</h1>
-                <p class="muted">متابعة نشاط ServiceHub وآخر التحديثات.</p>
+                <p class="muted">متابعة نشاط {{ config('app.site_name') }} وآخر التحديثات.</p>
             </div>
         </div>
 

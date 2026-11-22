@@ -1,7 +1,7 @@
 
 @extends('layouts.app')
 
-@section('title', 'طلبات الاسترداد | ServiceHub')
+@section('title', 'طلبات الاسترداد')
 @section('page_id', 'admin-refunds')
 
 @section('content')
@@ -136,13 +136,16 @@
                     </div>
                 </div>
 
-                <div class="table-wrap">
+                @if ($refunds->isNotEmpty())
+                    <p class="refunds-scroll-hint" id="refunds-scroll-hint">↔ اسحب الجدول يمين أو شمال لعرض باقي التفاصيل.</p>
+                @endif
+                <div class="table-wrap refunds-table-scroll" @if ($refunds->isNotEmpty()) tabindex="0" role="region" aria-label="جدول طلبات الاسترداد" aria-describedby="refunds-scroll-hint" @endif>
                     <table>
                         <thead>
                             <tr>
+                                <th scope="col" class="refunds-customer-column">العميل</th>
                                 <th>رقم الطلب</th>
                                 <th>الخدمة</th>
-                                <th>العميل</th>
                                 <th>مقدم الخدمة</th>
                                 <th>مبلغ الحجز</th>
                                 <th>تاريخ الطلب</th>
@@ -171,14 +174,13 @@
                                 @endphp
 
                                 <tr>
+                                    <td class="refunds-customer-column">
+                                        {{ $customer?->first_name ?? '' }}
+                                        {{ $customer?->last_name ?? '' }}
+                                    </td>
                                     <td>{{ $refunds->firstItem() + $loop->index }}</td>
                                     <td>
                                         {{ $booking?->service_name ?? $booking?->vendorService?->service?->name ?? '—' }}
-                                    </td>
-
-                                    <td>
-                                        {{ $customer?->first_name ?? '' }}
-                                        {{ $customer?->last_name ?? '' }}
                                     </td>
 
                                     <td>
@@ -214,7 +216,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="9">
+                                    <td colspan="8">
                                         <div class="empty-state">
                                             <h3>لا توجد طلبات استرداد</h3>
                                             <p class="muted">

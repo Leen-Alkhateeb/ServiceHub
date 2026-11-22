@@ -1,5 +1,5 @@
 @extends('layouts.auth')
-@section('title', 'تعيين كلمة مرور جديدة | ServiceHub')
+@section('title', 'تعيين كلمة مرور جديدة')
 @section('page_id', 'password-reset')
 @section('auth-content')
 <main class="container password-page">

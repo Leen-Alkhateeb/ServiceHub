@@ -1,7 +1,7 @@
 
 @extends('layouts.app')
 
-@section('title', 'طلبات إضافة الخدمات | ServiceHub')
+@section('title', 'طلبات إضافة الخدمات')
 @section('page_id', 'admin-service-requests')
 
 @push('styles')

@@ -1,19 +1,17 @@
 @extends('layouts.app')
-@section('title', 'انضم كفني | ServiceHub')
+@section('title', 'انضم كفني')
 @section('page_id', 'become-vendor')
 @section('content')
 @include('components.navbar')
 
-<main class="container page-head">
-    <div class="section-head">
-        <div>
-            <h1>انضم كفني</h1>
-            <p class="muted">قدّم طلبك واعرض خدمات الصيانة بعد موافقة الإدارة.</p>
-        </div>
-    </div>
+<main class="container vendor-join">
+    <header class="vendor-join-heading">
+        <h1>انضم كفني</h1>
+        <p class="muted">قدّم طلبك واعرض خدمات الصيانة بعد موافقة الإدارة.</p>
+    </header>
 
-    <div class="split">
-        <section class="panel">
+    <div class="vendor-join-layout">
+        <section class="panel vendor-join-panel">
             @if ($application)
                 @php
                     $status = match ($application->application_status) {
@@ -33,7 +31,7 @@
                 @endif
             @elseif ($canApply)
                 <h2>طلب الانضمام</h2>
-                <form method="POST" action="{{ route('vendor.apply') }}" enctype="multipart/form-data">
+                <form class="vendor-join-form" method="POST" action="{{ route('vendor.apply') }}" enctype="multipart/form-data">
                     @csrf
                     <div class="field">
                         <label for="work_type">التخصص</label>
@@ -45,9 +43,9 @@
                         <input id="experience_years" name="experience_years" type="number" value="{{ is_scalar(old('experience_years')) ? old('experience_years') : '' }}" min="0" max="80" required>
                         @error('experience_years') <p class="notice" role="alert">{{ $message }}</p> @enderror
                     </div>
-                    <div class="field">
+                    <div class="field vendor-join-wide">
                         <label for="bio">نبذة عن خبرتك</label>
-                        <textarea id="bio" name="bio" rows="4" maxlength="5000" required>{{ is_string(old('bio')) ? old('bio') : '' }}</textarea>
+                        <textarea id="bio" name="bio" rows="3" maxlength="5000" required>{{ is_string(old('bio')) ? old('bio') : '' }}</textarea>
                         @error('bio') <p class="notice" role="alert">{{ $message }}</p> @enderror
                     </div>
                     <div class="field">
@@ -61,7 +59,9 @@
                         <small id="permit-formats" class="muted">PDF أو JPG أو PNG، حتى 5 ميغابايت.</small>
                         @error('work_permit') <p class="notice" role="alert">{{ $message }}</p> @enderror
                     </div>
-                    <button class="btn btn-yellow" type="submit">إرسال الطلب</button>
+                    <div class="vendor-join-wide vendor-join-actions">
+                        <button class="btn btn-yellow" type="submit">إرسال الطلب</button>
+                    </div>
                 </form>
             @elseif (auth()->guest())
                 <h2>ابدأ طلب الانضمام</h2>
@@ -73,7 +73,7 @@
             @endif
         </section>
 
-        <aside class="panel">
+        <aside class="panel vendor-join-panel vendor-join-steps">
             <h2>خطوات الانضمام</h2>
             <ol>
                 <li>اذكر تخصصك وخبرتك وارفع تصريح عمل ساري المفعول.</li>

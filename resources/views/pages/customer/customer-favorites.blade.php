@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'المفضلة | ServiceHub')
+@section('title', 'المفضلة')
 @section('page_id', 'customer-favorites')
 
 @section('content')

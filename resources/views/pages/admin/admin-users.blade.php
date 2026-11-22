@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'المستخدمون | ServiceHub')
+@section('title', 'المستخدمون')
 @section('page_id', 'admin-users')
 
 @section('content')

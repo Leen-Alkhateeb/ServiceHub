@@ -475,6 +475,51 @@ class VendorWorkspaceTest extends TestCase
         Http::assertSentCount(1);
     }
 
+    public function test_assistant_keeps_earlier_details_across_multiple_follow_ups(): void
+    {
+        $plumbing = Category::factory()->create(['name' => 'السباكة']);
+        config(['services.gemini.key' => null]);
+        $route = route('maintenance.assistant');
+
+        $this->postJson($route, ['problem' => 'في مشكلة'])
+            ->assertOk()->assertJsonPath('question', 'equipment');
+
+        $history = [['problem' => 'في رطوبة بالجدار', 'question' => 'location']];
+        $this->postJson($route, ['problem' => 'بالمطبخ', 'history' => $history])
+            ->assertOk()->assertJsonPath('question', 'equipment');
+
+        $history[] = ['problem' => 'بالمطبخ', 'question' => 'equipment'];
+        $this->postJson($route, ['problem' => 'تحت المغسلة', 'history' => $history])
+            ->assertOk()->assertJsonPath('category_url', route('categories.show', $plumbing));
+
+        $history[] = ['problem' => 'ما بعرف', 'question' => 'symptom'];
+        $this->postJson($route, ['problem' => 'مش متأكد', 'history' => $history])
+            ->assertOk()->assertJsonPath('status', 'options');
+    }
+
+    public function test_assistant_understands_sofa_damage_and_asks_about_the_damaged_part(): void
+    {
+        $carpentry = Category::factory()->create(['name' => 'النجارة']);
+        $upholstery = Category::factory()->create(['name' => 'التنجيد']);
+        config(['services.gemini.key' => null]);
+        $route = route('maintenance.assistant');
+
+        $this->postJson($route, ['problem' => 'الكنباي مكسورة'])
+            ->assertOk()->assertJsonPath('category_url', route('categories.show', $carpentry));
+
+        $this->postJson($route, ['problem' => 'خشب', 'history' => [
+            ['problem' => 'الكنباي مكسورة', 'question' => 'equipment'],
+            ['problem' => 'تصلي الاريكه', 'question' => 'location'],
+        ]])->assertOk()->assertJsonPath('category_url', route('categories.show', $carpentry));
+
+        $this->postJson($route, ['problem' => 'بدي أصلح الكنباية'])
+            ->assertOk()->assertJsonPath('question', 'furniture_damage');
+
+        $this->postJson($route, ['problem' => 'القماش ممزق', 'history' => [
+            ['problem' => 'بدي أصلح الكنباية', 'question' => 'furniture_damage'],
+        ]])->assertOk()->assertJsonPath('category_url', route('categories.show', $upholstery));
+    }
+
     public function test_vendor_registration_creates_a_pending_profile_and_stores_the_permit_privately(): void
     {
         $disk = Storage::fake('local');
@@ -507,7 +552,7 @@ class VendorWorkspaceTest extends TestCase
         $seller = VendorProfile::factory()->create()->user;
         $buyer = VendorProfile::factory()->create()->user;
         $offer = VendorService::factory()->for($seller, 'vendor')->create(['duration_minutes' => 60]);
-        $tomorrow = now()->addDay()->startOfDay();
+        $tomorrow = today(Booking::SCHEDULE_TIMEZONE)->addDay();
         $window = $seller->recurringAvailabilities()->create([
             'day_of_week' => $tomorrow->dayOfWeek, 'start_time' => '09:00:00', 'end_time' => '12:00:00',
         ]);
@@ -515,6 +560,12 @@ class VendorWorkspaceTest extends TestCase
         $store = route('booking.store', $offer);
         $this->actingAs($seller)->post($store, $slot('09:00'))->assertForbidden();
         $this->actingAs($buyer)->get(route('market.show', $offer))->assertOk()->assertSee('إرسال طلب الحجز');
+        $this->post($store, ['slot' => '2027-02-30|09:00|'.$window->id])
+            ->assertSessionHasErrors(['slot' => 'الموعد المختار غير صالح.']);
+        $this->post($store, $slot('09:70'))
+            ->assertSessionHasErrors(['slot' => 'الموعد المختار غير صالح.']);
+        $this->post($store, $slot('09:15'))
+            ->assertSessionHasErrors(['slot' => 'هذا الموعد غير متاح. اختر موعدًا آخر.']);
         $this->post($store, $slot('09:00'))->assertRedirect(route('account.profile', ['tab' => 'bookings']));
         $ownBooking = Booking::factory()->for($offer)->create([
             'customer_id' => $buyer->id,

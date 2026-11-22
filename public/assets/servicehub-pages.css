@@ -13,6 +13,9 @@ a.btn-dark, .btn-dark { color: #fff; background: #202124; }
 .assistant-answer p { margin: .25rem 0 0; }
 .assistant-answer ul { margin: .4rem 0 0; padding-inline-start: 1.25rem; }
 .assistant-search [hidden] { display: none; }
+.assistant-conversation { display: grid; gap: .35rem; padding: 0; margin: 0 0 .75rem; list-style: none; overflow-wrap: anywhere; }
+.assistant-conversation li { padding: .3rem .65rem; border-inline-start: 2px solid var(--line); }
+.assistant-conversation li:nth-child(odd) { border-inline-start-color: var(--teal); }
 .notification-link { position: relative; display: inline-grid; place-items: center; width: 38px; height: 38px; border: 1px solid var(--line); border-radius: 10px; color: #202124; }
 .notification-count { position: absolute; inset-block-start: -5px; inset-inline-end: -5px; padding: 1px 4px; border-radius: 20px; background: #ffd21f; color: #202124; font-size: 11px; font-weight: 800; }
 .notification-item h2 { font-size: 1.1rem; }
@@ -132,7 +135,21 @@ a.btn-dark, .btn-dark { color: #fff; background: #202124; }
 @media (max-width: 650px) {
     .account-actions .btn-outline { display: inline-flex; }
     .topbar .nav { height: auto; min-height: 65px; flex-wrap: wrap; gap: .35rem; padding-block: .35rem; }
+    .topbar .account-actions { flex: 1 1 auto; }
+    .topbar .menu-toggle { margin-left: 0; margin-right: auto; }
     .topbar .navlinks { top: 100%; z-index: 20; }
+    .topbar .navlinks.open {
+        max-height: min(70dvh, calc(100dvh - var(--topbar-h, 92px) - 64px));
+        overscroll-behavior: contain;
+    }
+    .topbar .navlinks.open a:is(:hover, :focus-visible) {
+        color: var(--ink);
+        background: var(--teal-soft);
+    }
+    .topbar .navlinks.open a:is(.active, .is-active) {
+        color: var(--ink);
+        background: var(--yellow-soft);
+    }
     .account-avatar { width: 32px; height: 32px; }
     .account-actions .btn-sm { padding-inline: .4rem; }
 }
@@ -415,9 +432,49 @@ a.btn-dark, .btn-dark { color: #fff; background: #202124; }
 .account-menu a, .account-menu button { display: block; width: 100%; padding: .5rem .65rem; border: 0; border-radius: 7px; background: #fff; color: #202124; text-align: start; font-weight: 700; }
 .account-menu a:hover, .account-menu button:hover { background: #edf6f2; }
 [data-registration] [hidden] { display: none !important; }
+
+.vendor-join { padding-block: clamp(1.35rem, 3.5vw, 3rem); }
+.vendor-join-heading { margin-block-end: clamp(1rem, 2.5vw, 1.75rem); }
+.vendor-join-heading h1 { margin: 0; font-size: clamp(1.85rem, 4vw, 2.75rem); }
+.vendor-join-heading p { margin: .35rem 0 0; }
+.vendor-join-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: start;
+    gap: clamp(1rem, 2vw, 1.5rem);
+}
+.vendor-join .vendor-join-panel { padding: clamp(1rem, 2.5vw, 1.6rem); }
+.vendor-join-panel h2 { margin: 0 0 1rem; font-size: clamp(1.3rem, 2.4vw, 1.65rem); }
+.vendor-join-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.vendor-join-form .field { min-width: 0; margin: 0; }
+.vendor-join-form :is(input, textarea) { min-width: 0; max-width: 100%; }
+.vendor-join-form textarea { min-height: 6rem; resize: vertical; }
+.vendor-join-wide { grid-column: 1 / -1; }
+.vendor-join-actions { padding-block-start: .75rem; border-block-start: 1px solid var(--line); }
+.vendor-join .vendor-join-steps { background: var(--teal-soft); }
+.vendor-join-steps ol { display: grid; gap: .65rem; margin: 0; padding-inline-start: 1.35rem; }
+.vendor-join-steps li::marker { color: var(--teal); font-weight: 800; }
+
+@media (max-width: 760px) {
+    .vendor-join-layout { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 540px) {
+    .vendor-join-form { grid-template-columns: minmax(0, 1fr); }
+    .vendor-join .vendor-join-actions .btn { width: 100%; }
+}
+
 @media (max-width: 760px) {
     .account-dropdown { position: static; }
-    .account-menu { inset-block-start: 100%; inset-inline-end: 12px; }
+    .account-menu {
+        inset: calc(100% + 6px) auto auto var(--account-menu-left, max(12px, calc(100% - 212px)));
+        width: min(200px, calc(100% - 24px));
+    }
+    .notification-menu, .account-menu {
+        max-width: calc(100% - 24px);
+        max-height: calc(100dvh - var(--topbar-h, 92px) - 64px);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
 }
 
 .hub-error-page { min-height: 100svh; display: grid; place-items: center; padding-block: 1.5rem; }

@@ -159,8 +159,8 @@ class MarketController extends Controller
             (int) ($vendorService->duration_minutes ?: 60)
         );
 
-        $firstDate = today();
-        $lastDate = today()->addDays($daysToShow - 1);
+        $firstDate = today(Booking::SCHEDULE_TIMEZONE);
+        $lastDate = $firstDate->copy()->addDays($daysToShow - 1);
 
         $windows = RecurringAvailability::where('vendor_id', $vendorService->vendor_id)
             ->where('is_active', true)
@@ -208,11 +208,11 @@ class MarketController extends Controller
                             $slotEnd
                         ) {
                             $bookingStart = Carbon::parse(
-                                $date->toDateString() . ' ' . $booking->start_time
+                                $date->toDateString() . ' ' . $booking->start_time, Booking::SCHEDULE_TIMEZONE
                             );
 
                             $bookingEnd = Carbon::parse(
-                                $date->toDateString() . ' ' . $booking->end_time
+                                $date->toDateString() . ' ' . $booking->end_time, Booking::SCHEDULE_TIMEZONE
                             );
 
                             return $slotStart->lt($bookingEnd)
@@ -231,7 +231,7 @@ class MarketController extends Controller
                         ];
                     }
 
-                    $cursor->addMinutes(30);
+                    $cursor->addMinutes(Booking::SLOT_STEP_MINUTES);
                 }
             }
 

@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'كتالوج الخدمات | ServiceHub')
+@section('title', 'كتالوج الخدمات')
 @section('page_id', 'admin-services')
 @push('styles')
     <meta name="turbo-visit-control" content="reload">

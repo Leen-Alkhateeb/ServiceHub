@@ -10,7 +10,11 @@
     <div class="auth-shell">
         @include('components.navbar')
         <div class="auth-content">@yield('auth-content')</div>
-        @include('components.footer')
+        @unless (View::hasSection('hide-auth-footer'))
+            @include('components.footer')
+        @endunless
     </div>
-    @include('components.mobile-nav-public')
+    @unless (View::hasSection('hide-auth-footer'))
+        @include('components.mobile-nav-public')
+    @endunless
 @endsection

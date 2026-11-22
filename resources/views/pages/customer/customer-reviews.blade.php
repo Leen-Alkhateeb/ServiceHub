@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'تقييماتي | ServiceHub')
+@section('title', 'تقييماتي')
 @section('page_id', 'customer-reviews')
 @section('content')
 @include('components.navbar')

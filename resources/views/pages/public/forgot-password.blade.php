@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'استعادة كلمة المرور | ServiceHub')
+@section('title', 'استعادة كلمة المرور')
 @section('page_id', 'forgot-password')
 @section('content')
     @include('components.navbar')

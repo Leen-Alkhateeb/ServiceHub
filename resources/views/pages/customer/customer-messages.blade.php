@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'رسائل الدعم | ServiceHub')
+@section('title', 'رسائل الدعم')
 @section('page_id', 'customer-messages')
 @section('content')
 @include('components.navbar')

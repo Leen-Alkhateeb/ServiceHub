@@ -1,6 +1,6 @@
 <aside class="sidebar">
     <div class="brand">
-        <span class="brandmark">✓</span>ServiceHub</div>
+        <span class="brandmark">✓</span>{{ config('app.site_name') }}</div>
         <a class="" href="/customer-dashboard">نظرة عامة</a>
         <a class="" href="/customer-bookings">حجوزاتي</a>
         <a class="" href="/customer-favorites">المفضلة</a>

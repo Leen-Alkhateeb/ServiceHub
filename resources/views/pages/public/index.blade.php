@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'الرئيسية | ServiceHub')
+@section('title', 'الرئيسية')
 @section('page_id', 'index')
 @section('content')
 @include('components.navbar')
@@ -65,6 +65,7 @@
                 @endforeach
             </div>
             <div class="assistant-answer" data-assistant-answer hidden>
+                <ul class="assistant-conversation" data-assistant-conversation aria-label="سياق المحادثة" hidden></ul>
                 <div role="status" aria-live="polite">
                     <strong data-assistant-heading></strong>
                     <p data-assistant-result></p>

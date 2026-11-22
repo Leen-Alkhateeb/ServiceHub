@@ -6,6 +6,7 @@
 
 @php $user = auth()->user(); @endphp
 
+@include('components.navbar')
 <div class="profile-layout">
     @include('pages.customer.menu')
 

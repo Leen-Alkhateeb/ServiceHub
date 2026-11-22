@@ -7,6 +7,7 @@ use App\Models\PortfolioProject;
 use App\Models\Review;
 use App\Models\VendorService;
 use App\Services\AccountHistory;
+use App\Services\VendorOfferImage;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -71,7 +72,7 @@ class VendorPagesController extends Controller
                 'services.description as default_description'
             ], 'services_page')
             ->withQueryString()->through(function ($service) {
-                $service->image_url = $this->resolveImage($service->id, $service->image, $service->catalog_image)[0] ?? null;
+                $service->image_url = VendorOfferImage::resolve($service->id, $service->image, $service->catalog_image)[0] ?? null;
 
                 return $service;
             }) : null;
@@ -89,7 +90,7 @@ class VendorPagesController extends Controller
         $requests = $ownProfile ? VendorService::with('service')->where('vendor_id', $vendorId)
             ->whereIn('status', ['pending', 'rejected'])->latest('updated_at')->latest('id')
             ->paginate(5, ['*'], 'requests_page')->withQueryString()->through(function (VendorService $offer) {
-                $offer->image_url = $this->resolveImage($offer->id, $offer->image, $offer->service->image)[0] ?? null;
+                $offer->image_url = $offer->imageUrl();
 
                 return $offer;
             }) : null;
@@ -222,44 +223,24 @@ public function dashboard(Request $request): View
     public function serviceImage(Request $request, VendorService $offer): StreamedResponse
     {
         $user = $request->user();
-        $ownsRequest = $user && $user->status === 'active' && (int) $user->id === (int) $offer->vendor_id
+        $canPreviewRequest = $user && $user->status === 'active'
+            && ((int) $user->id === (int) $offer->vendor_id || $user->role === 'admin')
             && in_array($offer->status, ['pending', 'rejected'], true);
-        if (! $ownsRequest) {
+        if (! $canPreviewRequest) {
             $this->authorizeOffer($request, $offer);
         }
-        $path = $this->resolveImage($offer->id, $offer->image, $offer->service->image)[1] ?? null;
+        $path = VendorOfferImage::resolve($offer->id, $offer->image, $offer->service->image)[1] ?? null;
         abort_unless($path, 404);
 
         $disk = Storage::disk('public');
         $type = $disk->mimeType($path);
         abort_unless(in_array($type, ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'], true), 404);
 
-        return $disk->response($path, null, ['Content-Type' => $type, 'X-Content-Type-Options' => 'nosniff']);
-    }
-
-    private function resolveImage(int $offerId, ?string ...$images): array
-    {
-        foreach (array_unique($images) as $image) {
-            if (!$image) {
-                continue;
-            }
-            if (filter_var($image, FILTER_VALIDATE_URL) && in_array(parse_url($image, PHP_URL_SCHEME), ['https', 'http'], true)) {
-                return [$image, null];
-            }
-            $path = ltrim(str_replace('\\', '/', $image), '/');
-            if (str_contains($path, '..') || !preg_match('/\.(jpe?g|png|webp|gif|avif)$/i', $path)) {
-                continue;
-            }
-            if (str_starts_with($path, 'assets/') && is_file(public_path($path))) {
-                return [asset($path), null];
-            }
-            $path = str_starts_with($path, 'storage/') ? substr($path, 8) : $path;
-            if (Storage::disk('public')->exists($path)) {
-                return [route('vendor.service.image', $offerId), $path];
-            }
-        }
-
-        return [];
+        return $disk->response($path, null, [
+            'Content-Type' => $type,
+            'X-Content-Type-Options' => 'nosniff',
+            'Cache-Control' => 'private, no-cache',
+        ]);
     }
 
     private function authorizeOffer(Request $request, VendorService $offer): void

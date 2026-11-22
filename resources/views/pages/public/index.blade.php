@@ -50,17 +50,32 @@
     </section>
 
     <div class="container">
-        <section class="assistant-search">
-            <h2>مش عارف أي فني بتحتاج؟ خلّينا نساعدك</h2>
+        <section class="assistant-search" aria-labelledby="maintenance-assistant-title">
+            <h2 id="maintenance-assistant-title">مش عارف أي فني بتحتاج؟ خلّينا نساعدك</h2>
             <p class="muted">اوصف المشكلة بدون معلومات شخصية لنقترح قسم الصيانة المناسب.</p>
             <form method="POST" action="{{ route('maintenance.assistant') }}" data-maintenance-assistant>
                 @csrf
-                <label class="sr-only" for="maintenance-problem">وصف المشكلة</label>
-                <input class="searchbox" id="maintenance-problem" name="problem" placeholder="مثال: المكيف شغال بس مش ببرّد" maxlength="500" required>
+                <label class="sr-only" for="maintenance-problem" data-assistant-label>وصف المشكلة</label>
+                <input class="searchbox" id="maintenance-problem" name="problem" placeholder="مثال: المكيف شغال بس مش ببرّد" maxlength="500" autocomplete="off" required>
                 <button class="btn btn-dark" type="submit">جرّب المساعد</button>
             </form>
-            <p data-assistant-result role="status" aria-live="polite"></p>
-            <a class="btn btn-outline btn-sm" data-assistant-category hidden>عرض الفنيين في القسم</a>
+            <div class="assistant-examples" data-assistant-examples>
+                @foreach (['الحنفية بتنقّط', 'المكيف شغال بس مش ببرّد', 'في رطوبة على الجدار'] as $example)
+                    <button class="btn btn-outline btn-sm" type="button" data-assistant-example>{{ $example }}</button>
+                @endforeach
+            </div>
+            <div class="assistant-answer" data-assistant-answer hidden>
+                <div role="status" aria-live="polite">
+                    <strong data-assistant-heading></strong>
+                    <p data-assistant-result></p>
+                    <ul data-assistant-services hidden></ul>
+                </div>
+                <div class="assistant-answer-actions">
+                    <a class="btn btn-yellow btn-sm" data-assistant-category hidden>عرض الفنيين في القسم</a>
+                    <div class="assistant-category-options" data-assistant-options hidden></div>
+                    <button class="btn btn-outline btn-sm" type="button" data-assistant-reset>مشكلة ثانية</button>
+                </div>
+            </div>
         </section>
     </div>
 

@@ -56,16 +56,18 @@
                     <p class="profile-service-description">{{ $service->description ?: $service->default_description }}</p>
                     <strong class="price">{{ number_format($service->price, 2) }} د.أ</strong>
                     @if ($service->duration_minutes)<p class="muted">{{ $service->duration_minutes }} دقيقة تقريبًا</p>@endif
-                    <button type="button" class="btn btn-outline" data-service-dialog
-                        data-name="{{ $service->name }}"
-                        data-price="{{ number_format($service->price, 2) }} د.أ"
-                        data-duration="{{ $service->duration_minutes ? $service->duration_minutes.' دقيقة تقريبًا' : '' }}"
-                        data-image="{{ $service->image_url }}"
-                        data-description="{{ $service->description ?: $service->default_description }}"
-                        data-reviews-url="{{ route('vendor.service.reviews', $service->id) }}">التفاصيل والتقييمات</button>
-                    @if ($ownProfile)
-                        <div class="moderation-actions">@include('pages.vendor.partials.offer-management', ['offer' => $service])</div>
-                    @endif
+                    <div class="profile-service-actions">
+                        <button type="button" class="btn btn-outline" data-service-dialog
+                            data-name="{{ $service->name }}"
+                            data-price="{{ number_format($service->price, 2) }} د.أ"
+                            data-duration="{{ $service->duration_minutes ? $service->duration_minutes.' دقيقة تقريبًا' : '' }}"
+                            data-image="{{ $service->image_url }}"
+                            data-description="{{ $service->description ?: $service->default_description }}"
+                            data-reviews-url="{{ route('vendor.service.reviews', $service->id) }}">التفاصيل والتقييمات</button>
+                        @if ($ownProfile)
+                            @include('pages.vendor.partials.offer-management', ['offer' => $service])
+                        @endif
+                    </div>
                 </article>
             @empty
                 <p class="muted">لا توجد خدمات متاحة.</p>

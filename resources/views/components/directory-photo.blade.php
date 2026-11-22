@@ -1,4 +1,4 @@
-@props(['picture' => null, 'trade' => '', 'kind', 'accountId' => null])
+@props(['picture' => null, 'trade' => '', 'kind', 'accountId' => null, 'resolvedPicture' => null])
 @php
     $topic = match (true) {
         preg_match('/سباك|تسريب|مياه|ريّ|plumb/iu', $trade) === 1 => 'plumbing',
@@ -13,8 +13,10 @@
     $path = is_string($picture) ? ltrim($picture, '/') : '';
     $source = $fallback;
 
-    if ($accountId && str_starts_with($path, 'profile-photos/')) {
-        $source = route('account.picture.show', $accountId);
+    if ($resolvedPicture) {
+        $source = $resolvedPicture;
+    } elseif ($accountId) {
+        $source = \App\Services\AccountPhoto::url($accountId, $picture) ?? $fallback;
     } elseif (filter_var($picture, FILTER_VALIDATE_URL) && str_starts_with($picture, 'https://')) {
         $source = $picture;
     } elseif ($path && ! str_contains($path, '..')) {

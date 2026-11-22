@@ -108,6 +108,7 @@
                         @if ($booking->cancellation_refund_amount !== null)
                             <div><dt>استرداد الإلغاء للعميل</dt><dd><bdi>{{ number_format($booking->cancellation_refund_amount, 2) }}</bdi> د.أ</dd></div>
                             <div><dt>حصة المنصة من الإلغاء</dt><dd><bdi>{{ number_format($booking->cancellation_platform_share, 2) }}</bdi> د.أ</dd></div>
+                            <div><dt>تسوية محفظة الفني</dt><dd><bdi>{{ number_format($booking->cancellation_vendor_amount ?? 0, 2) }}</bdi> د.أ</dd></div>
                         @endif
                     </dl>
                 </section>

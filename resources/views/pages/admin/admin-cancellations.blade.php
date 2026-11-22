@@ -3,7 +3,6 @@
 @section('page_id', 'admin-cancellations')
 
 @section('content')
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @include('components.navbar')
 
     <div class="container layout">
@@ -82,37 +81,11 @@
                                     </td>
 
                                     <td style="padding: 16px 10px; font-weight: bold; color: {{ $cancellation->cancellation_penalty > 0 ? '#dc2626' : '#64748b' }};">
-                                        {{ $cancellation->cancellation_penalty ? number_format($cancellation->cancellation_penalty, 2) . ' د.أ ' : '0.00 ' }}
-                                        @if ($cancellation->cancellation_refund_amount !== null)
-                                            <div class="small">استرداد العميل: <bdi>{{ number_format($cancellation->cancellation_refund_amount, 2) }}</bdi> د.أ</div>
-                                            <div class="small">حصة المنصة: <bdi>{{ number_format($cancellation->cancellation_platform_share, 2) }}</bdi> د.أ</div>
-                                            <div class="small">تسوية الفني: <bdi>{{ number_format($cancellation->walletTransactions->whereIn('transaction_type', ['penalty', 'refund_share'])->sum('amount'), 2) }}</bdi> د.أ</div>
-                                        @endif
+                                        <bdi>{{ number_format($cancellation->cancellation_penalty, 2) }}</bdi> د.أ
                                     </td>
 
                                     <td style="padding: 16px 10px;">
                                         <a class="btn btn-outline btn-sm" href="{{ route('admin.bookings.show', $cancellation) }}">عرض الحجز</a>
-                                        <form action="{{ route('admin.cancellations.destroy', $cancellation->id) }}" method="POST" style="margin: 0;"
-                                              onsubmit="if (!window.Swal) return confirm('هل أنت متأكد من حذف هذا السجل نهائياً؟'); event.preventDefault(); Swal.fire({
-                                                  title: 'تأكيد الحذف',
-                                                  text: 'هل أنت متأكد من حذف هذا السجل نهائياً؟',
-                                                  icon: 'warning',
-                                                  showCancelButton: true,
-                                                  confirmButtonColor: '#dc2626',
-                                                  cancelButtonColor: '#64748b',
-                                                  confirmButtonText: 'نعم، احذف',
-                                                  cancelButtonText: 'إلغاء'
-                                              }).then((result) => { if (result.isConfirmed) this.submit(); });">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" title="حذف"
-                                                style="background: #fee2e2; color: #dc2626; border: none; width: 34px; height: 34px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
-                                                    <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
-                                                </svg>
-                                            </button>
-                                        </form>
                                     </td>
                                 </tr>
                             @empty

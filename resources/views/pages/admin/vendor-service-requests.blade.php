@@ -301,6 +301,11 @@
                     <p class="request-description">
                         {{ $offer->description }}
                     </p>
+                    @if ($offerImage = $offer->imageUrl())
+                        <figure class="offer-image-preview">
+                            <img class="offer-image" src="{{ $offerImage }}" alt="صورة الخدمة" width="480" height="270" loading="lazy">
+                        </figure>
+                    @endif
 
                     <div class="request-details">
 

@@ -111,6 +111,10 @@ class AdminBookingController extends Controller
     public function show(Booking $booking)
     {
         $booking->load(['customer', 'vendorService.vendor', 'payment', 'refundRequest', 'cancelledByUser']);
+        if ($booking->cancellation_refund_amount !== null) {
+            $booking->loadSum(['walletTransactions as cancellation_vendor_amount' => fn ($entries) =>
+                $entries->whereIn('transaction_type', ['penalty', 'refund_share'])], 'amount');
+        }
 
         $paymentStatuses = [
             'pending' => 'بانتظار الدفع',

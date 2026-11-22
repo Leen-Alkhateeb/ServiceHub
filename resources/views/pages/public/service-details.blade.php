@@ -8,34 +8,8 @@
 
 @php
 
-    $imagePath = $vendorService->image ?: $vendorService->service->image;
     $categoryName = $vendorService->service->category->name ?? '';
-
-    $fallbackImage = match ($categoryName) {
-        'السباكة' => 'category-plumbing.jpg',
-        'الكهرباء', 'الطاقة الشمسية', 'الإنارة' => 'category-electrical.jpg',
-        'النجارة' => 'category-carpentry.jpg',
-        'صيانة الحدائق' => 'category-garden.jpg',
-        'التنظيف المتخصص' => 'category-cleaning.jpg',
-        'الأقفال', 'الأرضيات', 'الشبكات المنزلية' => 'category-tools.jpg',
-        default => 'category-maintenance.jpg',
-    };
-
-    if ($imagePath && filter_var($imagePath, FILTER_VALIDATE_URL)) {
-        $cover = $imagePath;
-    } elseif ($imagePath && str_starts_with($imagePath, 'assets/')) {
-        $cover = asset($imagePath);
-    } elseif ($imagePath) {
-        $imagePath = preg_replace(
-            '#^storage/#',
-            '',
-            str_replace('\\', '/', $imagePath)
-        );
-
-        $cover = asset('storage/' . ltrim($imagePath, '/'));
-    } else {
-        $cover = asset('assets/demo/directory/' . $fallbackImage);
-    }
+    $cover = $vendorService->imageUrl() ?? \App\Services\VendorOfferImage::fallback($categoryName);
 
     $isCustomer = auth()->check()
         && auth()->user()->role === 'customer';
@@ -113,11 +87,11 @@
 
 
     .sd-cover {
+        display: block;
+        width: 100%;
         height: 340px;
         background-color: #e4eee9;
-        background-position: center;
-        background-size: cover;
-        background-repeat: no-repeat;
+        object-fit: cover;
     }
 
     .sd-card-content,
@@ -394,11 +368,7 @@
         <div class="sd-layout">
             <div class="sd-main">
                 <article class="sd-card">
-                    <div class="sd-cover"
-                         role="img"
-                         aria-label="{{ $vendorService->service->name }}"
-                         style="background-image: url('{{ $cover }}')">
-                    </div>
+                    <img class="sd-cover" src="{{ $cover }}" alt="{{ $vendorService->service->name }}">
 
                     <div class="sd-card-content">
                         <span class="sd-category">{{ $categoryName }}</span>
@@ -496,17 +466,7 @@
                     <h2 class="sd-heading">مقدّم الخدمة</h2>
 
                     <div class="sd-vendor">
-                        @if ($vendor->profile_image)
-                            <img class="sd-avatar"
-                                 src="{{ str_starts_with($vendor->profile_image, 'profile-photos/')
-                                     ? route('account.picture.show', $vendor)
-                                     : asset('storage/' . ltrim($vendor->profile_image, '/')) }}"
-                                 alt="صورة {{ $vendor->first_name }}">
-                        @else
-                            <span class="sd-avatar">
-                                {{ mb_substr($vendor->first_name, 0, 1) }}
-                            </span>
-                        @endif
+                        <x-account-picture :account="$vendor" class="sd-avatar" aria-hidden="true" />
 
                         <div>
                             <p class="sd-vendor-name">

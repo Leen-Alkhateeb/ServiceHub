@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Booking;
 use App\Models\Favorite;
 use App\Models\Service;
+use App\Services\VendorOfferImage;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -38,6 +39,11 @@ class VendorService extends Model
     public function vendor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'vendor_id');
+    }
+
+    public function imageUrl(): ?string
+    {
+        return VendorOfferImage::resolve($this->id, $this->image, $this->service?->image)[0] ?? null;
     }
 
     public function service(): BelongsTo

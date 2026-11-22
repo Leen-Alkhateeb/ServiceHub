@@ -308,7 +308,12 @@ class SiteAuditRegressionTest extends TestCase
         $this->assertSame(1, $customerCancellation->walletTransactions()->count());
         $this->actingAs($vendor)->get(route('vendor.wallet'))->assertOk()->assertSee('تسويات الإلغاء')->assertSee('-15.00');
         $this->actingAs(User::factory()->admin()->create())->get(route('admin.cancellations.index'))
-            ->assertOk()->assertSee('استرداد العميل')->assertSee('حصة المنصة')->assertSee('70.00')->assertSee('-15.00');
+            ->assertOk()->assertSee('30.00')->assertSee(route('admin.bookings.show', $customerCancellation))
+            ->assertDontSee('استرداد العميل')->assertDontSee('حصة المنصة')
+            ->assertDontSee(route('admin.cancellations.destroy', $customerCancellation));
+        $this->get(route('admin.bookings.show', $customerCancellation))->assertOk()
+            ->assertSee('استرداد الإلغاء للعميل')->assertSee('70.00')->assertSee('حصة المنصة من الإلغاء')
+            ->assertSee('تسوية محفظة الفني')->assertSee('حذف الحجز');
     }
 
     public function test_admin_wallet_displays_archived_booking_transactions_and_rejects_other_roles(): void

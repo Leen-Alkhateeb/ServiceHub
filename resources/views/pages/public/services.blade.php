@@ -533,32 +533,7 @@
                     @php
                         $vendor = $item->vendor;
                         $categoryName = $item->service->category->name ?? '';
-                        $imagePath = $item->image ?: $item->service->image;
-
-                        $fallbackImage = match ($categoryName) {
-                            'السباكة' => 'category-plumbing.jpg',
-                            'الكهرباء', 'الطاقة الشمسية', 'الإنارة' => 'category-electrical.jpg',
-                            'النجارة' => 'category-carpentry.jpg',
-                            'صيانة الحدائق' => 'category-garden.jpg',
-                            'التنظيف المتخصص' => 'category-cleaning.jpg',
-                            'الأقفال', 'الأرضيات', 'الشبكات المنزلية' => 'category-tools.jpg',
-                            default => 'category-maintenance.jpg',
-                        };
-
-                        if ($imagePath && filter_var($imagePath, FILTER_VALIDATE_URL)) {
-                            $image = $imagePath;
-                        } elseif ($imagePath && str_starts_with($imagePath, 'assets/')) {
-                            $image = asset($imagePath);
-                        } elseif ($imagePath) {
-                            $imagePath = preg_replace(
-                                '#^storage/#',
-                                '',
-                                str_replace('\\', '/', $imagePath)
-                            );
-                            $image = asset('storage/' . ltrim($imagePath, '/'));
-                        } else {
-                            $image = asset('assets/demo/directory/' . $fallbackImage);
-                        }
+                        $image = $item->imageUrl() ?? \App\Services\VendorOfferImage::fallback($categoryName);
 
                         $rating = $vendor->reviews_received_avg_rating;
                         $isFavorite = in_array($item->id, $favoriteIds ?? []);
@@ -585,15 +560,7 @@
                             </h3>
 
                             <a class="vendor-link" href="{{ route('provider.show', $vendor) }}">
-                                @if ($vendor->profile_image)
-                                    <img class="vendor-avatar"
-                                         src="{{ asset('storage/' . $vendor->profile_image) }}"
-                                         alt="صورة {{ $vendor->first_name }}">
-                                @else
-                                    <span class="vendor-avatar">
-                                        {{ mb_substr($vendor->first_name, 0, 1) }}
-                                    </span>
-                                @endif
+                                <x-account-picture :account="$vendor" class="vendor-avatar" aria-hidden="true" />
 
                                 <span>
                                     {{ $vendor->first_name }} {{ $vendor->last_name }}

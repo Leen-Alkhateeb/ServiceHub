@@ -152,7 +152,7 @@
                 <article class="favorite-product">
                     @if ($available)<a href="{{ route('market.show', $item) }}" aria-label="تفاصيل {{ $item->service->name }}">@endif
                         <x-directory-photo
-                            :picture="$item->image ?: $item->service->image"
+                            :resolved-picture="$available ? $item->imageUrl() : null"
                             :trade="$categoryName"
                             kind="category"
                         />

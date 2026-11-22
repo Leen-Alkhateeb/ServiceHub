@@ -118,6 +118,11 @@ class VendorWorkspaceTest extends TestCase
 
         $other = User::factory()->create();
         $this->actingAs($other)->get($show)->assertOk()->assertHeader('Content-Type', 'image/png');
+        $offer = VendorService::factory()->for($vendor, 'vendor')->create();
+        foreach ([route('market.index'), route('market.show', $offer), route('vendors.index')] as $page) {
+            $this->get($page)->assertOk()->assertSee('src="'.$show.'"', false)
+                ->assertDontSee('/storage/profile-photos/', false);
+        }
         $profile->update(['application_status' => 'pending']);
         $this->get($show)->assertNotFound();
         $this->actingAs($vendor->fresh())->get($show)->assertOk();
@@ -128,6 +133,12 @@ class VendorWorkspaceTest extends TestCase
         $this->assertNull($vendor->fresh()->profile_image);
         $this->actingAs($vendor->fresh())->get(route('vendor.profile'))->assertOk()->assertDontSee($show)
             ->assertSee(mb_substr($vendor->first_name, 0, 1).'&nbsp;'.mb_substr($vendor->last_name, 0, 1), false);
+
+        $profile->update(['application_status' => 'approved']);
+        Storage::fake('public')->put('avatars/legacy.png', $png);
+        $vendor->update(['profile_image' => '/storage/avatars/legacy.png']);
+        $this->actingAs($other)->get(route('market.index'))->assertOk()->assertSee('src="'.$show.'"', false);
+        $this->get($show)->assertOk()->assertHeader('Content-Type', 'image/png');
     }
 
     public function test_landing_previews_link_to_directories_and_category_details(): void
@@ -341,8 +352,24 @@ class VendorWorkspaceTest extends TestCase
         }
 
         $pending = $vendor->vendorServices()->where('status', 'pending')->firstOrFail();
-        $this->get(route('vendor.profile'))->assertOk()->assertSee(route('vendor.service.image', $pending));
-        $this->actingAs(User::factory()->create())->get(route('vendor.service.image', $pending))->assertNotFound();
+        $pendingImage = route('vendor.service.image', $pending);
+        $this->get(route('vendor.profile'))->assertOk()->assertSee($pendingImage);
+        $customer = User::factory()->create();
+        $this->actingAs($customer)->get($pendingImage)->assertNotFound();
+        $this->get(route('market.index'))->assertOk()->assertDontSee($pendingImage);
+        $this->actingAs(User::factory()->admin()->create())
+            ->get(route('admin.service-requests.index'))->assertOk()->assertSee($pendingImage);
+        $this->get($pendingImage)->assertOk();
+        $this->post(route('admin.service-requests.decide', $pending), ['decision' => 'active'])->assertRedirect();
+
+        $this->actingAs($customer);
+        foreach ($vendor->vendorServices()->get() as $offer) {
+            $imageUrl = route('vendor.service.image', $offer);
+            $this->get(route('market.index'))->assertOk()->assertSee('src="'.$imageUrl.'"', false);
+            $this->get(route('market.show', $offer))->assertOk()->assertSee('src="'.$imageUrl.'"', false);
+            $response = $this->get($imageUrl)->assertOk()->assertHeader('Content-Type', 'image/png');
+            $this->assertSame($png, $response->streamedContent());
+        }
     }
 
     public function test_vendor_can_edit_archive_and_rerate_the_same_booking(): void
@@ -397,7 +424,9 @@ class VendorWorkspaceTest extends TestCase
         $plumbing = Category::factory()->create(['name' => 'السباكة']);
         config(['services.gemini.key' => 'fake-key', 'services.gemini.model' => 'test-model']);
         Http::fake(['https://generativelanguage.googleapis.com/*' => Http::response([
-            'candidates' => [['content' => ['parts' => [['text' => json_encode(['category_id' => $plumbing->id])]]]]],
+            'candidates' => [['content' => ['parts' => [['text' => json_encode([
+                'status' => 'match', 'category_id' => $plumbing->id, 'question' => null,
+            ])]]]]],
         ])]);
         $url = route('categories.show', $plumbing);
         $this->postJson(route('maintenance.assistant'), ['problem' => 'الحنفية بتسرّب مي'])
@@ -405,9 +434,45 @@ class VendorWorkspaceTest extends TestCase
         $this->postJson(route('maintenance.assistant'), ['problem' => 'اكتب كود PHP لتصليح المشروع'])
             ->assertOk()->assertJsonMissingPath('category_url');
         Http::assertNothingSent();
-        $this->postJson(route('maintenance.assistant'), ['problem' => 'في رطوبة داخل الجدار تحت المغسلة'])
+        $this->postJson(route('maintenance.assistant'), ['problem' => 'في رطوبة داخل الجدار قرب باب الشقة'])
             ->assertOk()->assertJsonPath('category_url', $url);
         Http::assertSent(fn ($request) => $request->hasHeader('x-goog-api-key', 'fake-key'));
+    }
+
+    public function test_assistant_asks_a_follow_up_and_only_recommends_live_catalog_services(): void
+    {
+        $plumbing = Category::factory()->create(['name' => 'السباكة']);
+        $live = Service::factory()->for($plumbing)->create(['name' => 'كشف تسريب المغسلة']);
+        VendorService::factory()->for($live)->for(VendorProfile::factory()->create()->user, 'vendor')->create();
+        Service::factory()->for($plumbing)->create(['name' => 'خدمة بدون عرض']);
+        config(['services.gemini.key' => 'fake-key', 'services.gemini.model' => 'test-model']);
+        Http::fake(['https://generativelanguage.googleapis.com/*' => Http::response([
+            'candidates' => [['content' => ['parts' => [['text' => json_encode([
+                'status' => 'clarify', 'category_id' => null, 'question' => 'location',
+            ])]]]]],
+        ])]);
+
+        $route = route('maintenance.assistant');
+        $this->postJson($route, ['problem' => 'في رطوبة بالجدار'])
+            ->assertOk()->assertJsonPath('status', 'clarify')->assertJsonMissingPath('category_url');
+        $this->postJson($route, ['problem' => 'تحت المغسلة', 'context' => 'في رطوبة بالجدار'])
+            ->assertOk()->assertJsonPath('status', 'match')
+            ->assertJsonPath('available_services', ['كشف تسريب المغسلة'])
+            ->assertJsonPath('category_url', route('categories.show', $plumbing));
+        $this->postJson($route, ['problem' => 'في ريحة غاز بالمطبخ'])
+            ->assertOk()->assertJsonPath('status', 'urgent')->assertJsonMissingPath('category_url');
+        $this->postJson($route, ['problem' => 'اكتبلي شيفرة Python', 'context' => 'في رطوبة بالجدار'])
+            ->assertOk()->assertJsonPath('status', 'outside_scope');
+        config(['services.gemini.key' => null]);
+        $this->postJson($route, ['problem' => 'في رطوبة بالجدار'])->assertOk()->assertJsonPath('status', 'clarify');
+        $this->postJson($route, ['problem' => 'بعد الاستخدام', 'context' => 'في رطوبة بالجدار'])
+            ->assertOk()->assertJsonPath('status', 'options')->assertJsonPath('browse_url', route('categories.index'));
+        $electrical = Category::factory()->create(['name' => 'الكهرباء']);
+        $this->postJson($route, ['problem' => 'بمكان واحد', 'context' => 'الحنفية بتسرّب والفيش ما بشتغل'])
+            ->assertOk()->assertJsonPath('status', 'options')
+            ->assertJsonFragment(['name' => $plumbing->name, 'url' => route('categories.show', $plumbing)])
+            ->assertJsonFragment(['name' => $electrical->name, 'url' => route('categories.show', $electrical)]);
+        Http::assertSentCount(1);
     }
 
     public function test_vendor_registration_creates_a_pending_profile_and_stores_the_permit_privately(): void

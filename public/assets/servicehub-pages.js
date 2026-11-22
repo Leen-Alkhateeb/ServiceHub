@@ -274,32 +274,122 @@ function initializePage() {
     }
 
     const assistant = document.querySelector('[data-maintenance-assistant]');
-    assistant?.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const result = document.querySelector('[data-assistant-result]');
-        const category = document.querySelector('[data-assistant-category]');
-        category.hidden = true;
-        const button = assistant.querySelector('button');
-        result.textContent = 'جارٍ البحث عن القسم المناسب…';
-        button.disabled = true;
-        try {
-            const response = await fetch(assistant.action, {
-                method: 'POST',
-                headers: { Accept: 'application/json' },
-                body: new FormData(assistant),
-            });
-            const body = await response.json();
-            result.textContent = body.message || 'تعذر عرض اقتراح الآن.';
-            if (response.ok && body.category_url) {
-                category.href = body.category_url;
-                category.hidden = false;
-            }
-        } catch {
-            result.textContent = 'تعذر الاتصال بالمساعد. تفقد اتصالك وحاول مرة أخرى.';
-        } finally {
-            button.disabled = false;
+    if (assistant) {
+        const section = assistant.closest('.assistant-search');
+        const input = assistant.elements.problem;
+        const label = assistant.querySelector('[data-assistant-label]');
+        const submit = assistant.querySelector('button[type="submit"]');
+        const examples = section.querySelector('[data-assistant-examples]');
+        const answer = section.querySelector('[data-assistant-answer]');
+        const heading = section.querySelector('[data-assistant-heading]');
+        const result = section.querySelector('[data-assistant-result]');
+        const services = section.querySelector('[data-assistant-services]');
+        const category = section.querySelector('[data-assistant-category]');
+        const options = section.querySelector('[data-assistant-options]');
+        const reset = section.querySelector('[data-assistant-reset]');
+        const initialPlaceholder = input.placeholder;
+        let context = '';
+
+        function setContext(value) {
+            context = value;
+            input.placeholder = context ? 'اكتب التفاصيل المطلوبة هون' : initialPlaceholder;
+            label.textContent = context ? 'تفاصيل إضافية عن المشكلة' : 'وصف المشكلة';
+            submit.textContent = context ? 'إرسال التفاصيل' : 'جرّب المساعد';
+            examples.hidden = Boolean(context);
         }
-    });
+
+        examples.addEventListener('click', (event) => {
+            const example = event.target.closest('[data-assistant-example]');
+            if (!example || submit.disabled) return;
+            input.value = example.textContent.trim();
+            assistant.requestSubmit();
+        });
+        reset.addEventListener('click', () => {
+            assistant.reset();
+            setContext('');
+            answer.hidden = true;
+            input.focus();
+        });
+        assistant.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const problem = input.value.trim();
+            if (!problem || submit.disabled) return;
+
+            const data = new FormData(assistant);
+            if (context) data.set('context', context);
+            answer.hidden = false;
+            delete answer.dataset.status;
+            heading.textContent = 'جارٍ تحليل وصف المشكلة…';
+            result.textContent = '';
+            services.replaceChildren();
+            services.hidden = true;
+            category.hidden = true;
+            options.replaceChildren();
+            options.hidden = true;
+            submit.disabled = true;
+            reset.disabled = true;
+
+            try {
+                const response = await fetch(assistant.action, {
+                    method: 'POST',
+                    headers: { Accept: 'application/json' },
+                    body: data,
+                    signal,
+                });
+                if (response.status === 429) {
+                    heading.textContent = 'المساعد مشغول الآن';
+                    result.textContent = 'انتظر شوي وحاول مرة ثانية.';
+                    return;
+                }
+                if (!response.ok) throw new Error('Assistant request failed');
+
+                const body = await response.json();
+                const titles = {
+                    match: 'القسم المقترح',
+                    clarify: 'خلّينا نحدّد المشكلة أكثر',
+                    options: 'خيارات الصيانة',
+                    urgent: 'تنبيه عاجل',
+                    outside_scope: 'مساعد الصيانة',
+                };
+                answer.dataset.status = body.status;
+                heading.textContent = titles[body.status] || 'مساعد الصيانة';
+                result.textContent = body.message;
+                if (body.status === 'clarify') {
+                    setContext(problem);
+                    input.value = '';
+                    input.focus({ preventScroll: true });
+                } else {
+                    setContext('');
+                }
+                for (const option of body.category_options ?? []) {
+                    const link = document.createElement('a');
+                    link.className = 'btn btn-yellow btn-sm';
+                    link.href = option.url;
+                    link.textContent = option.name;
+                    options.append(link);
+                }
+                options.hidden = options.childElementCount === 0;
+                if (body.category_url || body.browse_url) {
+                    category.href = body.category_url ?? body.browse_url;
+                    category.textContent = body.category_url ? 'عرض خدمات '+body.category_name : 'تصفّح أقسام الصيانة';
+                    category.hidden = false;
+                }
+                for (const name of body.available_services ?? []) {
+                    const item = document.createElement('li');
+                    item.textContent = name;
+                    services.append(item);
+                }
+                services.hidden = services.childElementCount === 0;
+            } catch {
+                if (signal.aborted) return;
+                heading.textContent = 'تعذّر تحميل الاقتراح';
+                result.textContent = 'حاول مرة ثانية بعد التأكد من الاتصال.';
+            } finally {
+                submit.disabled = false;
+                reset.disabled = false;
+            }
+        });
+    }
 
     document.querySelectorAll('.account-avatar img, .technician-avatar img').forEach((image) => {
         const showInitials = () => image.hidden = true;

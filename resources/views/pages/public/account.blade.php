@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'ملفي الشخصي | ServiceHub')
+@section('title', 'ملفي الشخصي')
 @section('content')
 @include('components.navbar')
 <main class="container page-head">

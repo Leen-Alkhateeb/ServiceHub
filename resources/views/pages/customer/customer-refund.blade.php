@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'طلب اعتراض على الخدمة | ServiceHub')
+@section('title', 'طلب اعتراض على الخدمة')
 @section('page_id', 'customer-refund')
 @section('content')
     @include('components.navbar')

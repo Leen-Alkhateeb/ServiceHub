@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'المدفوعات | ServiceHub')
+@section('title', 'المدفوعات')
 @section('page_id', 'admin-payments')
 
 @push('styles')

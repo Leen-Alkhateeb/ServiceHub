@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'تواصل معنا | ServiceHub')
+@section('title', 'تواصل معنا')
 @section('page_id', 'contact')
 @section('content')
 @include('components.navbar')

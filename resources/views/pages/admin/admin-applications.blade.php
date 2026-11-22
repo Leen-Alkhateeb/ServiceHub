@@ -1,7 +1,7 @@
 
 @extends('layouts.app')
 
-@section('title', 'طلبات انضمام الفنيين | ServiceHub')
+@section('title', 'طلبات انضمام الفنيين')
 @section('page_id', 'admin-applications')
 
 @section('content')
@@ -117,18 +117,25 @@
 
                         @if ($application->application_status === 'pending')
                             <div class="request-actions">
-                                <form action="{{ route('admin.admin-applications.approved', $application) }}" method="POST" data-turbo="false"
-                                    onsubmit="return confirm('هل أنت متأكد من الموافقة على طلب انضمام هذا الفني؟');">
-                                    @csrf
-                                    @method('PUT')
-                                    <button type="submit" class="btn request-approve">موافقة</button>
-                                </form>
-                                <form action="{{ route('admin.admin-applications.rejected', $application) }}" method="POST" data-turbo="false"
-                                    onsubmit="return confirm('هل أنت متأكد من رفض طلب انضمام هذا الفني؟');">
-                                    @csrf
-                                    @method('PUT')
-                                    <button type="submit" class="btn request-reject">رفض</button>
-                                </form>
+                                @foreach ([
+                                    'approved' => ['موافقة', 'تأكيد الموافقة', 'هل تريد الموافقة على طلب انضمام', 'request-approve'],
+                                    'rejected' => ['رفض', 'تأكيد الرفض', 'هل تريد رفض طلب انضمام', 'request-reject'],
+                                ] as $decision => [$label, $title, $question, $tone])
+                                    @php $dialogId = 'application-'.$application->id.'-'.$decision; @endphp
+                                    <button type="button" class="btn {{ $tone }}" data-open-dialog="{{ $dialogId }}">{{ $label }}</button>
+                                    <dialog class="hub-dialog application-decision-dialog" id="{{ $dialogId }}" aria-labelledby="{{ $dialogId }}-title" aria-describedby="{{ $dialogId }}-message">
+                                        <div class="dialog-head">
+                                            <h2 id="{{ $dialogId }}-title">{{ $title }}</h2>
+                                        </div>
+                                        <p id="{{ $dialogId }}-message">{{ $question }} <strong>{{ $application->user?->first_name }} {{ $application->user?->last_name }}</strong>؟</p>
+                                        <form class="moderation-actions" action="{{ route('admin.admin-applications.'.$decision, $application) }}" method="POST" data-turbo="false">
+                                            @csrf
+                                            @method('PUT')
+                                            <button type="button" class="btn btn-outline" data-close-dialog autofocus>إلغاء</button>
+                                            <button type="submit" class="btn {{ $tone }}">{{ $title }}</button>
+                                        </form>
+                                    </dialog>
+                                @endforeach
                             </div>
                         @endif
                     </article>

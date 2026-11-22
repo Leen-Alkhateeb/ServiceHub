@@ -30,7 +30,7 @@
 @endphp
 <aside class="sidebar admin-sidebar">
     <div class="brand">
-        <span class="brandmark">✓</span>ServiceHub
+        <span class="brandmark">✓</span>{{ config('app.site_name') }}
     </div>
 
     @foreach ($adminMenu as [$groupTitle, $links])

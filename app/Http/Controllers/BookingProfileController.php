@@ -41,11 +41,13 @@ class BookingProfileController extends Controller
             [
                 'slot' => [
                     'required',
-                    'regex:/^\d{4}-\d{2}-\d{2}\|\d{2}:\d{2}\|\d+$/',
+                    'string',
+                    'regex:/^\d{4}-\d{2}-\d{2}\|\d{2}:\d{2}\|\d+$/D',
                 ],
             ],
             [
                 'slot.required' => 'يرجى اختيار موعد.',
+                'slot.string' => 'الموعد المختار غير صالح.',
                 'slot.regex' => 'الموعد المختار غير صالح.',
             ]
         );
@@ -54,8 +56,12 @@ class BookingProfileController extends Controller
         [$date, $start, $availabilityId] = explode('|', $request->input('slot'));
 
         try {
-            $startAt = Carbon::createFromFormat('Y-m-d H:i', "$date $start");
+            $startAt = Carbon::createFromFormat('!Y-m-d H:i', "$date $start", Booking::SCHEDULE_TIMEZONE);
         } catch (\Throwable $exception) {
+            $startAt = null;
+        }
+
+        if (! $startAt || $startAt->format('Y-m-d H:i') !== "$date $start") {
             return back()
                 ->withErrors(['slot' => 'الموعد المختار غير صالح.'])
                 ->withInput();
@@ -70,11 +76,13 @@ class BookingProfileController extends Controller
             ->where('is_active', true)
             ->first();
 
+        $windowStart = $window ? $startAt->copy()->setTimeFromTimeString($window->start_time) : null;
         $valid = $window
             && $startAt->isFuture()
-            && $startAt->lte(now()->addDays(29)->endOfDay())
+            && $startAt->lte(today(Booking::SCHEDULE_TIMEZONE)->addDays(29)->endOfDay())
             && $startAt->dayOfWeek === (int) $window->day_of_week
-            && $startAt->format('H:i') >= substr($window->start_time, 0, 5)
+            && $startAt->gte($windowStart)
+            && ($startAt->timestamp - $windowStart->timestamp) % (Booking::SLOT_STEP_MINUTES * 60) === 0
             && $endAt->isSameDay($startAt)
             && $endAt->format('H:i') <= substr($window->end_time, 0, 5);
 

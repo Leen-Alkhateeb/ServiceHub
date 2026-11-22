@@ -113,8 +113,9 @@ public function dashboard(Request $request): View
             $offer->where('vendor_id', $vendorId);
         });
 
-    $today = now()->toDateString();
-    $time = now()->format('H:i:s');
+    $scheduleNow = now(Booking::SCHEDULE_TIMEZONE);
+    $today = $scheduleNow->toDateString();
+    $time = $scheduleNow->format('H:i:s');
 
     // المواعيد المؤكدة التي لم يبدأ وقتها بعد
     $upcoming = function ($query) use ($today, $time) {

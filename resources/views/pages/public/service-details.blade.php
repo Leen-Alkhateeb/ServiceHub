@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $vendorService->service->name . ' | ServiceHub')
+@section('title', $vendorService->service->name . '')
 @section('page_id', 'service-details')
 
 @section('content')

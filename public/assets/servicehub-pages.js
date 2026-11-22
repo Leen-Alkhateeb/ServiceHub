@@ -318,15 +318,15 @@ function initializePage() {
         const category = section.querySelector('[data-assistant-category]');
         const options = section.querySelector('[data-assistant-options]');
         const reset = section.querySelector('[data-assistant-reset]');
+        const conversation = section.querySelector('[data-assistant-conversation]');
         const initialPlaceholder = input.placeholder;
-        let context = '';
+        const history = [];
 
-        function setContext(value) {
-            context = value;
-            input.placeholder = context ? 'اكتب التفاصيل المطلوبة هون' : initialPlaceholder;
-            label.textContent = context ? 'تفاصيل إضافية عن المشكلة' : 'وصف المشكلة';
-            submit.textContent = context ? 'إرسال التفاصيل' : 'جرّب المساعد';
-            examples.hidden = Boolean(context);
+        function setFollowUp(active) {
+            input.placeholder = active ? 'اكتب التفاصيل المطلوبة هون' : initialPlaceholder;
+            label.textContent = active ? 'تفاصيل إضافية عن المشكلة' : 'وصف المشكلة';
+            submit.textContent = active ? 'إرسال التفاصيل' : 'جرّب المساعد';
+            examples.hidden = active;
         }
 
         examples.addEventListener('click', (event) => {
@@ -337,7 +337,10 @@ function initializePage() {
         });
         reset.addEventListener('click', () => {
             assistant.reset();
-            setContext('');
+            history.length = 0;
+            conversation.replaceChildren();
+            conversation.hidden = true;
+            setFollowUp(false);
             answer.hidden = true;
             input.focus();
         });
@@ -347,7 +350,10 @@ function initializePage() {
             if (!problem || submit.disabled) return;
 
             const data = new FormData(assistant);
-            if (context) data.set('context', context);
+            history.forEach((turn, index) => {
+                data.set(`history[${index}][problem]`, turn.problem);
+                data.set(`history[${index}][question]`, turn.question);
+            });
             answer.hidden = false;
             delete answer.dataset.status;
             heading.textContent = 'جارٍ تحليل وصف المشكلة…';
@@ -375,6 +381,17 @@ function initializePage() {
                 if (!response.ok) throw new Error('Assistant request failed');
 
                 const body = await response.json();
+                if (!history.length) conversation.replaceChildren();
+                const previous = history.at(-1);
+                if (previous) {
+                    const question = document.createElement('li');
+                    question.textContent = previous.message;
+                    conversation.append(question);
+                }
+                const detail = document.createElement('li');
+                detail.textContent = problem;
+                conversation.append(detail);
+                conversation.hidden = false;
                 const titles = {
                     match: 'القسم المقترح',
                     clarify: 'خلّينا نحدّد المشكلة أكثر',
@@ -385,12 +402,14 @@ function initializePage() {
                 answer.dataset.status = body.status;
                 heading.textContent = titles[body.status] || 'مساعد الصيانة';
                 result.textContent = body.message;
+                input.value = '';
                 if (body.status === 'clarify') {
-                    setContext(problem);
-                    input.value = '';
+                    history.push({ problem, question: body.question, message: body.message });
+                    setFollowUp(true);
                     input.focus({ preventScroll: true });
                 } else {
-                    setContext('');
+                    history.length = 0;
+                    setFollowUp(false);
                 }
                 for (const option of body.category_options ?? []) {
                     const link = document.createElement('a');

@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'تفاصيل الرسالة | ServiceHub')
+@section('title', 'تفاصيل الرسالة')
 @section('page_id', 'admin-messages')
 
 @push('styles')

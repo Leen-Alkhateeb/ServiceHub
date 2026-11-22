@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', isset($selectedCategory) && $selectedCategory ? $selectedCategory->name.' | الخدمات | ServiceHub' : 'الخدمات | ServiceHub')
+@section('title', isset($selectedCategory) && $selectedCategory ? $selectedCategory->name.' | الخدمات' : 'الخدمات')
 @section('page_id', 'services')
 
 @section('content')

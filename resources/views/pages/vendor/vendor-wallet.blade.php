@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'السجل المالي | ServiceHub')
+@section('title', 'السجل المالي')
 @section('page_id', 'vendor-wallet')
 @section('content')
 @include('components.navbar')

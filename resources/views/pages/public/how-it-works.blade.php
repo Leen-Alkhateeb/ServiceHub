@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'كيف تعمل المنصة | ServiceHub')
+@section('title', 'كيف تعمل المنصة')
 @section('page_id', 'how-it-works')
 @section('content')
     @include('components.navbar')

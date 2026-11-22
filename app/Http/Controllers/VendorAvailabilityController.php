@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Booking;
 use App\Models\RecurringAvailability;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -131,8 +132,8 @@ class VendorAvailabilityController extends Controller
     private function hasUpcomingBookings(RecurringAvailability $availability): bool
     {
         return $availability->bookings()
-            ->whereDate('booking_date', '>=', today('Asia/Amman'))
-            ->whereIn('status', ['pending', 'approved', 'confirmed', 'in_progress'])
+            ->whereDate('booking_date', '>=', today(Booking::SCHEDULE_TIMEZONE))
+            ->blockingSlot()
             ->exists();
     }
 }

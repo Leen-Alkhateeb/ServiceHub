@@ -430,7 +430,7 @@ a.card:hover,
     background: var(--yellow);
 }
 
-/* Customer pages: navbar + sidebar + content live inside .profile-layout */
+/* Customer workspace */
 .profile-layout {
     display: grid;
     grid-template-columns: 250px minmax(0, 1fr);
@@ -439,11 +439,6 @@ a.card:hover,
     width: min(1160px, calc(100% - 40px));
     margin: 0 auto;
     padding-bottom: 80px;
-}
-
-.profile-layout > .topbar {
-    grid-column: 1 / -1;
-    margin-inline: calc(50% - 50vw);
 }
 
 .profile-layout > .sidebar {
@@ -905,6 +900,85 @@ table tbody tr:last-child td {
     color: #8a6d00;
 }
 
+body[data-page="register"] .auth-content {
+    display: grid;
+    align-items: center;
+    padding-block: clamp(.75rem, 2.5vh, 1.5rem);
+}
+.registration-page { width: min(1140px, calc(100% - 2rem)); }
+.registration-card {
+    display: grid;
+    grid-template-columns: minmax(12rem, 1fr) minmax(0, 3.25fr);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-lg);
+}
+.registration-intro {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: clamp(1.25rem, 3vw, 2.5rem);
+    background: linear-gradient(125deg, #176b5b, #123b34);
+    color: #fff;
+}
+.registration-intro h1 { margin: 0 0 .5rem; font-size: clamp(1.55rem, 3vw, 2.4rem); }
+.registration-intro p { margin: 0; color: #e5f0eb; }
+.registration-intro a { color: var(--yellow); font-weight: 700; text-decoration: underline; text-underline-offset: .2em; }
+.registration-intro a:focus-visible { outline-color: var(--yellow); }
+.registration-body { min-width: 0; padding: clamp(1rem, 2.5vw, 1.6rem); }
+.registration-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: .65rem .85rem;
+}
+.registration-fields > h2, .registration-fields > p { grid-column: 1 / -1; margin: 0; }
+.registration-fields > h2 { font-size: clamp(1.15rem, 2vw, 1.4rem); }
+.registration-fields > p { font-size: .9rem; }
+.registration-fields .field { margin: 0; min-width: 0; gap: .2rem; }
+.registration-fields .field label { margin: 0; font-size: .875rem; line-height: 1.4; }
+.registration-fields .field :is(input:not([type="file"]), select) { min-height: 42px; padding-block: .45rem; }
+.registration-fields .field :is(input, select, textarea) { width: 100%; min-width: 0; }
+.registration-fields .field small { display: block; margin-block-start: .25rem; font-size: .78rem; }
+.registration-fields .registration-bio { grid-column: 1 / -1; }
+.registration-fields .registration-bio textarea { min-height: 72px; resize: vertical; }
+.registration-profession { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.registration-fields .password-requirements { grid-column: span 2; margin: 0; font-size: .8rem; }
+.registration-fields .password-requirements ul { display: flex; flex-wrap: wrap; gap: .15rem .75rem; }
+.registration-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: .5rem .75rem;
+    margin-block-start: 1rem;
+    padding-block-start: .75rem;
+    border-block-start: 1px solid var(--line);
+}
+.registration-footer p { margin: 0; font-size: .875rem; }
+.registration-footer p:empty { display: none; }
+.registration-footer .moderation-actions { margin-inline-start: auto; }
+@media (max-width: 760px) {
+    body[data-page="register"] .auth-content { padding-block: .75rem; }
+    .registration-card { grid-template-columns: minmax(0, 1fr); }
+    .registration-intro {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        padding: .65rem 1rem;
+        gap: .25rem .75rem;
+    }
+    .registration-intro h1 { margin: 0; }
+    .registration-intro p { font-size: .875rem; }
+    .registration-body { padding: .85rem; }
+    .registration-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .55rem .65rem; }
+    .registration-image { grid-column: 1 / -1; }
+    .registration-footer { margin-block-start: .65rem; padding-block-start: .55rem; }
+}
+
 /* ---------- Booking time picker (service details) ---------- */
 
 .sd-picker {
@@ -1043,6 +1117,13 @@ body > .footer,
 }
 
 @media (max-width: 900px) {
+    .topbar .nav {
+        height: auto;
+        min-height: 72px;
+        gap: clamp(.35rem, 1.5vw, 1rem);
+        padding-block: .35rem;
+    }
+
     .navlinks {
         gap: 2px;
     }
@@ -1451,6 +1532,9 @@ body[data-page^="admin"] .topbar {
     }
 }
 
+.application-decision-dialog { width: min(460px, calc(100% - 24px)); }
+.application-decision-dialog .moderation-actions { justify-content: flex-end; }
+
 /* Vendor workspace */
 .vendor-workspace { align-items: start; gap: clamp(1rem, 2.5vw, 2rem); }
 .layout.vendor-workspace { --vendor-sidebar-width: clamp(12rem, 22vw, 16rem); grid-template-columns: var(--vendor-sidebar-width) minmax(0, 1fr); }
@@ -1521,6 +1605,41 @@ body[data-page^="admin"] .topbar {
 .vendor-workspace-content .item-row p { margin-block: .25rem 0; }
 .vendor-chart-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
 .vendor-chart-frame { position: relative; height: clamp(210px, 27vw, 290px); }
+.vendor-chart-frame canvas, .admin-chart-grid canvas { max-width: 100%; }
+
+.refunds-page .refunds-scroll-hint { display: none; }
+.refunds-page .refunds-table-scroll .refunds-customer-column {
+    width: 1%;
+    white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+    .refunds-page .refunds-scroll-hint {
+        display: block;
+        margin-block: 0 .65rem;
+        padding: .55rem .75rem;
+        border-radius: 8px;
+        background: var(--teal-soft);
+        color: var(--ink);
+        font-size: .875rem;
+    }
+
+    .refunds-page .refunds-table-scroll table:has(td.refunds-customer-column) {
+        min-width: 740px;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+    .refunds-page .refunds-table-scroll .refunds-customer-column {
+        position: sticky;
+        inset-inline-start: 0;
+        z-index: 1;
+        background: #fff;
+        border-inline-end: 1px solid var(--line);
+    }
+
+    .refunds-page .refunds-table-scroll th.refunds-customer-column { background: var(--teal-soft); }
+}
 .vendor-booking-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
 .vendor-workspace-content .badge {
     display: inline-flex;
@@ -1572,9 +1691,12 @@ body[data-page^="admin"] .topbar {
     border-block-start: 1px solid var(--line);
 }
 
+@media (max-width: 900px) {
+    .vendor-chart-grid { grid-template-columns: minmax(0, 1fr); }
+}
 @media (max-width: 720px) {
     .vendor-overview-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .vendor-overview-panels, .vendor-chart-grid { grid-template-columns: minmax(0, 1fr); }
+    .vendor-overview-panels { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 650px) {
     .layout.vendor-workspace { grid-template-columns: minmax(0, 1fr); }

@@ -6,7 +6,7 @@
     <div class="container">
         <div class="footer-grid">
             <div>
-                <div class="brand"><span class="brandmark">✓</span>ServiceHub</div>
+                <div class="brand"><span class="brandmark">✓</span>{{ config('app.site_name') }}</div>
                 <p class="muted">منصة لحجز خدمات الصيانة والإصلاح ومتابعة الطلبات بكل وضوح.</p>
             </div>
             <div>

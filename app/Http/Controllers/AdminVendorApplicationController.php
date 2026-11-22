@@ -74,7 +74,7 @@ class AdminVendorApplicationController extends Controller
             $application->user->update(['role' => 'vendor']);
             $application->user->notifications()->create([
                 'title' => 'تمت الموافقة على طلب الانضمام',
-                'message' => 'تهانينا! تمت الموافقة على طلب انضمامك كفني في ServiceHub.',
+                'message' => 'تهانينا! تمت الموافقة على طلب انضمامك كفني في '.config('app.site_name').'.',
                 'type' => 'vendor_application',
             ]);
         });
@@ -91,7 +91,7 @@ class AdminVendorApplicationController extends Controller
             $application->update(['application_status' => 'rejected']);
             $application->user->notifications()->create([
                 'title' => 'لم تتم الموافقة على طلب الانضمام',
-                'message' => 'نعتذر، لم تتم الموافقة على طلب انضمامك كفني في ServiceHub.',
+                'message' => 'نعتذر، لم تتم الموافقة على طلب انضمامك كفني في '.config('app.site_name').'.',
                 'type' => 'vendor_application',
             ]);
         });

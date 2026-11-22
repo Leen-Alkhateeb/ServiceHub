@@ -16,6 +16,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Booking extends Model
 {
+    public const SCHEDULE_TIMEZONE = 'Asia/Amman';
+
+    public const SLOT_STEP_MINUTES = 30;
+
     public function scopeBlockingSlot(\Illuminate\Database\Eloquent\Builder $query): void
     {
         $query->where(function ($bookings) {
@@ -73,12 +77,12 @@ class Booking extends Model
     {
         return in_array($this->status, ['confirmed', 'paid', 'in_progress'], true)
             && $this->payment?->status === 'paid'
-            && $this->booking_date?->copy()->setTimeFromTimeString($this->end_time)->lte(now());
+            && $this->booking_date?->copy()->shiftTimezone(self::SCHEDULE_TIMEZONE)->setTimeFromTimeString($this->end_time)->lte(now());
     }
 
     public function scheduledStart(): ?\Illuminate\Support\Carbon
     {
-        return $this->booking_date?->copy()->setTimeFromTimeString($this->start_time);
+        return $this->booking_date?->copy()->shiftTimezone(self::SCHEDULE_TIMEZONE)->setTimeFromTimeString($this->start_time);
     }
 
     public function canBeCancelled(): bool

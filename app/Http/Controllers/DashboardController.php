@@ -21,8 +21,9 @@ class DashboardController extends Controller
             fn (Builder $service) => $service->where('vendor_id', $vendorId)
         );
 
-        $today = now()->toDateString();
-        $time = now()->format('H:i:s');
+        $scheduleNow = now(Booking::SCHEDULE_TIMEZONE);
+        $today = $scheduleNow->toDateString();
+        $time = $scheduleNow->format('H:i:s');
 
         $upcoming = fn (Builder $query) => $query
             ->where('status', 'confirmed')

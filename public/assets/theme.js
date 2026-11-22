@@ -52,22 +52,27 @@ document.addEventListener('change', function (event) {
 
 // Home hero slider: fades between images every 5 seconds, dots to jump, pauses on hover.
 var heroTimer = null;
+var initializedHero = null;
 
 function startHeroSlider() {
-    clearInterval(heroTimer);
-
     var slider = document.querySelector('[data-hero-slider]');
 
-    if (!slider || slider.dataset.ready) {
+    if (!slider || slider === initializedHero) {
         return;
     }
-
-    slider.dataset.ready = '1';
 
     var slides = slider.querySelectorAll('.hero-slide');
     var dots = slider.querySelectorAll('[data-hero-dot]');
     var label = slider.querySelector('[data-hero-label]');
-    var current = 0;
+    if (slides.length < 2) {
+        return;
+    }
+
+    clearInterval(heroTimer);
+    initializedHero = slider;
+    var current = Math.max(0, Array.from(slides).findIndex(function (slide) {
+        return slide.classList.contains('is-active');
+    }));
     var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     function show(index) {
@@ -119,6 +124,7 @@ document.addEventListener('DOMContentLoaded', startHeroSlider);
 document.addEventListener('turbo:load', startHeroSlider);
 document.addEventListener('turbo:before-render', function () {
     clearInterval(heroTimer);
+    initializedHero = null;
 });
 
 // Real height of the sticky top bar (it can wrap or change with zoom),
@@ -134,6 +140,34 @@ function setTopbarHeight() {
 document.addEventListener('DOMContentLoaded', setTopbarHeight);
 document.addEventListener('turbo:load', setTopbarHeight);
 window.addEventListener('resize', setTopbarHeight);
+
+function positionAccountMenu(dropdown) {
+    if (!dropdown || !window.matchMedia('(max-width: 760px)').matches) {
+        return;
+    }
+
+    var header = dropdown.closest('.topbar');
+    var trigger = dropdown.querySelector('summary');
+    var menu = dropdown.querySelector('.account-menu');
+    if (!header || !trigger || !menu) {
+        return;
+    }
+
+    var headerBounds = header.getBoundingClientRect();
+    var triggerBounds = trigger.getBoundingClientRect();
+    var width = menu.offsetWidth;
+    var left = triggerBounds.left - headerBounds.left + (triggerBounds.width - width) / 2;
+    dropdown.style.setProperty('--account-menu-left', Math.max(12, Math.min(left, headerBounds.width - width - 12)) + 'px');
+}
+
+document.addEventListener('toggle', function (event) {
+    if (event.target.matches('.account-dropdown[open]')) {
+        positionAccountMenu(event.target);
+    }
+}, true);
+window.addEventListener('resize', function () {
+    positionAccountMenu(document.querySelector('.account-dropdown[open]'));
+});
 
 // Admin sidebar always stays between the header and the footer:
 // when the footer scrolls into view the sidebar gets shorter (its links scroll inside it)

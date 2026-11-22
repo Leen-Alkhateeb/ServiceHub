@@ -5,6 +5,7 @@
 
 @include('pages.partials.market-assets')
 
+@include('components.navbar')
 <div class="profile-layout">
     @include('pages.customer.menu')
 

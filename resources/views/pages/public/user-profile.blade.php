@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'الملف الشخصي | ServiceHub')
+@section('title', 'الملف الشخصي')
 
 @section('content')
     @include('components.navbar')

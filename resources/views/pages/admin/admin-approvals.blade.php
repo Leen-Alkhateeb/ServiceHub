@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'اعتماد الخدمات | ServiceHub')
+@section('title', 'اعتماد الخدمات')
 @section('page_id', 'admin-approvals')
 @section('content')
     @include('components.navbar')

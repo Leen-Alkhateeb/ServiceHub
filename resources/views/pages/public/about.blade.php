@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'من نحن | ServiceHub')
+@section('title', 'من نحن')
 @section('page_id', 'about')
 @section('content')
     @include('components.navbar')
@@ -8,7 +8,7 @@
             <div class="container">
                 <div class="section-head">
                     <div>
-                        <h2>ServiceHub — خدمات صيانة بطريقة أوضح</h2>
+                        <h2>{{ config('app.site_name') }} — خدمات صيانة بطريقة أوضح</h2>
                         <p class="muted"></p>
                     </div>
                 </div>

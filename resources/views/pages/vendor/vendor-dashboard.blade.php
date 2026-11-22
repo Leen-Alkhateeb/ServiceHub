@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'لوحة الفني | ServiceHub')
+@section('title', 'لوحة الفني')
 @section('page_id', 'vendor-dashboard')
 @section('content')
     @include('components.navbar')

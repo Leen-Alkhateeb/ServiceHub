@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'طلبات الحجز | ServiceHub')
+@section('title', 'طلبات الحجز')
 @section('page_id', 'vendor-bookings')
 @section('content')
     @include('components.navbar')

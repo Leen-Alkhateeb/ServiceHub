@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'حركات المحفظة | ServiceHub')
+@section('title', 'حركات المحفظة')
 @section('page_id', 'admin-wallet')
 
 @section('content')

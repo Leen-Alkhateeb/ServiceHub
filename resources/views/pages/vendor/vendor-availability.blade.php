@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'الجدول الأسبوعي | ServiceHub')
+@section('title', 'الجدول الأسبوعي')
 @section('page_id', 'vendor-availability')
 @push('styles')
 <style>

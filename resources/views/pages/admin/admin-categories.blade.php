@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'الأقسام | ServiceHub')
+@section('title', 'الأقسام')
 @section('page_id', 'admin-categories')
 
 @push('styles')

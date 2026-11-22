@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'التقييمات | ServiceHub')
+@section('title', 'التقييمات')
 @section('page_id', 'admin-reviews')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 

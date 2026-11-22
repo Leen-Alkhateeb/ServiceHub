@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'الإلغاءات | ServiceHub')
+@section('title', 'الإلغاءات')
 @section('page_id', 'admin-cancellations')
 
 @section('content')

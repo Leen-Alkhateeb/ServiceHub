@@ -1,5 +1,5 @@
 @extends('layouts.auth')
-@section('title', 'تسجيل الدخول | ServiceHub')
+@section('title', 'تسجيل الدخول')
 @section('page_id', 'login')
 @section('auth-content')
 <main>

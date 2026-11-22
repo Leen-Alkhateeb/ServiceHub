@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title', 'الأسئلة الشائعة | ServiceHub')
+@section('title', 'الأسئلة الشائعة')
 @section('page_id', 'faq')
 @section('content')
 @include('components.navbar')

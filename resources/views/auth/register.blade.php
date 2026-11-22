@@ -38,6 +38,13 @@
                     </select>
                 </div>
                 <div class="field">
+                    <label for="register-profile-image">الصورة الشخصية (اختياري)</label>
+                    <x-file-picker>
+                        <input id="register-profile-image" name="profile_image" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="register-profile-image-help">
+                    </x-file-picker>
+                    <small id="register-profile-image-help" class="muted">صورة JPG أو PNG أو WebP حتى 5 ميغابايت.</small>
+                </div>
+                <div class="field">
                     <label for="password">كلمة المرور</label>
                     <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72" aria-describedby="password-requirements" data-registration-password required>
                     <div class="password-requirements" id="password-requirements" hidden>

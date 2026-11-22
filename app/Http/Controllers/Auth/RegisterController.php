@@ -71,6 +71,7 @@ class RegisterController extends Controller
             'phone' => ['required', 'string', 'max:32'],
             'location' => ['required', 'string', 'max:255'],
             'gender' => ['required', 'in:male,female'],
+            'profile_image' => ['nullable', 'image', 'mimes:jpeg,jpg,png,webp', 'max:5120', 'dimensions:max_width=5000,max_height=5000'],
             'password' => ['bail', 'required', 'string', new StrongPassword, 'confirmed'],
             'account_type' => ['sometimes', 'required', 'in:customer,vendor'],
             'work_type' => ['exclude_unless:account_type,vendor', 'required', 'string', 'max:255'],
@@ -94,8 +95,9 @@ class RegisterController extends Controller
             throw ValidationException::withMessages(['work_permit' => 'تعذر حفظ تصريح العمل. حاول مرة أخرى.']);
         }
 
+        $profileImage = null;
         try {
-            return DB::transaction(function () use ($data, $isVendor, $permit) {
+            return DB::transaction(function () use ($data, $isVendor, $permit, &$profileImage) {
                 $user = User::forceCreate([
                     'first_name' => $data['first_name'],
                     'last_name' => $data['last_name'],
@@ -107,6 +109,13 @@ class RegisterController extends Controller
                     'role' => $isVendor ? 'vendor' : 'customer',
                     'status' => 'active',
                 ]);
+                if (isset($data['profile_image'])) {
+                    $profileImage = $data['profile_image']->store('profile-photos/'.$user->id, 'local');
+                    if (! $profileImage) {
+                        throw ValidationException::withMessages(['profile_image' => 'تعذر حفظ الصورة الشخصية. حاول مرة أخرى.']);
+                    }
+                    $user->update(['profile_image' => $profileImage]);
+                }
                 if ($isVendor) {
                     $user->vendorProfile()->create([
                         'work_type' => $data['work_type'],
@@ -124,6 +133,9 @@ class RegisterController extends Controller
         } catch (Throwable $exception) {
             if ($permit) {
                 Storage::disk('local')->delete($permit);
+            }
+            if ($profileImage) {
+                Storage::disk('local')->delete($profileImage);
             }
             if ($exception instanceof UniqueConstraintViolationException) {
                 throw ValidationException::withMessages(['email' => 'البريد الإلكتروني مستخدم بالفعل.']);

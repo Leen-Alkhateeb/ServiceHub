@@ -112,7 +112,9 @@ class AdminRefundsController extends Controller
             abort_unless($offer !== null, 409);
 
             $vendorId = $offer->vendor_id;
-            $amount = (float) $booking->original_price;
+            $payment = $booking->payment()->first();
+            abort_unless($payment?->status === 'paid', 409);
+            $amount = (float) $payment->amount;
 
             // لا نعالج طلباً لحجز لم يكتمل.
             abort_unless(
@@ -129,6 +131,7 @@ class AdminRefundsController extends Controller
                 ->whereIn('transaction_type', [
                     'payout',
                     'refund_share',
+                    'credit',
                 ])
                 ->exists();
 
@@ -136,11 +139,12 @@ class AdminRefundsController extends Controller
 
             $current->update([
                 'status' => $data['decision'],
-                'decision_by' => auth()->id(),
-                'decision_at' => now(),
+                'reviewed_at' => now(),
+                'refund_amount' => $accepted ? round($amount * 0.70, 2) : null,
             ]);
 
             if ($accepted) {
+                $payment->update(['status' => 'refunded']);
                 /*
                  * قبول الاعتراض:
                  * 70% للعميل

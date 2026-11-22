@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Rules\StrongPassword;
 use App\Models\User;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Foundation\Auth\RegistersUsers;
@@ -70,7 +71,7 @@ class RegisterController extends Controller
             'phone' => ['required', 'string', 'max:32'],
             'location' => ['required', 'string', 'max:255'],
             'gender' => ['required', 'in:male,female'],
-            'password' => ['required', 'string', 'min:8', 'confirmed', 'regex:/\A[^\x00]{1,72}\z/s'],
+            'password' => ['bail', 'required', 'string', new StrongPassword, 'confirmed'],
             'account_type' => ['sometimes', 'required', 'in:customer,vendor'],
             'work_type' => ['exclude_unless:account_type,vendor', 'required', 'string', 'max:255'],
             'experience_years' => ['exclude_unless:account_type,vendor', 'required', 'integer', 'between:0,80'],

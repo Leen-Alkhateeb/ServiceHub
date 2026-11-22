@@ -18,6 +18,7 @@ class PaymentController extends Controller
         abort_unless(
             $booking->customer_id === $request->user()->id
             && in_array($booking->status, ['approved', 'awaiting_payment'], true)
+            && $booking->scheduledStart()?->isFuture()
             && ! $booking->payment()->exists(),
             403
         );
@@ -44,7 +45,8 @@ class PaymentController extends Controller
 
             abort_unless(
                 $lockedBooking->customer_id === auth()->id()
-                && in_array($lockedBooking->status, ['approved', 'awaiting_payment'], true),
+                && in_array($lockedBooking->status, ['approved', 'awaiting_payment'], true)
+                && $lockedBooking->scheduledStart()?->isFuture(),
                 403
             );
 
@@ -119,6 +121,7 @@ class PaymentController extends Controller
 
         abort_unless(
             in_array($booking->status, ['approved', 'awaiting_payment'], true)
+            && $booking->scheduledStart()?->isFuture()
             && ! $booking->payment()->exists(),
             403
         );

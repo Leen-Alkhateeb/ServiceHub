@@ -72,7 +72,8 @@ class Booking extends Model
     public function acceptsCompletionConfirmation(): bool
     {
         return in_array($this->status, ['confirmed', 'paid', 'in_progress'], true)
-            && $this->payment?->status === 'paid';
+            && $this->payment?->status === 'paid'
+            && $this->booking_date?->copy()->setTimeFromTimeString($this->end_time)->lte(now());
     }
 
     public function scheduledStart(): ?\Illuminate\Support\Carbon

@@ -13,6 +13,8 @@ class RefundRequest extends Model
 
     public const UPDATED_AT = null;
 
+    protected $casts = ['reviewed_at' => 'datetime'];
+
     protected $fillable = [
         'booking_id',
         'customer_id',

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Rules\StrongPassword;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -61,7 +62,7 @@ class LoginController extends Controller
         $request->merge(['email' => is_string($email) ? mb_strtolower(trim($email)) : null]);
         $request->validate([
             'email' => ['required', 'email', 'max:255'],
-            'password' => ['required', 'string', 'regex:/\A[^\x00]{1,72}\z/s'],
+            'password' => ['bail', 'required', 'string', new StrongPassword],
         ]);
     }
 

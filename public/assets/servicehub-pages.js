@@ -52,6 +52,37 @@ function initializePage() {
     const { signal } = pageEvents;
     document.querySelectorAll('[data-file-picker] input[type="file"]').forEach(updateFilePicker);
 
+    const registrationPassword = document.querySelector('[data-registration-password]');
+    if (registrationPassword) {
+        const checklist = document.getElementById('password-requirements');
+        const confirmation = registrationPassword.form.elements.password_confirmation;
+        const encoder = new TextEncoder();
+
+        function updatePasswordRequirements() {
+            const value = registrationPassword.value;
+            const requirements = {
+                length: Array.from(value).length >= 8 && encoder.encode(value).length <= 72,
+                uppercase: /[A-Z]/.test(value),
+                lowercase: /[a-z]/.test(value),
+                number: /[0-9]/.test(value),
+                symbol: /[\p{P}\p{S}]/u.test(value),
+            };
+            checklist.querySelectorAll('[data-password-rule]').forEach((item) => {
+                const met = requirements[item.dataset.passwordRule];
+                item.classList.toggle('is-met', met);
+                item.querySelector('span').textContent = met ? '✓' : '○';
+            });
+            const valid = Object.values(requirements).every(Boolean);
+            checklist.hidden = value.length === 0 || valid;
+            registrationPassword.setCustomValidity(value && !valid ? 'أكمل شروط كلمة المرور.' : '');
+            confirmation.setCustomValidity(confirmation.value && confirmation.value !== value ? 'كلمتا المرور غير متطابقتين.' : '');
+        }
+
+        registrationPassword.addEventListener('input', updatePasswordRequirements, { signal });
+        confirmation.addEventListener('input', updatePasswordRequirements, { signal });
+        updatePasswordRequirements();
+    }
+
     const serviceDialog = document.getElementById('service-details-dialog');
     let serviceRequest;
     let nextReviews;

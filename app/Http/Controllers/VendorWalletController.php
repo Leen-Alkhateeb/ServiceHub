@@ -37,7 +37,7 @@ class VendorWalletController extends Controller
 
         $query = (clone $matchingBookings)->whereIn('id', $settlement->completed()->select('id'));
         $adjustments = WalletTransaction::query()->where('vendor_id', $vendorId)
-            ->whereIn('booking_id', (clone $matchingBookings)->where('status', 'cancelled')->select('id'))
+            ->whereIn('booking_id', (clone $matchingBookings)->whereIn('status', ['cancelled', 'refunded'])->select('id'))
             ->whereIn('transaction_type', ['penalty', 'refund_share']);
         $cancellationEntries = ($filters['status'] ?? null) && $filters['status'] !== 'released'
             ? null

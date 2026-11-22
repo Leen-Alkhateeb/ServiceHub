@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Rules\StrongPassword;
 use Illuminate\Foundation\Auth\ResetsPasswords;
 use Illuminate\Http\Request;
 
@@ -39,7 +40,7 @@ class ResetPasswordController extends Controller
         return [
             'token' => ['required', 'string'],
             'email' => ['required', 'email', 'max:255'],
-            'password' => ['required', 'string', 'min:8', 'confirmed', 'regex:/\A[^\x00]{1,72}\z/s'],
+            'password' => ['bail', 'required', 'string', new StrongPassword, 'confirmed'],
         ];
     }
 

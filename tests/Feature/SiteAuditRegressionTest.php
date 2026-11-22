@@ -203,6 +203,10 @@ class SiteAuditRegressionTest extends TestCase
         $customerReview = route('booking.review', $booking);
         $vendorReview = route('vendor.reviews.store', $booking);
         $this->actingAs(User::factory()->create())->post($completion)->assertForbidden();
+        $this->actingAs($customer)->get(route('customer.bookings'))->assertDontSee($completion);
+        $this->post($completion)->assertForbidden();
+        $this->actingAs($vendor)->post($completion)->assertForbidden();
+        $this->travelTo($booking->scheduledStart()->setTimeFromTimeString($booking->end_time));
         $this->actingAs($customer)->get(route('customer.bookings'))->assertSee($completion)->assertDontSee($customerReview);
         $this->post($completion)->assertRedirect();
         $this->post($completion)->assertRedirect();
@@ -240,6 +244,42 @@ class SiteAuditRegressionTest extends TestCase
         $this->assertSame(0, $disputed->walletTransactions()->count());
         $this->assertSame(1, $booking->walletTransactions()->count());
         $this->assertDatabaseHas('wallet_transactions', ['booking_id' => $booking->id, 'amount' => 60, 'transaction_type' => 'credit']);
+    }
+
+    public function test_elapsed_booking_cannot_be_approved_or_paid(): void
+    {
+        $vendor = VendorProfile::factory()->create()->user;
+        $booking = Booking::factory()->pending()->for(VendorService::factory()->for($vendor, 'vendor'))
+            ->create(['booking_date' => now()->subDay()->toDateString()]);
+        $this->actingAs($vendor)->patch(route('vendor.vendor-bookings.update', $booking), ['status' => 'approved'])
+            ->assertSessionHasErrors('status');
+        $this->assertSame('pending', $booking->refresh()->status);
+
+        $booking->update(['status' => 'approved', 'payment_deadline' => now()->addMinutes(30)]);
+        $this->actingAs($booking->customer)->get(route('payment.checkout', $booking))->assertForbidden();
+        $this->post(route('payment.store', $booking), [
+            'payment_method' => 'card', 'card_name' => 'Demo', 'card_number' => '4242424242424242',
+        ])->assertForbidden();
+        $this->assertDatabaseMissing('payments', ['booking_id' => $booking->id]);
+    }
+
+    public function test_accepted_objection_records_refund_and_shows_the_vendor_share(): void
+    {
+        $vendor = VendorProfile::factory()->create()->user;
+        $booking = Booking::factory()->for(VendorService::factory()->for($vendor, 'vendor'))
+            ->create(['status' => 'completed', 'completed_at' => now()->subHours(3)]);
+        $payment = \App\Models\Payment::factory()->for($booking)->create(['status' => 'paid', 'amount' => 100]);
+        $refund = $booking->refundRequest()->create([
+            'customer_id' => $booking->customer_id, 'reason' => 'Test review', 'status' => 'pending',
+        ]);
+        $this->actingAs(User::factory()->admin()->create())
+            ->post(route('admin.refunds.decide', $refund), ['decision' => 'accepted'])->assertRedirect();
+        $this->assertDatabaseHas('refund_requests', ['id' => $refund->id, 'status' => 'accepted', 'refund_amount' => 70]);
+        $this->assertNotNull($refund->refresh()->reviewed_at);
+        $this->assertSame('refunded', $payment->refresh()->status);
+        $this->get(route('admin.payments.index'))->assertViewHas('refundedTotal', fn ($amount) => (float) $amount === 70.0);
+        $this->actingAs($vendor)->get(route('vendor.wallet'))->assertOk()
+            ->assertSee('حصة مقدم الخدمة بعد قبول الاعتراض')->assertSee('15.00');
     }
 
     public function test_booking_cancellations_record_refund_and_wallet_adjustments(): void

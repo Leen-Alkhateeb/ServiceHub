@@ -4,7 +4,7 @@
 @section('page_id', 'admin-booking-details')
 
 @push('styles')
-    <link rel="stylesheet" href="/assets/admin-management.css">
+    <x-public-stylesheet file="admin-management.css" />
 @endpush
 
 @section('content')

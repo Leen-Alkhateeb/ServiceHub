@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-turbo="false">
 
 <head>
     <meta charset="utf-8">
@@ -7,19 +7,16 @@
     <meta name="description" content="ServiceHub منصة لحجز خدمات الصيانة">
     <title>@yield('title', 'ServiceHub')</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="turbo-cache-control" content="no-preview">
-
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.23/dist/turbo.es2017-esm.min.js">
-    </script>
-    <script type="module" src="/assets/app.js"></script>
-    <script type="module" src="/assets/servicehub-pages.js"></script>
-    <script src="/assets/theme.js" defer></script>
+    @foreach (['app.js', 'servicehub-pages.js'] as $script)
+        <script type="module" src="{{ asset('assets/'.$script) }}?v={{ filemtime(public_path('assets/'.$script)) }}"></script>
+    @endforeach
+    <script src="{{ asset('assets/theme.js') }}?v={{ filemtime(public_path('assets/theme.js')) }}" defer></script>
 
     @stack('styles')
 
-    <link rel="stylesheet" href="/assets/style.css">
-    <link rel="stylesheet" href="/assets/servicehub-pages.css">
-    <link rel="stylesheet" href="/assets/theme.css">
+    @foreach (['style.css', 'servicehub-pages.css', 'theme.css'] as $stylesheet)
+        <x-public-stylesheet :file="$stylesheet" />
+    @endforeach
 </head>
 
 <body data-page="@yield('page_id')">

@@ -82,16 +82,16 @@
 
         @if ($cancellationEntries?->isNotEmpty())
             <section class="panel wallet-ledger" id="cancellation-adjustments">
-                <h2>تسويات الإلغاء</h2>
+                <h2>تسويات الإلغاء والاسترداد</h2>
                 <div class="hub-table-wrap">
                     <table class="hub-table">
-                        <thead><tr><th scope="col">الحجز</th><th scope="col">التسوية</th><th scope="col">تاريخ الإلغاء</th><th scope="col">المبلغ (د.أ)</th></tr></thead>
+                        <thead><tr><th scope="col">الحجز</th><th scope="col">التسوية</th><th scope="col">تاريخ الحركة</th><th scope="col">المبلغ (د.أ)</th></tr></thead>
                         <tbody>
                             @foreach ($cancellationEntries as $entry)
                                 <tr>
                                     <td>{{ $entry->booking->service_name }} <bdi>#{{ $entry->booking_id }}</bdi></td>
                                     <td>{{ $entry->description }}</td>
-                                    <td><x-dialog-date-time :value="$entry->booking->cancelled_at" /></td>
+                                    <td><x-dialog-date-time :value="$entry->created_at" /></td>
                                     <td><bdi>{{ number_format($entry->amount, 2) }}</bdi></td>
                                 </tr>
                             @endforeach

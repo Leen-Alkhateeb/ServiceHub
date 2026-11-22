@@ -482,7 +482,7 @@ class VendorWorkspaceTest extends TestCase
         $data = [
             'account_type' => 'vendor', 'first_name' => 'New', 'last_name' => 'Technician',
             'email' => 'new-technician@example.test', 'phone' => '0700000000', 'location' => 'Amman',
-            'gender' => 'male', 'password' => 'servicehub-test-password', 'password_confirmation' => 'servicehub-test-password',
+            'gender' => 'male', 'password' => 'ServiceHub-Test9!', 'password_confirmation' => 'ServiceHub-Test9!',
             'work_type' => 'Plumbing', 'experience_years' => 5, 'bio' => 'Home plumbing and inspection.',
             'permit_expiry_date' => now()->addYear()->format('Y-m-d'),
         ];

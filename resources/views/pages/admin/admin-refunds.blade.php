@@ -455,11 +455,14 @@
                                 تمت مراجعة هذا الاعتراض واتخاذ القرار.
                             </div>
 
-                            @if ($refund->decision_at)
+                            @if ($refund->reviewed_at)
                                 <p class="small muted">
                                     تاريخ القرار:
-                                    {{ $refund->decision_at->format('Y/m/d H:i') }}
+                                    {{ $refund->reviewed_at->format('Y/m/d H:i') }}
                                 </p>
+                            @endif
+                            @if ($refund->refund_amount !== null)
+                                <p class="small muted">مبلغ الاسترداد: <bdi>{{ number_format($refund->refund_amount, 2) }}</bdi> د.أ</p>
                             @endif
                         @endif
                     </div>

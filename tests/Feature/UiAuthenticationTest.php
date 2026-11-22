@@ -20,7 +20,7 @@ class UiAuthenticationTest extends TestCase
         $this->withSession(['url.intended' => route('customer.bookings')])
             ->post(route('login'), [
                 'email' => $admin->email,
-                'password' => 'account-password',
+                'password' => 'Account-Password9!',
             ])->assertRedirect(route('admin.dashboard'));
 
         $this->assertAuthenticatedAs($admin);
@@ -34,7 +34,7 @@ class UiAuthenticationTest extends TestCase
 
         $this->post(route('login'), [
             'email' => strtoupper($vendor->email),
-            'password' => 'account-password',
+            'password' => 'Account-Password9!',
             'remember' => '1',
         ])->assertRedirect(route('vendor.profile'));
 
@@ -52,10 +52,30 @@ class UiAuthenticationTest extends TestCase
 
         $this->post(route('login'), [
             'email' => $user->email,
-            'password' => 'account-password',
+            'password' => 'Account-Password9!',
         ])->assertSessionHasErrors('email');
 
         $this->assertGuest();
+    }
+
+    public function test_registration_and_login_reject_passwords_missing_strength_requirements(): void
+    {
+        $this->get(route('register'))->assertOk()->assertSee('password-requirements', false);
+        $user = $this->account(['password' => 'legacy-password']);
+        $this->post(route('login'), ['email' => $user->email, 'password' => 'legacy-password'])
+            ->assertSessionHasErrors('password');
+        $this->assertGuest();
+        $registration = [
+            'first_name' => 'Demo', 'last_name' => 'Registration', 'email' => 'new@example.test',
+            'phone' => '0700000000', 'location' => 'عمّان', 'gender' => 'female', 'account_type' => 'customer',
+        ];
+        foreach (['uppercase9!', 'UPPERCASE9!', 'Password!', 'Password9', 'Pass9!', 'Strong9!'.str_repeat('é', 33)] as $weak) {
+            $this->post(route('register'), $registration + ['password' => $weak, 'password_confirmation' => $weak])
+                ->assertSessionHasErrors('password');
+        }
+        $this->post(route('register'), $registration + ['password' => 'Strong9!', 'password_confirmation' => 'Strong8!'])
+            ->assertSessionHasErrors('password');
+        $this->assertDatabaseMissing('users', ['email' => $registration['email']]);
     }
 
     public function test_password_reset_sends_notification_and_consumes_token(): void
@@ -72,16 +92,16 @@ class UiAuthenticationTest extends TestCase
         $this->post(route('password.update'), [
             'token' => $token,
             'email' => $user->email,
-            'password' => 'replacement-password',
-            'password_confirmation' => 'replacement-password',
+            'password' => 'Replacement9!',
+            'password_confirmation' => 'Replacement9!',
         ])->assertRedirect(route('home'));
 
         $this->assertAuthenticatedAs($user);
-        $this->assertTrue(Hash::check('replacement-password', $user->fresh()->password));
+        $this->assertTrue(Hash::check('Replacement9!', $user->fresh()->password));
         $this->assertDatabaseMissing('password_reset_tokens', ['email' => $user->email]);
 
         $this->get(route('password.confirm'))->assertOk();
-        $this->post(route('password.confirm'), ['password' => 'replacement-password'])
+        $this->post(route('password.confirm'), ['password' => 'Replacement9!'])
             ->assertRedirect(route('home'))
             ->assertSessionHas('auth.password_confirmed_at');
     }
@@ -95,7 +115,7 @@ class UiAuthenticationTest extends TestCase
             'phone' => '0000000000',
             'location' => 'Amman',
             'gender' => 'female',
-            'password' => 'account-password',
+            'password' => 'Account-Password9!',
         ])->refresh();
     }
 }

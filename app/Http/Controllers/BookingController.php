@@ -45,6 +45,9 @@ class BookingController extends Controller
 
             $updates = ['status' => $data['status']];
             if ($data['status'] === 'approved') {
+                if (! $current->scheduledStart()?->isFuture()) {
+                    throw ValidationException::withMessages(['status' => 'موعد الحجز مضى. اطلب من العميل اختيار موعد جديد.']);
+                }
                 $updates['approved_at'] = now();
                 $updates['payment_deadline'] = now()->addMinutes(30);
             }

@@ -28,8 +28,8 @@ class VendorApplicationTest extends TestCase
             'phone' => '0000000000',
             'location' => 'Amman',
             'gender' => 'female',
-            'password' => 'test-password',
-            'password_confirmation' => 'test-password',
+            'password' => 'Test-Password9!',
+            'password_confirmation' => 'Test-Password9!',
         ])->assertRedirect(route('vendor.apply'));
 
         $this->get(route('vendor.apply'))->assertOk()->assertSee('multipart/form-data');
@@ -97,7 +97,7 @@ class VendorApplicationTest extends TestCase
             'phone' => '0000000000',
             'location' => 'Amman',
             'gender' => 'female',
-            'password' => 'test-password',
+            'password' => 'Test-Password9!',
         ])->refresh();
     }
 }

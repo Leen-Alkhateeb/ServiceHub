@@ -37,7 +37,20 @@
                         <option value="male" @selected(old('gender') === 'male')>ذكر</option>
                     </select>
                 </div>
-                <div class="field"><label for="password">كلمة المرور</label><input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required></div>
+                <div class="field">
+                    <label for="password">كلمة المرور</label>
+                    <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72" aria-describedby="password-requirements" data-registration-password required>
+                    <div class="password-requirements" id="password-requirements" hidden>
+                        <strong>شروط كلمة المرور</strong>
+                        <ul>
+                            <li data-password-rule="length"><span aria-hidden="true">○</span> 8 أحرف على الأقل وبحد أقصى 72 بايت</li>
+                            <li data-password-rule="uppercase"><span aria-hidden="true">○</span> حرف إنجليزي كبير (A–Z)</li>
+                            <li data-password-rule="lowercase"><span aria-hidden="true">○</span> حرف إنجليزي صغير (a–z)</li>
+                            <li data-password-rule="number"><span aria-hidden="true">○</span> رقم (0–9)</li>
+                            <li data-password-rule="symbol"><span aria-hidden="true">○</span> رمز مثل ! أو @</li>
+                        </ul>
+                    </div>
+                </div>
                 <div class="field"><label for="password_confirmation">تأكيد كلمة المرور</label><input id="password_confirmation" name="password_confirmation" type="password" autocomplete="new-password" required></div>
                 </div>
                 <section data-registration-vendor>

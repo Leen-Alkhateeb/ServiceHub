@@ -100,7 +100,9 @@ class AdminPaymentController extends Controller
             'paidTotal' => Payment::where('status', 'paid')->sum('amount'),
             'paidCount' => Payment::where('status', 'paid')->count(),
             'pendingCount' => Payment::where('status', 'pending')->count(),
-            'refundedTotal' => Payment::where('status', 'refunded')->sum('amount'),
+            'refundedTotal' => Payment::where('payments.status', 'refunded')
+                ->leftJoin('refund_requests', 'refund_requests.booking_id', '=', 'payments.booking_id')
+                ->sum(\Illuminate\Support\Facades\DB::raw('COALESCE(refund_requests.refund_amount, payments.amount)')),
         ]);
     }
 

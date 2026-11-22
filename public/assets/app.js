@@ -128,7 +128,7 @@ function init() {
             });
 
             put('bookings', bookings);
-            Turbo.visit('/customer-bookings');
+            window.location.assign('/customer-bookings');
         });
     }
 
@@ -241,7 +241,7 @@ document.addEventListener('click', (event) => {
         if (booking && confirm('تأكيد طلب إلغاء الحجز؟')) {
             booking.status = 'ملغي (تجريبي)';
             put('bookings', bookings);
-            Turbo.visit(location.href, { action: 'replace' });
+            window.location.reload();
         }
     }
 
@@ -252,8 +252,7 @@ document.addEventListener('click', (event) => {
     }
 });
 
-document.addEventListener('turbo:load', init);
 document.addEventListener('DOMContentLoaded', init, { once: true });
 
-// Covers the case where this module loads after the initial Turbo event.
+// Initialize immediately if the document is already ready.
 if (document.readyState !== 'loading') init();

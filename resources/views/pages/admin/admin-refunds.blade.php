@@ -31,7 +31,7 @@
                     @endforeach
                 </div>
             @endif
-            {{-- Page Header --}}
+            
             <div class="dash-title">
                 <div>
                     <span class="small muted">لوحة الإدارة</span>
@@ -43,7 +43,7 @@
                 </div>
             </div>
 
-            {{-- Statistics --}}
+            
             <div class="stats-grid">
                 <div class="panel">
                     <span class="small muted">إجمالي الطلبات</span>
@@ -66,7 +66,7 @@
                 </div>
             </div>
 
-            {{-- Search & Filters --}}
+            
             <div class="panel">
                 <div class="section-head">
                     <div>
@@ -125,7 +125,7 @@
                 </form>
             </div>
 
-            {{-- Refund Requests --}}
+            
             <div class="panel">
                 <div class="section-head">
                     <div>
@@ -237,7 +237,7 @@
                 @endif
             </div>
 
-            {{-- Refund Details --}}
+            
             @foreach ($refunds ?? [] as $refund)
                 @php
                     $booking = $refund->booking;
@@ -279,7 +279,7 @@
 
                     <div class="refund-details-content">
 
-                        {{-- Booking Information --}}
+                        
                         <section>
                             <h3>معلومات الحجز</h3>
 
@@ -344,7 +344,7 @@
 
                         <hr>
 
-                        {{-- Objection --}}
+                        
                         <section>
                             <h3>سبب الاعتراض</h3>
 
@@ -353,7 +353,7 @@
                             </p>
                         </section>
 
-                        {{-- Evidence --}}
+                        
                         <section>
                             <h3>الإثباتات المرفقة</h3>
 
@@ -375,7 +375,7 @@
 
                         <hr>
 
-                        {{-- Financial Decision --}}
+                        
                         <section>
                             <h3>التوزيع المالي عند اتخاذ القرار</h3>
 
@@ -431,7 +431,7 @@
                             </p>
                         </section>
 
-                        {{-- Decision --}}
+                        
                         @if ($refund->status === 'pending')
                             <div class="moderation-actions">
                                 <button
@@ -470,7 +470,7 @@
                     </div>
                 </dialog>
 
-                {{-- Decision Confirmation --}}
+                
                 @if ($refund->status === 'pending')
                     <dialog
                         id="refund-confirm-{{ $refund->id }}"
@@ -599,7 +599,7 @@
 
     initializeRefunds();
 
-    // Restore submit buttons when navigating back to a cached page.
+     
     document.addEventListener('turbo:before-cache', function () {
         const page = document.querySelector('.refunds-page');
         if (!page) return;

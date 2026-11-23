@@ -1,59 +1,85 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# صلّحها
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+صلّحها منصة عربية لحجز خدمات الصيانة المنزلية. يقدر العميل يتصفّح الأقسام والفنيين ويختار موعدًا متاحًا، ويقدر الفني يدير خدماته وتوفّره الأسبوعي ويتابع طلباته. لوحة الإدارة مخصّصة لمراجعة طلبات الانضمام والخدمات ومتابعة الحجوزات والاسترداد.
 
-## About Laravel
+## أهم الوظائف
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **العميل:** تصفّح الخدمات، حفظ المفضّلة، حجز موعد، متابعة الطلب والدفع التجريبي، وتقييم الخدمة أو تقديم اعتراض.
+- **الفني:** التقديم للانضمام، إدارة العروض والمواعيد والمشاريع، ومتابعة الحجوزات والسجل المالي.
+- **الإدارة:** إدارة المستخدمين والأقسام والخدمات، مراجعة الطلبات، ومتابعة المدفوعات وحركات المحفظة.
+- **مساعد الصيانة:** يقترح القسم المناسب من دليل الموقع، ويطلب تفاصيل مرتبطة بالوصف السابق عند الحاجة.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## متطلبات التشغيل
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- PHP 8.2 أو أحدث مع إضافة `pdo_mysql`، وComposer.
+- MySQL أو MariaDB. إذا بتستخدم XAMPP، شغّل MySQL من لوحة التحكم.
+- Node.js وnpm لبناء ملفات الواجهة باستخدام Vite.
 
-## Learning Laravel
+المشروع يستخدم Laravel 12 وBlade وJavaScript وCSS.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## التشغيل المحلي
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+1. من مجلد المشروع، ثبّت حزم PHP وأنشئ ملف البيئة إذا ما كان موجودًا.
 
-## Laravel Sponsors
+   ```powershell
+   composer install
+   if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+   ```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+2. أنشئ قاعدة محلية فارغة باسم `serviceHub` من phpMyAdmin أو MySQL، واضبط الاتصال في `.env`. مثال لإعداد XAMPP المحلي:
 
-### Premium Partners
+   ```dotenv
+   APP_URL=http://127.0.0.1:8000
+   DB_CONNECTION=mysql
+   DB_HOST=127.0.0.1
+   DB_PORT=3306
+   DB_DATABASE=serviceHub
+   DB_USERNAME=root
+   DB_PASSWORD=
+   ```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+3. إذا كانت قيمة `APP_KEY` فارغة، شغّل `php artisan key:generate` مرة واحدة. بعدين شغّل الترحيلات وابنِ ملفات الواجهة.
 
-## Contributing
+   ```powershell
+   php artisan migrate
+   php artisan storage:link
+   npm install
+   npm run build
+   php artisan serve
+   ```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+4. افتح [الموقع المحلي](http://127.0.0.1:8000). لتجربة انتهاء مهلة الدفع وتحرير المستحقات تلقائيًا، شغّل `php artisan schedule:work` في طرفية ثانية. شاشة الدفع مخصّصة لبيانات الاختبار.
 
-## Code of Conduct
+## البيانات التجريبية
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+لتجهيز بيانات تجربة على قاعدة التطوير، شغّل `php artisan db:seed`. ولإضافة مجموعة العرض الموسّعة، شغّل `php artisan db:seed --class=PresentationSeeder`. هالأوامر بتشغّل السيدرز بدون إعادة إنشاء جداول قاعدة البيانات.
 
-## Security Vulnerabilities
+السيدر الافتراضي يضيف حسابات مثل `admin.seed@servicehub.example` للإدارة و`customer.seed@servicehub.example` للعميل و`plumbing.seed@servicehub.example` للفني. إذا الحساب أُنشئ بكلمة المرور الافتراضية `password`، عيّن له كلمة مرور مطابقة لقواعد تسجيل الدخول عبر استعادة كلمة المرور. بإعداد `MAIL_MAILER=log` المحلي، رابط الاستعادة بيظهر في سجل Laravel داخل `storage/logs`.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## إعداد مساعد الصيانة
 
-## License
+لتفعيل تصنيف Gemini، اضبط `GEMINI_API_KEY` و`GEMINI_MODEL` في `.env`. المساعد يقدر يستخدم المطابقة المحلية مع الأقسام المتوفرة إذا كان الإعداد فارغًا. احتفظ بمفتاح API في ملف البيئة المحلي.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## الاختبارات على MySQL
+
+أنشئ قاعدة **مخصّصة للاختبارات** مثل `servicehub_test`. الاختبارات بتعيد تهيئة الجداول، فاختَر قاعدة منفصلة عن الداتا اللي بدك تحتفظ فيها. من PowerShell:
+
+```powershell
+$env:DB_CONNECTION = 'mysql'
+$env:DB_DATABASE = 'servicehub_test'
+php artisan test
+```
+
+بتنقرأ بقية إعدادات الاتصال من `.env`. إذا كان التطبيق يستخدم `DB_URL`، اضبطه على اتصال قاعدة الاختبارات أو اتركه فارغًا حتى يُستخدم اسم القاعدة أعلاه.
+
+## هيكل المشروع
+
+| المسار | المحتوى |
+| --- | --- |
+| `routes/web.php` | مسارات الواجهة العامة وحسابات العميل والفني والإدارة |
+| `app/Http/Controllers` | معالجة الطلبات والتحقق من المدخلات |
+| `app/Models` و`app/Services` | نماذج البيانات وخدمات التطبيق |
+| `resources/views` | صفحات ومكوّنات Blade |
+| `public/assets` | ملفات الواجهة المستخدمة في الصفحات |
+| `database/migrations` و`database/seeders` | بنية الجداول والبيانات التجريبية |
+| `tests/Feature` | اختبارات وظائف الموقع |

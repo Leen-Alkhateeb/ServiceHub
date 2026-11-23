@@ -116,7 +116,7 @@ class AdminRefundsController extends Controller
             abort_unless($payment?->status === 'paid', 409);
             $amount = (float) $payment->amount;
 
-            // لا نعالج طلباً لحجز لم يكتمل.
+             
             abort_unless(
                 $booking->completed_at !== null,
                 409
@@ -124,7 +124,7 @@ class AdminRefundsController extends Controller
 
             $accepted = $data['decision'] === 'accepted';
 
-            // منع تكرار الصرف إذا كانت هناك معاملات سابقة.
+             
             $hasPayout = WalletTransaction::query()
                 ->where('booking_id', $booking->id)
                 ->where('vendor_id', $vendorId)
@@ -145,14 +145,14 @@ class AdminRefundsController extends Controller
 
             if ($accepted) {
                 $payment->update(['status' => 'refunded']);
-                /*
-                 * قبول الاعتراض:
-                 * 70% للعميل
-                 * 15% للـVendor
-                 * 15% للمنصة
-                 *
-                 * تسجيل حصة الـVendor في محفظته.
-                 */
+                
+
+
+
+
+
+
+
                 WalletTransaction::create([
                     'vendor_id' => $vendorId,
                     'booking_id' => $booking->id,
@@ -165,11 +165,11 @@ class AdminRefundsController extends Controller
                     'status' => 'refunded',
                 ]);
             } else {
-                /*
-                 * رفض الاعتراض:
-                 * 85% للـVendor
-                 * 15% للمنصة
-                 */
+                
+
+
+
+
                 WalletTransaction::create([
                     'vendor_id' => $vendorId,
                     'booking_id' => $booking->id,

@@ -6,9 +6,9 @@ use App\Models\User;
 use App\Models\VendorProfile;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<VendorProfile>
- */
+
+
+
 class VendorProfileFactory extends Factory
 {
     public function definition(): array

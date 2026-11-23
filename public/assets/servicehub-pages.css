@@ -154,7 +154,7 @@ a.btn-dark, .btn-dark { color: #fff; background: #202124; }
     .account-actions .btn-sm { padding-inline: .4rem; }
 }
 
-/* Technician profile */
+
 .technician-profile, .project-page { padding-block: clamp(1.5rem, 4vw, 4rem); }
 .vendor-profile-layout > .technician-profile { padding-block-start: 0; }
 .dialog-date-time { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.5; }
@@ -292,7 +292,7 @@ a.btn-dark, .btn-dark { color: #fff; background: #202124; }
 .moderation-actions, .moderation-actions form { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
 .moderation-actions input { padding: .6rem; background: white; border: 1px solid var(--line); border-radius: 8px; }
 
-/* Project detail and gallery */
+
 .project-back { display: inline-block; margin-bottom: 1.25rem; color: #245a58; font-weight: 750; }
 .product-project { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); align-items: start; gap: clamp(1.15rem, 5vw, 3.3rem); }
 .project-media, .project-info { min-width: 0; }
@@ -312,7 +312,7 @@ a.btn-dark, .btn-dark { color: #fff; background: #202124; }
 .project-copy h2 { margin-block: 1.2rem .4rem; font-size: 1.15rem; }
 .project-copy p { white-space: pre-line; overflow-wrap: anywhere; line-height: 1.9; }
 
-/* Notifications and ratings */
+
 .notification-dropdown { position: relative; }
 .notification-dropdown > summary { cursor: pointer; list-style: none; }
 .notification-dropdown > summary::-webkit-details-marker { display: none; }
@@ -343,7 +343,7 @@ a.btn-dark, .btn-dark { color: #fff; background: #202124; }
     .technician-hero { grid-template-columns: 1fr; gap: .65rem; }
 }
 
-/* Wallet summary and numbered pagination */
+
 .balance-cards { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; }
 .balance-card { --balance-accent: #24665e; display: grid; align-content: space-between; gap: .6rem; padding: clamp(.65rem, 2vw, 1.05rem); border: 1px solid #dce8e4; border-block-start: 3px solid var(--balance-accent); border-radius: 12px; background: #f3f8f6; }
 .balance-card[data-balance="held"] { --balance-accent: #916200; background: #fcf7e8; }
@@ -367,7 +367,7 @@ a.btn-dark, .btn-dark { color: #fff; background: #202124; }
 .hub-pager a:hover { border-color: #215c52; background: #e3f1eb; }
 .hub-pager a:focus-visible, .account-picture-link:focus-visible { outline: 2px solid #28747b; outline-offset: 3px; }
 
-/* Profile avatar and directory previews */
+
 .account-picture-link { display: inline-flex; border-radius: 50%; }
 .account-picture-link:hover { box-shadow: 0 0 0 3px #d9ece6; }
 .account-profile-avatar { width: clamp(80px, 16vw, 154px); height: auto; aspect-ratio: 1; border: 3px solid #ffffff45; font-size: clamp(1.4rem, 4vw, 2.7rem); }

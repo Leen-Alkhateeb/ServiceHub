@@ -24,7 +24,7 @@ class AdminBookingController extends Controller
         'closed' => 'مغلق',
     ];
 
-    // Badge colour for each status (classes from the shared style.css).
+     
     private const STATUS_COLORS = [
         'pending' => 'yellow',
         'awaiting_payment' => 'yellow',
@@ -140,7 +140,7 @@ class AdminBookingController extends Controller
 
     public function destroy(Booking $booking)
     {
-        // Soft delete only: the payment and wallet records of this booking stay in the database.
+         
         $booking->delete();
 
         return redirect()

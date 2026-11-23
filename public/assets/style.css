@@ -1446,13 +1446,13 @@ td {
 
 }
 
-/* ==========================================================
 
-   Admin Dashboard — ServiceHub
 
-   أضف هذا القسم في نهاية ملف CSS الحالي
 
-   ========================================================== */.admin-overview {
+
+
+
+.admin-overview {
 
     min-width: 0;
 
@@ -1852,7 +1852,7 @@ td {
 
 }
 
-/* Admin Dashboard section buttons — no routes assigned */.admin-overview .admin-stat {
+.admin-overview .admin-stat {
 
     display: flex;
 
@@ -1954,7 +1954,7 @@ td {
 
 }
 
-/* User Status */.user-status {
+.user-status {
 
     display: inline-flex;
 
@@ -1990,7 +1990,7 @@ td {
 
 }
 
-/* Action Buttons */.user-actions {
+.user-actions {
 
     display: flex;
 
@@ -2078,7 +2078,7 @@ td {
 
 }
 
-/* Modal Overlay */.user-modal {
+.user-modal {
 
     position: fixed;
 
@@ -2104,7 +2104,7 @@ td {
 
 }
 
-/* Modal Content */.user-modal-content {
+.user-modal-content {
 
     background: #fff;
 
@@ -2178,7 +2178,7 @@ td {
 
 }
 
-/* Modal Form */.user-modal .field {
+.user-modal .field {
 
     margin-bottom: 16px;
 
@@ -2218,7 +2218,7 @@ td {
 
 }
 
-/* Admin Alert Messages */.admin-alert {
+.admin-alert {
 
     display: flex;
 
@@ -2326,7 +2326,7 @@ td {
 
 }
 
-/* Admin Users Search & Filters */.admin-users-filters {
+.admin-users-filters {
 
     display: flex;
 
@@ -2464,7 +2464,7 @@ td {
 
 }
 
-/* Admin applications table */#admin-applications .table-wrap {
+#admin-applications .table-wrap {
 
     width: 100%;
 
@@ -2532,7 +2532,7 @@ td {
 
 }
 
-/* Allow longer names and work types to wrap */#admin-applications .table-wrap th:nth-child(2),
+#admin-applications .table-wrap th:nth-child(2),
 
 #admin-applications .table-wrap td:nth-child(2),
 
@@ -2546,7 +2546,7 @@ td {
 
 }
 
-/* Compact action buttons */#admin-applications .application-actions {
+#admin-applications .application-actions {
 
     display: flex;
 
@@ -2640,7 +2640,7 @@ td {
 
 }
 
-/* Pagination */#admin-applications .pagination-wrap {
+#admin-applications .pagination-wrap {
 
     display: flex;
 
@@ -3280,7 +3280,7 @@ td {
 
         }
 
-/* ServiceHub — Admin Services Popups */.service-modal-backdrop .services-btn {
+.service-modal-backdrop .services-btn {
 
     display: inline-flex;
 
@@ -3356,11 +3356,11 @@ td {
 
 }
 
-/* ========================================
 
-   Admin Services - Modal Improvements
 
-\======================================== */.service-modal-backdrop {
+
+
+.service-modal-backdrop {
 
     position: fixed;
 
@@ -3420,7 +3420,7 @@ td {
 
 }
 
-/* Header */.service-modal-backdrop .service-modal-header {
+.service-modal-backdrop .service-modal-header {
 
     flex-shrink: 0;
 
@@ -3474,7 +3474,7 @@ td {
 
 }
 
-/* Form */.service-modal-backdrop .service-modal-form {
+.service-modal-backdrop .service-modal-form {
 
     min-height: 0;
 
@@ -3574,7 +3574,7 @@ td {
 
 }
 
-/* Actions - visible at bottom */.service-modal-backdrop .service-modal-actions {
+.service-modal-backdrop .service-modal-actions {
 
     flex-shrink: 0;
 
@@ -3608,7 +3608,7 @@ td {
 
 }
 
-/* Small confirmation dialogs */.service-modal-backdrop .service-modal-small > p {
+.service-modal-backdrop .service-modal-small > p {
 
     padding: 20px 24px;
 
@@ -3624,7 +3624,7 @@ td {
 
 }
 
-/* Mobile */@media (max-width: 600px) {
+@media (max-width: 600px) {
 
     .service-modal-backdrop {
 
@@ -3654,7 +3654,7 @@ td {
 
 }
 
-/* Pagination */.services-pagination {
+.services-pagination {
 
     display: flex;
 
@@ -3742,9 +3742,9 @@ td {
 
 }
 
-/* زر تفعيل الخدمة المعطلة *//* زر تعطيل الخدمة المفعلة */
 
-/* Admin Services: activation state overrides the generic toggle styling. */
+
+
 
 #admin-services .service-card-actions .services-btn-toggle.services-btn-activate {
 
@@ -3970,7 +3970,7 @@ td {
 
         }
 
-/* Refunds page layout */
+
 
 .refunds-page {
 
@@ -3986,7 +3986,7 @@ td {
 
 }
 
-/* Statistics */
+
 
 .refunds-page .stats-grid {
 
@@ -4030,7 +4030,7 @@ td {
 
 }
 
-/* Search and filters */
+
 
 .refunds-page .filter-form {
 
@@ -4100,7 +4100,7 @@ td {
 
 }
 
-/* Tables */
+
 
 .refunds-page .table-wrap {
 
@@ -4130,7 +4130,7 @@ td {
 
 }
 
-/* Dialogs */
+
 
 .refunds-page .refund-dialog {
 
@@ -4174,7 +4174,7 @@ td {
 
 }
 
-/* Responsive */
+
 
 @media (max-width: 1100px) {
 
@@ -4213,7 +4213,7 @@ td {
     }
 
 }
-/* Admin Refunds - Dialog visibility */
+
 .admin-refunds dialog.refund-dialog:not([open]) {
     display: none !important;
 }
@@ -4232,7 +4232,7 @@ td {
 
 }
 
-/* Statistics */
+
 
 .refunds-page .stats-grid {
 
@@ -4276,7 +4276,7 @@ td {
 
 }
 
-/* Search and filters */
+
 
 .refunds-page .filter-form {
 
@@ -4346,7 +4346,7 @@ td {
 
 }
 
-/* Tables */
+
 
 .refunds-page .table-wrap {
 
@@ -4376,7 +4376,7 @@ td {
 
 }
 
-/* Dialogs */
+
 
 .refunds-page .refund-dialog {
 
@@ -4420,7 +4420,7 @@ td {
 
 }
 
-/* Responsive */
+
 
 @media (max-width: 1100px) {
 
@@ -4459,7 +4459,7 @@ td {
     }
 
 }
-/* Admin Refunds - Dialog visibility */
+
 .admin-refunds dialog.refund-dialog:not([open]) {
     display: none !important;
 }

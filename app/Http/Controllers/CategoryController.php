@@ -102,7 +102,7 @@ class CategoryController extends Controller
     {
         abort_if($category->is_deleted, 404);
 
-        // Archive only, so services and bookings linked to this category stay safe.
+         
         $category->update([
             'is_deleted' => true,
         ]);

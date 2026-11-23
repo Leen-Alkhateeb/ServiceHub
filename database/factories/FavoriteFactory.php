@@ -7,9 +7,9 @@ use App\Models\User;
 use App\Models\VendorService;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<Favorite>
- */
+
+
+
 class FavoriteFactory extends Factory
 {
     public function definition(): array

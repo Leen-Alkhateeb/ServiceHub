@@ -71,7 +71,7 @@ function renderCards(items, selector) {
 let initializedBody = null;
 
 function init() {
-    // turbo:load may run after DOMContentLoaded; don't initialize the same body twice.
+     
     if (initializedBody === document.body) return;
     initializedBody = document.body;
 
@@ -215,7 +215,7 @@ function init() {
     });
 }
 
-// One delegated click listener survives Turbo page visits; it won't multiply on every visit.
+ 
 document.addEventListener('click', (event) => {
     const favoriteButton = event.target.closest('[data-fav]');
     if (favoriteButton) {
@@ -254,5 +254,5 @@ document.addEventListener('click', (event) => {
 
 document.addEventListener('DOMContentLoaded', init, { once: true });
 
-// Initialize immediately if the document is already ready.
+ 
 if (document.readyState !== 'loading') init();

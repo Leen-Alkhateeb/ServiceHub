@@ -15,7 +15,7 @@
         && auth()->user()->role === 'customer';
     $canBook = auth()->check() && auth()->user()->status === 'active' && (int) auth()->id() !== (int) $vendor->id;
 
-    // Days that have slots (free or booked), with how many are still free.
+     
     $bookableDays = collect($days)
         ->filter(fn ($day) => count($day['slots']) > 0)
         ->map(fn ($day) => $day + [
@@ -529,7 +529,7 @@
                                                     @if ($index !== $firstFreeDay) hidden disabled @endif>
                                                 <option value="">اختر الوقت</option>
                                                 @foreach ($day['slots'] as $slot)
-                                                    {{-- Booked slots are shown greyed out, without their value, so they can't be sent. --}}
+                                                    
                                                     <option value="{{ $slot['taken'] ? '' : $slot['value'] }}" @disabled($slot['taken'])>
                                                         {{ $slot['start'] }} – {{ $slot['end'] }}{{ $slot['taken'] ? ' — محجوز' : '' }}
                                                     </option>

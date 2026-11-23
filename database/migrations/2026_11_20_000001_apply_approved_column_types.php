@@ -53,8 +53,8 @@ return new class extends Migration
             $table->enum('type', ['booking', 'payment', 'refund', 'review', 'vendor_application', 'system', 'wallet', 'service'])->change();
         });
 
-        // The existing bookings.status migration already changes that column to ENUM.
-        // Do not repeat it here.
+         
+         
         Schema::table('recurring_availability', function (Blueprint $table) {
             $table->unsignedTinyInteger('day_of_week')->change();
         });

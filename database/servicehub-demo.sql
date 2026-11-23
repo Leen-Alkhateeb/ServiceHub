@@ -1,8 +1,3 @@
--- For the full demo dataset, use php artisan db:seed.
--- Run the existing Laravel migrations first, then import once into that same
--- MySQL or MariaDB database. This file inserts sample rows only.
--- Demo vendor: vendor.demo@servicehub.example / ServiceHubDemo2026!
--- Demo customer: customer.demo@servicehub.example / ServiceHubDemo2026!
 SET NAMES utf8mb4;
 START TRANSACTION;
 

@@ -168,7 +168,7 @@
                                     <td>
                                         <div class="user-actions">
 
-                                            <!-- Activate / Deactivate Button -->
+                                            
                                             <button type="button"
                                                 class="action-btn {{ $user->status === 'active' ? 'deactivate-btn' : 'activate-btn' }}"
                                                 aria-label="{{ $user->status === 'active' ? 'تعطيل المستخدم' : 'تفعيل المستخدم' }}"
@@ -194,7 +194,7 @@
                                                 @endif
                                             </button>
 
-                                            <!-- Delete Button -->
+                                            
                                             <button type="button" class="action-btn delete-btn" aria-label="حذف المستخدم"
                                                 title="حذف المستخدم" data-id="{{ $user->id }}"
                                                 data-name="{{ $user->first_name }} {{ $user->last_name }}"
@@ -252,7 +252,7 @@
                     </div>
                 </div>
 
-                <!-- Delete Modal -->
+                
                 <div id="deleteUserModal" class="user-modal" role="dialog" aria-modal="true"
                     aria-labelledby="deleteUserTitle" hidden>
 
@@ -358,7 +358,7 @@
             document.querySelectorAll('[data-user-delete]').forEach(button => button.addEventListener('click', () => openDeleteModal(button)));
             document.querySelectorAll('[data-user-close]').forEach(button => button.addEventListener('click', () => closeUserModal(button.dataset.userClose)));
 
-            // Close when clicking outside the popup
+             
             document.querySelectorAll('.user-modal').forEach(modal => {
                 modal.addEventListener('click', function (event) {
                     if (event.target === modal) {
@@ -367,7 +367,7 @@
                 });
             });
 
-            // Close with Escape
+             
             document.querySelectorAll('.user-modal').forEach(modal => modal.addEventListener('keydown', function (event) {
                 if (event.key === 'Escape') {
                     document.querySelectorAll('.user-modal').forEach(modal => {

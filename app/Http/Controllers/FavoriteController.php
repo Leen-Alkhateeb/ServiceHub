@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class FavoriteController extends Controller
 {
-    /** Heart button: add if missing, remove if it exists */
+     
     public function toggle(Request $request, VendorService $vendorService)
     {
         abort_unless($request->user()->role === 'customer', 403);

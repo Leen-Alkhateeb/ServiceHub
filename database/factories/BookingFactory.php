@@ -10,9 +10,9 @@ use App\Models\VendorService;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 
-/**
- * @extends Factory<Booking>
- */
+
+
+
 class BookingFactory extends Factory
 {
     public function definition(): array

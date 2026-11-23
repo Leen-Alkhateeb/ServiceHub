@@ -5,7 +5,7 @@
     const bookings = @json($bookingChart);
     const statuses = @json($statusChart);
 
-    // Booking statuses in Arabic for the doughnut chart legend.
+     
     const statusNames = {
         pending: 'قيد الانتظار',
         awaiting_payment: 'بانتظار العربون',

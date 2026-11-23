@@ -19,19 +19,19 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * Demo data for the presentation.
- *
- * - Runs after ServiceHubDemoSeeder and only ADDS data.
- * - Existing rows are never deleted. Only empty image fields are filled.
- * - Safe to run again: every insert uses firstOrCreate / a "seed once" check.
- *
- * Run: php artisan db:seed --class=PresentationSeeder
- * Images live in database/demo-images (see CREDITS.md there).
- */
+
+
+
+
+
+
+
+
+
+
 class PresentationSeeder extends Seeder
 {
-    // Category name => [key, photo of the category's existing vendor, new service name, description, price, minutes]
+     
     private const CATEGORIES = [
         'السباكة' => ['plumbing', 'm07', 'تركيب خلاط مطبخ أو حمام', 'تركيب خلاط جديد وفحص الوصلات والتأكد من عدم وجود تسريب.', 25, 60],
         'الكهرباء' => ['electrical', 'm01', 'تركيب مقابس ومفاتيح كهرباء', 'تركيب أو استبدال المقابس والمفاتيح مع فحص سلامة التمديدات.', 20, 60],
@@ -51,7 +51,7 @@ class PresentationSeeder extends Seeder
         'الإنارة' => ['lighting', 'f04', 'تركيب إنارة LED مخفية', 'تركيب شرائط LED للأسقف والمطابخ مع المحولات.', 55, 90],
     ];
 
-    // New vendors: [email, first, last, gender, category, photo, years, city, bio]
+     
     private const NEW_VENDORS = [
         ['vendor.ibrahim.demo@servicehub.example', 'إبراهيم', 'العتوم', 'male', 'السباكة', 'm14', 22, 'عمّان', 'فني سباكة بخبرة طويلة في تمديدات المنازل وكشف التسريبات.'],
         ['vendor.anas.demo@servicehub.example', 'أنس', 'القضاة', 'male', 'الكهرباء', 'm13', 18, 'إربد', 'كهربائي منازل متخصص في لوحات التوزيع والتمديدات الجديدة.'],
@@ -59,7 +59,7 @@ class PresentationSeeder extends Seeder
         ['vendor.hiba.demo@servicehub.example', 'هبة', 'الطراونة', 'female', 'التنظيف المتخصص', 'f05', 6, 'عمّان', 'خدمات تنظيف منزلي متخصص بمعدات حديثة ومواد آمنة.'],
     ];
 
-    // Customers: [first, last, gender, city]
+     
     private const CUSTOMERS = [
         ['رامي', 'الحوراني', 'male', 'عمّان'],
         ['ديما', 'المجالي', 'female', 'عمّان'],
@@ -92,7 +92,7 @@ class PresentationSeeder extends Seeder
         ['التسجيل كفني', 'أنا فني كهرباء، شو الأوراق المطلوبة عشان أنضم للمنصة؟'],
     ];
 
-    private const WORK_DAYS = [0, 1, 2, 3, 4, 6]; // Saturday to Thursday
+    private const WORK_DAYS = [0, 1, 2, 3, 4, 6];  
 
     private array $taken = [];
 
@@ -108,7 +108,7 @@ class PresentationSeeder extends Seeder
         });
     }
 
-    /** Copy images from the repo to the public disk (storage/app/public/demo). */
+     
     private function copyImages(): void
     {
         $disk = Storage::disk('public');
@@ -124,7 +124,7 @@ class PresentationSeeder extends Seeder
         }
     }
 
-    /** Images for categories/services/vendors + one extra service per category + new vendors. */
+     
     private function seedCatalog(): array
     {
         $offers = [];
@@ -138,7 +138,7 @@ class PresentationSeeder extends Seeder
 
             $this->fillImage($category, "demo/categories/$key.jpg");
 
-            // The team's existing service in this category gets its own image.
+             
             $mainService = Service::where('category_id', $category->id)
                 ->whereNull('suggested_by')
                 ->oldest('id')
@@ -159,7 +159,7 @@ class PresentationSeeder extends Seeder
                 ]
             );
 
-            // Existing vendor of this category also offers the new service.
+             
             $vendor = User::where('email', "$key.seed@servicehub.example")->first();
 
             if ($vendor) {
@@ -205,7 +205,7 @@ class PresentationSeeder extends Seeder
 
             $this->addWorkDays($vendor);
 
-            // Same services as the category's first vendor, with a slightly different price.
+             
             $services = Service::where('category_id', $category->id)
                 ->where('approval_status', 'approved')
                 ->where('is_deleted', false)
@@ -246,7 +246,7 @@ class PresentationSeeder extends Seeder
         return $customers;
     }
 
-    /** 3-4 bookings per customer in different states. Skipped for customers who already have bookings. */
+     
     private function seedBookings(array $customers, array $offers): void
     {
         if (! $offers) {
@@ -306,7 +306,7 @@ class PresentationSeeder extends Seeder
                     ]);
                 }
 
-                // Two complaints so the refunds page has real cases.
+                 
                 if ($status === 'completed' && $n === 1 && in_array($i, [1, 4], true)) {
                     RefundRequest::create([
                         'booking_id' => $booking->id,
@@ -331,7 +331,7 @@ class PresentationSeeder extends Seeder
 
         $hour = 9;
 
-        // Find a free working-day slot for this vendor (09:00 or 10:00, fits every window).
+         
         for ($try = 0; $try < 14; $try++) {
             if (in_array($date->dayOfWeek, self::WORK_DAYS, true)) {
                 $hour = 9 + ($i + $try) % 2;
@@ -433,7 +433,7 @@ class PresentationSeeder extends Seeder
         }
     }
 
-    /** Only fills an empty image, never replaces one the team or admin uploaded. */
+     
     private function fillImage(Model $model, string $path): void
     {
         if (blank($model->image)) {
@@ -448,7 +448,7 @@ class PresentationSeeder extends Seeder
         }
     }
 
-    /** Fake but stable Jordanian-looking mobile number. */
+     
     private function phone(string $seed): string
     {
         return '079'.str_pad((string) (abs(crc32($seed)) % 10000000), 7, '0', STR_PAD_LEFT);

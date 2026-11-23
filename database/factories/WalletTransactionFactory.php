@@ -6,9 +6,9 @@ use App\Models\Booking;
 use App\Models\WalletTransaction;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<WalletTransaction>
- */
+
+
+
 class WalletTransactionFactory extends Factory
 {
     public function definition(): array

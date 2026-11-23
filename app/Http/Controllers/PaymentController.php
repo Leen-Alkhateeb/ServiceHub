@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\DB;
 
 class PaymentController extends Controller
 {
-    /**
-     * تسجيل كامل قيمة الحجز بعد تعبئة بيانات الدفع.
-     */
+    
+
+
     public function store(Request $request, Booking $booking)
     {
         abort_unless(
@@ -23,7 +23,7 @@ class PaymentController extends Controller
             403
         );
 
-        // إزالة الفراغات قبل التحقق من رقم البطاقة.
+         
         $request->merge([
             'card_number' => preg_replace(
                 '/\s+/',
@@ -101,9 +101,9 @@ class PaymentController extends Controller
             ->with('success', 'تم تأكيد الحجز وتسجيل كامل المبلغ.');
     }
 
-    /**
-     * صفحة دفع قيمة الحجز قبل تأكيده.
-     */
+    
+
+
     public function checkout(Request $request, Booking $booking)
     {
         abort_unless($booking->customer_id === $request->user()->id, 403);
@@ -131,9 +131,9 @@ class PaymentController extends Controller
         return view('pages.public.checkout', compact('booking'));
     }
 
-    /**
-     * فاتورة العميل بعد تسجيل الدفع.
-     */
+    
+
+
     public function invoice(Request $request, Booking $booking)
     {
         abort_unless(

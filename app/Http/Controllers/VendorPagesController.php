@@ -107,7 +107,7 @@ public function dashboard(Request $request): View
     $vendorId = $vendor->id;
     $vendorName = $vendor->first_name;
 
-    // جميع الحجوزات المرتبطة بخدمات هذا الفيندور
+     
     $bookings = Booking::query()
         ->whereHas('vendorService', function ($offer) use ($vendorId) {
             $offer->where('vendor_id', $vendorId);
@@ -117,7 +117,7 @@ public function dashboard(Request $request): View
     $today = $scheduleNow->toDateString();
     $time = $scheduleNow->format('H:i:s');
 
-    // المواعيد المؤكدة التي لم يبدأ وقتها بعد
+     
     $upcoming = function ($query) use ($today, $time) {
         return $query
             ->where('status', 'confirmed')
@@ -131,7 +131,7 @@ public function dashboard(Request $request): View
             });
     };
 
-    // إحصائيات لوحة الفني
+     
     $stats = [
         'pending' => (clone $bookings)
             ->where('status', 'pending')
@@ -150,7 +150,7 @@ public function dashboard(Request $request): View
             ->avg('rating'),
     ];
 
-    // آخر 5 طلبات حجز تنتظر رد الفيندور
+     
     $pendingBookings = (clone $bookings)
         ->where('status', 'pending')
         ->with('customer')
@@ -158,7 +158,7 @@ public function dashboard(Request $request): View
         ->limit(5)
         ->get();
 
-    // أقرب 5 مواعيد مؤكدة قادمة
+     
     $upcomingBookings = $upcoming(clone $bookings)
         ->with('customer')
         ->orderBy('booking_date')

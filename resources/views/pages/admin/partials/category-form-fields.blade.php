@@ -1,4 +1,4 @@
-{{-- Shared fields for the create and edit category forms. $category is null on create. --}}
+
 <div class="field @error('name') has-error @enderror">
     <label for="name">اسم القسم</label>
     <input type="text" id="name" name="name" value="{{ old('name', $category?->name) }}" maxlength="255" required>

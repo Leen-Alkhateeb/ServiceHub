@@ -6,9 +6,9 @@ use App\Models\ContactMessage;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<ContactMessage>
- */
+
+
+
 class ContactMessageFactory extends Factory
 {
     public function definition(): array

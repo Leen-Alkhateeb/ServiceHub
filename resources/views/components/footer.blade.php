@@ -1,5 +1,5 @@
 @php
-    // First three active categories, so the links always point to real category pages.
+     
     $footerCategories = \App\Models\Category::where('is_deleted', false)->orderBy('id')->take(3)->get();
 @endphp
 <footer class="footer">

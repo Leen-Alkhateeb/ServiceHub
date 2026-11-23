@@ -192,7 +192,7 @@
             </div>
         @endif
 
-        <!-- البحث والفلترة -->
+        
         <section class="panel">
 
             <form
@@ -258,7 +258,7 @@
 
         </section>
 
-        <!-- قائمة الطلبات -->
+        
         <div class="requests-list" style="margin-top: 20px;">
 
             @forelse ($requests as $offer)
@@ -373,7 +373,7 @@
 
         </div>
 
-        <!-- Pagination -->
+        
         @if ($requests->hasPages())
 
             <div class="requests-pagination" data-turbo="false">
@@ -386,7 +386,7 @@
 
 </div>
 
-<!-- نافذة الموافقة والرفض -->
+
 <div
     class="request-modal-backdrop"
     id="request-decision-modal"

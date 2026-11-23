@@ -20,7 +20,7 @@ class AccountPhoto
         return self::storedFile($accountId, $image) ? route('account.picture.show', $accountId) : null;
     }
 
-    /** @return array{string, string}|null */
+     
     public static function storedFile(int $accountId, ?string $image): ?array
     {
         $path = self::normalize($image);

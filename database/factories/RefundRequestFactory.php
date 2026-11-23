@@ -7,9 +7,9 @@ use App\Models\RefundRequest;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 
-/**
- * @extends Factory<RefundRequest>
- */
+
+
+
 class RefundRequestFactory extends Factory
 {
     public function definition(): array

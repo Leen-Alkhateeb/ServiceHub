@@ -1,10 +1,3 @@
--- ServiceHub | rolling month + upcoming week | MariaDB / MySQL / phpMyAdmin
--- Select the migrated development database before importing. This file inserts demo rows only.
--- Admin: admin.month@servicehub.example | customer: customer01.month@servicehub.example
--- Vendor: vendor01.month@servicehub.example | all demo accounts: ServiceHubMonth2026!
--- History: preceding 30 days. Upcoming appointments: tomorrow through day 7.
--- Import once per database; repeated imports skip this batch. Existing matching catalog entries are reused.
--- Business tables only. Application-managed sessions, cache, reset tokens and migration history stay intact.
 SET NAMES utf8mb4;
 START TRANSACTION;
 SET @sh_month_now := UTC_TIMESTAMP();

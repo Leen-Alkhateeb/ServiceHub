@@ -165,7 +165,7 @@ class ServiceHubDemoSeeder extends Seeder
 
                 $this->seedBookingActivity($customer, $applicant, $offer, $slot);
 
-                // إنشاء تقييمات متعددة ومختلفة لكل خدمة
+                 
                 $this->seedExtraServiceReviews($offer, $slot);
 
                 $this->seed(ContactMessage::factory(), [
@@ -243,7 +243,7 @@ private function seedServiceSuggestions(): void
             ]
         );
 
-        // لا نغيّر الخدمات الموجودة مسبقًا أو أصحابها.
+         
         if ((int) $service->suggested_by !== (int) $vendor->id) {
             continue;
         }
@@ -278,7 +278,7 @@ private function seedServiceSuggestions(): void
         VendorService $offer,
         RecurringAvailability $slot,
     ): void {
-        // إزالة الحجز التجريبي المعلّق السابق حتى لا يحجب وقتًا من المواعيد المتاحة
+         
         Booking::where('customer_id', $customer->id)
             ->where('vendor_service_id', $offer->id)
             ->where('status', 'pending')
@@ -379,7 +379,7 @@ private function seedServiceSuggestions(): void
         foreach ($comments as $index => $comment) {
             $number = $index + 1;
 
-            // استخدام تاريخ ثابت يمنع تكرار الحجوزات عند تشغيل الـSeeder مرة أخرى
+             
             $bookingDate = Carbon::create(2025, 1, 6)
                 ->addWeeks($number)
                 ->toDateString();
@@ -456,12 +456,12 @@ private function seedServiceSuggestions(): void
             });
     }
 
-    /**
-     * @template TModel of Model
-     *
-     * @param Factory<TModel> $factory
-     * @return TModel
-     */
+    
+
+
+
+
+
     private function seed(
         Factory $factory,
         array $identity,

@@ -6,9 +6,9 @@ use App\Models\PortfolioImage;
 use App\Models\PortfolioProject;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<PortfolioImage>
- */
+
+
+
 class PortfolioImageFactory extends Factory
 {
     public function definition(): array

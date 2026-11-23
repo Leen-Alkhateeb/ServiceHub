@@ -98,7 +98,7 @@ class AdminCategoryManagementTest extends TestCase
 
     private function fakeImage(string $name): UploadedFile
     {
-        // A real 1x1 PNG, so the test does not need the GD extension.
+         
         $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==');
 
         return UploadedFile::fake()->createWithContent($name, $png);

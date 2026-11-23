@@ -5,7 +5,7 @@
 @include('components.navbar')
 <main>
     @php
-        // [image, alt text, category label, focus point of the photo]
+         
         $heroSlides = [
             ['plumber-2.jpg', 'فني سباكة يركّب وصلات أنابيب المياه', 'السباكة', 'center'],
             ['electrician.jpg', 'فني كهرباء يفحص لوحة التوزيع', 'الكهرباء', 'center 30%'],

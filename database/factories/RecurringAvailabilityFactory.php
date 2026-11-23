@@ -6,9 +6,9 @@ use App\Models\RecurringAvailability;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<RecurringAvailability>
- */
+
+
+
 class RecurringAvailabilityFactory extends Factory
 {
     public function definition(): array

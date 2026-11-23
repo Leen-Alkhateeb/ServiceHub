@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AdminServicesController extends Controller
 {
-    // عرض الخدمات
+     
     public function adminServices(Request $request)
     {
         $request->validate([
@@ -97,7 +97,7 @@ class AdminServicesController extends Controller
             && Storage::disk('public')->exists($path) ? $path : null;
     }
 
-    // إضافة خدمة
+     
     public function addServices(Request $request)
     {
         $newServices = $request->validate([
@@ -144,7 +144,7 @@ class AdminServicesController extends Controller
             ->with('success', 'تمت إضافة الخدمة بنجاح');
     }
 
-    // تعديل خدمة
+     
     public function editServices(Request $request, Service $service)
     {
         abort_if($service->is_deleted, 404);
@@ -203,7 +203,7 @@ class AdminServicesController extends Controller
             ->with('success', 'تم تعديل الخدمة بنجاح');
     }
 
-    // تفعيل وتعطيل الخدمة
+     
     public function toggleServices(Service $service)
     {
         abort_if($service->is_deleted, 404);
@@ -220,7 +220,7 @@ class AdminServicesController extends Controller
         );
     }
 
-    // الحذف المنطقي للخدمة
+     
     public function deleteServices(Service $service)
     {
         abort_if($service->is_deleted, 404);

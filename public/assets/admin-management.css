@@ -1,5 +1,5 @@
-/* Styles for admin management pages (categories, bookings, messages, payments).
-   Every rule starts with .admin-manage so other pages are not affected. */
+
+
 
 .admin-manage.booking-inspect { min-width: 0; overflow-wrap: anywhere; }
 .admin-manage .booking-inspect-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-block-end: 1.25rem; }
@@ -133,7 +133,7 @@
     font-size: 16px;
 }
 
-/* Forms */
+
 .admin-manage .form-panel {
     max-width: 720px;
 }
@@ -180,7 +180,7 @@
     margin-top: 18px;
 }
 
-/* Details pages */
+
 .admin-manage .details-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));

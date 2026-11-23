@@ -1,4 +1,4 @@
-// Highlights the current page link in the top nav and the dashboard sidebars.
+ 
 function markActiveLinks() {
     var current = window.location.pathname.replace(/\/+$/, '').toLowerCase() || '/';
 
@@ -25,8 +25,8 @@ function markActiveLinks() {
     });
 }
 
-// Booking picker: show only the time list of the chosen day.
-// Hidden lists are disabled so only one "slot" value is sent.
+ 
+ 
 document.addEventListener('change', function (event) {
     var daySelect = event.target.closest('[data-slot-day]');
 
@@ -50,7 +50,7 @@ document.addEventListener('change', function (event) {
     });
 });
 
-// Home hero slider: fades between images every 5 seconds, dots to jump, pauses on hover.
+ 
 var heroTimer = null;
 var initializedHero = null;
 
@@ -108,7 +108,7 @@ function startHeroSlider() {
         });
     });
 
-    // Pause only while the user is using the dots, not while reading the text.
+     
     var controls = slider.querySelector('.hero-controls') || slider;
 
     controls.addEventListener('mouseenter', function () {
@@ -127,8 +127,8 @@ document.addEventListener('turbo:before-render', function () {
     initializedHero = null;
 });
 
-// Real height of the sticky top bar (it can wrap or change with zoom),
-// used by the fixed admin sidebar so it always starts right under it.
+ 
+ 
 function setTopbarHeight() {
     var topbar = document.querySelector('.topbar');
 
@@ -169,9 +169,9 @@ window.addEventListener('resize', function () {
     positionAccountMenu(document.querySelector('.account-dropdown[open]'));
 });
 
-// Admin sidebar always stays between the header and the footer:
-// when the footer scrolls into view the sidebar gets shorter (its links scroll inside it)
-// instead of being pushed up under the header.
+ 
+ 
+ 
 var sidebarFrame = null;
 
 function fitAdminSidebar() {
@@ -207,14 +207,14 @@ window.addEventListener('resize', requestFitAdminSidebar);
 document.addEventListener('DOMContentLoaded', fitAdminSidebar);
 document.addEventListener('turbo:load', fitAdminSidebar);
 
-// Keep the active admin link visible inside the sidebar when the list is long.
+ 
 function revealActiveSidebarLink() {
     markActiveLinks();
 
     var sidebar = document.querySelector('.admin-sidebar');
     var active = sidebar && sidebar.querySelector('a.is-active');
 
-    // Scroll only the sidebar (not the page) when the active link is below its visible area.
+     
     if (active && active.offsetTop + active.offsetHeight > sidebar.clientHeight) {
         sidebar.scrollTop = active.offsetTop - sidebar.clientHeight / 2;
     }

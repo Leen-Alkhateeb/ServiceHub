@@ -41,7 +41,7 @@ class VendorServiceRequestController extends Controller
                 throw ValidationException::withMessages(['service_id' => 'هذه الخدمة مضافة بالفعل إلى ملفك.'])->errorBag('offer');
             }
 
-            // Reuse offers submitted under the previous catalog approval workflow.
+             
             $offer = $offers->whereIn('status', ['pending', 'rejected', 'inactive'])->latest('id')->first();
             $attributes = array_diff_key($data, ['image' => true]) + ['status' => 'active', 'rejection_reason' => null];
             if ($offer) {

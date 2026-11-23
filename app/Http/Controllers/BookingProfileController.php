@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class BookingProfileController extends Controller
 {
-    /** إرسال طلب الحجز إلى الفني للموافقة. */
+     
     public function store(Request $request, VendorService $vendorService)
     {
         $customer = $request->user();
@@ -52,7 +52,7 @@ class BookingProfileController extends Controller
             ]
         );
 
-        // صيغة الموعد: YYYY-MM-DD|HH:MM|availability_id
+         
         [$date, $start, $availabilityId] = explode('|', $request->input('slot'));
 
         try {
@@ -102,7 +102,7 @@ class BookingProfileController extends Controller
         ) {
             User::query()->lockForUpdate()->findOrFail($vendorService->vendor_id);
 
-            // منع حجز موعد يتداخل مع موعد آخر لمقدّم الخدمة.
+             
             $taken = Booking::query()
                 ->whereHas(
                     'vendorService',

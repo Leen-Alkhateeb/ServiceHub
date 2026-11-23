@@ -121,7 +121,7 @@ class ProfileController extends Controller
         return redirect()->route('customer.settings')->with('success', 'تم تحديث معلوماتك.');
     }
 
-    /** الصفحات هاي للعميل فقط */
+     
     private function customer(Request $request)
     {
         abort_unless($request->user()->role === 'customer', 403);

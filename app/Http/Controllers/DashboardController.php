@@ -13,7 +13,7 @@ class DashboardController extends Controller
     {
         $vendorId = $request->user()->id;
 
-        // اسم مقدم الخدمة المسجل دخوله
+         
         $vendorName = $request->user()->first_name;
 
         $bookings = Booking::query()->whereHas(

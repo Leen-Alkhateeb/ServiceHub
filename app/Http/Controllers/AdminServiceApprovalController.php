@@ -12,7 +12,7 @@ use Illuminate\View\View;
 
 class AdminServiceApprovalController extends Controller
 {
-    // عرض طلبات اعتماد الخدمات المقترحة
+     
     public function index(Request $request): View
     {
         $request->validate(['search' => ['nullable', 'string']]);
@@ -22,7 +22,7 @@ class AdminServiceApprovalController extends Controller
             'service.category',
         ])
 
-            // عرض اقتراحات الخدمات فقط
+             
             ->whereHas('service', function ($query) {
                 $query->whereNotNull('suggested_by')
                     ->whereColumn(
@@ -31,7 +31,7 @@ class AdminServiceApprovalController extends Controller
                     );
             })
 
-            // البحث باسم الخدمة أو مقدم الخدمة
+             
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = $request->input('search');
 
@@ -46,7 +46,7 @@ class AdminServiceApprovalController extends Controller
                 });
             })
 
-            // الفلترة حسب حالة اعتماد الخدمة
+             
             ->when($request->filled('status'), function ($query) use ($request) {
                 $status = $request->input('status');
 
@@ -64,7 +64,7 @@ class AdminServiceApprovalController extends Controller
                 }
             })
 
-            // الطلبات المعلقة أولاً
+             
             ->orderByRaw("
                 CASE
                     WHEN status = 'pending' THEN 0
@@ -75,7 +75,7 @@ class AdminServiceApprovalController extends Controller
             ->latest('updated_at')
             ->latest('id')
 
-            // Pagination
+             
             ->paginate(6)
             ->withQueryString();
 
@@ -85,7 +85,7 @@ class AdminServiceApprovalController extends Controller
         );
     }
 
-    // قبول أو رفض اقتراح الخدمة
+     
     public function decide(
         Request $request,
         VendorService $offer
@@ -107,35 +107,35 @@ class AdminServiceApprovalController extends Controller
 
         DB::transaction(function () use ($offer, $data) {
 
-            // قفل حساب مقدم الخدمة
+             
             User::query()
                 ->lockForUpdate()
                 ->findOrFail($offer->vendor_id);
 
-            // جلب الطلب مع قفله
+             
             $current = VendorService::query()
                 ->lockForUpdate()
                 ->findOrFail($offer->id);
 
-            // الطلب يجب أن يكون قيد المراجعة
+             
             abort_unless(
                 $current->status === 'pending',
                 409
             );
 
-            // جلب الخدمة المرتبطة بالطلب
+             
             $service = $current->service()
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            // التأكد أن الخدمة مقترحة من هذا الـVendor
+             
             abort_unless(
                 $service->suggested_by !== null
                 && (int) $service->suggested_by === (int) $current->vendor_id,
                 409
             );
 
-            // الخدمة يجب أن تكون قيد المراجعة
+             
             abort_unless(
                 $service->approval_status === 'pending',
                 409
@@ -147,7 +147,7 @@ class AdminServiceApprovalController extends Controller
                 ? null
                 : $data['rejection_reason'];
 
-            // التحقق من صلاحية الخدمة والقسم عند الموافقة
+             
             if ($approved) {
                 abort_unless(
                     !$service->is_deleted
@@ -157,7 +157,7 @@ class AdminServiceApprovalController extends Controller
                 );
             }
 
-            // تحديث حالة اعتماد الخدمة الأساسية
+             
             $service->update([
                 'approval_status' => $approved
                     ? 'approved'
@@ -166,7 +166,7 @@ class AdminServiceApprovalController extends Controller
                 'rejection_reason' => $reason,
             ]);
 
-            // تحديث حالة عرض الـVendor
+             
             $current->update([
                 'status' => $approved
                     ? 'active'
@@ -175,7 +175,7 @@ class AdminServiceApprovalController extends Controller
                 'rejection_reason' => $reason,
             ]);
 
-            // إرسال إشعار لمقدم الخدمة
+             
             $current->vendor->notifications()->create([
                 'title' => $approved
                     ? 'تمت الموافقة على الخدمة'

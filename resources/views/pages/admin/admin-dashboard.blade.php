@@ -19,7 +19,7 @@
             </div>
         </div>
 
-        <!-- Statistics -->
+        
         <section class="admin-stat-grid">
              <div class="admin-stat">
                 <span>إجمالي الارباح المسجلة</span>
@@ -64,7 +64,7 @@
             </div>
         </section>
 
-        <!-- Charts -->
+        
         <section class="admin-chart-grid">
             <div class="panel">
                 <div class="admin-section-heading">
@@ -87,7 +87,7 @@
             </div>
         </section>
 
-        <!-- Latest Users -->
+        
         <section class="panel admin-section">
             <div class="admin-section-heading">
                     <h3>أحدث المستخدمين</h3>
@@ -120,7 +120,7 @@
             </div>
         </section>
 
-        <!-- Latest Reviews and Refunds -->
+        
         <div class="admin-feed-grid">
             <section class="panel admin-section">
                 <div class="admin-section-heading">
@@ -185,7 +185,7 @@
             </section>
         </div>
 
-        <!-- Vendor Applications -->
+        
         <section class="panel admin-section">
             <div class="admin-section-heading">
                     <h3>أحدث طلبات انضمام الفنيين</h3>

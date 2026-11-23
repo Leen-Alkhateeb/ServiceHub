@@ -13,7 +13,7 @@ use Illuminate\Support\Carbon;
 
 class MarketController extends Controller
 {
-    /** قائمة الخدمات مع البحث والفلاتر */
+     
     public function index(Request $request)
     {
         $request->validate([
@@ -105,7 +105,7 @@ class MarketController extends Controller
         ]);
     }
 
-    /** تفاصيل الخدمة والتقييمات والمواعيد المتاحة */
+     
     public function show(VendorService $vendorService)
     {
         abort_unless(VendorService::publiclyVisible()->whereKey($vendorService)->exists(), 404);
@@ -150,7 +150,7 @@ class MarketController extends Controller
         ]);
     }
 
-    /** المواعيد المتاحة خلال الثلاثين يومًا القادمة */
+     
     private function availableDays(VendorService $vendorService): array
     {
         $daysToShow = 30;
@@ -219,7 +219,7 @@ class MarketController extends Controller
                                 && $slotEnd->gt($bookingStart);
                         });
 
-                    // Booked slots stay in the list (marked as taken) so the customer sees the full schedule.
+                     
                     if ($slotStart->isFuture()) {
                         $slots[] = [
                             'value' => $date->toDateString()

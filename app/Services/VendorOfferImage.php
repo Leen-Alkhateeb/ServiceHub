@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Storage;
 
 class VendorOfferImage
 {
-    /** @return array{0?: string, 1?: string|null} */
+     
     public static function resolve(int $offerId, ?string ...$images): array
     {
         foreach (array_unique($images) as $image) {

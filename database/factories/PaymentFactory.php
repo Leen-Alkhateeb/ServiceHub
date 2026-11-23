@@ -7,9 +7,9 @@ use App\Models\Payment;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 
-/**
- * @extends Factory<Payment>
- */
+
+
+
 class PaymentFactory extends Factory
 {
     public function definition(): array

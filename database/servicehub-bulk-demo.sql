@@ -1,14 +1,7 @@
--- ServiceHub bulk demo data for phpMyAdmin (MySQL / MariaDB).
--- Apply the Laravel migrations first, then select the ServiceHub development database and import this file.
--- Vendor: plumbing.bulk@servicehub.example / ServiceHubBulk2026!
--- Customer: customer.bulk@servicehub.example / ServiceHubBulk2026!
--- If the bulk demo account already exists, importing this file again skips the batch.
--- Existing active categories and approved services with matching names are reused.
 SET NAMES utf8mb4;
 START TRANSACTION;
 SET @sh_bulk_import := NOT EXISTS (SELECT 1 FROM `users` WHERE `email` = 'plumbing.bulk@servicehub.example');
 
--- users (50 rows in this batch)
 INSERT INTO `users` (`first_name`, `last_name`, `email`, `password`, `phone`, `location`, `gender`, `profile_image`, `role`, `status`, `created_at`, `updated_at`, `remember_token`) SELECT 'ليلى', 'حماد', 'admin.bulk@servicehub.example', '$2y$10$EQP5y5SLEl8CTLt9OXFCuuIe9hUYoaGrOS2N6FKuKKVAP2oBWDFkC', '0707749379', 'إربد', 'female', NULL, 'admin', 'active', '2026-11-20 13:26:19', '2026-11-20 13:26:19', NULL WHERE @sh_bulk_import = 1;
 SET @sh_users_1 := LAST_INSERT_ID();
 INSERT INTO `users` (`first_name`, `last_name`, `email`, `password`, `phone`, `location`, `gender`, `profile_image`, `role`, `status`, `created_at`, `updated_at`, `remember_token`) SELECT 'سارة', 'الخطيب', 'customer.bulk@servicehub.example', '$2y$10$DJGk/VAX996sftaZx0Dm7edENiBNK9TuDbK3yrqxhoPuD6XkmvZuW', '0712238261', 'مادبا', 'female', NULL, 'customer', 'active', '2026-11-20 13:26:19', '2026-11-20 13:26:19', NULL WHERE @sh_bulk_import = 1;
@@ -110,7 +103,6 @@ SET @sh_users_49 := LAST_INSERT_ID();
 INSERT INTO `users` (`first_name`, `last_name`, `email`, `password`, `phone`, `location`, `gender`, `profile_image`, `role`, `status`, `created_at`, `updated_at`, `remember_token`) SELECT 'Lolita', 'Franecki', 'customer30.bulk@servicehub.example', '$2y$10$DJGk/VAX996sftaZx0Dm7edENiBNK9TuDbK3yrqxhoPuD6XkmvZuW', '0748224805', 'عمّان', 'female', NULL, 'customer', 'active', '2026-11-20 13:26:19', '2026-11-20 13:26:19', NULL WHERE @sh_bulk_import = 1;
 SET @sh_users_50 := LAST_INSERT_ID();
 
--- vendor_profiles (17 rows in this batch)
 INSERT INTO `vendor_profiles` (`user_id`, `experience_years`, `bio`, `work_type`, `work_permit_path`, `permit_expiry_date`, `application_status`, `applied_at`, `rejection_reason`, `created_at`, `updated_at`) SELECT @sh_users_3, 10, 'خبرة في تشخيص أعطال الأجهزة المنزلية وصيانتها.', 'صيانة الأجهزة المنزلية', 'vendor-permits/demo-placeholder.pdf', '2027-11-20', 'pending', '2026-10-20 13:26:19', NULL, '2026-11-20 13:26:19', '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1;
 SET @sh_vendor_profiles_1 := LAST_INSERT_ID();
 INSERT INTO `vendor_profiles` (`user_id`, `experience_years`, `bio`, `work_type`, `work_permit_path`, `permit_expiry_date`, `application_status`, `applied_at`, `rejection_reason`, `created_at`, `updated_at`) SELECT @sh_users_4, 13, 'فحص تمديدات المياه وإصلاح الوصلات التالفة.', 'السباكة', 'vendor-permits/demo-placeholder.pdf', '2027-11-20', 'approved', '2026-10-20 13:26:19', NULL, '2026-11-20 13:26:19', '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1;
@@ -146,7 +138,6 @@ SET @sh_vendor_profiles_16 := LAST_INSERT_ID();
 INSERT INTO `vendor_profiles` (`user_id`, `experience_years`, `bio`, `work_type`, `work_permit_path`, `permit_expiry_date`, `application_status`, `applied_at`, `rejection_reason`, `created_at`, `updated_at`) SELECT @sh_users_20, 23, 'فحص وحدات الإنارة واستبدال التركيبات المتضررة.', 'الإنارة', 'vendor-permits/demo-placeholder.pdf', '2027-11-20', 'approved', '2026-10-20 13:26:19', NULL, '2026-11-20 13:26:19', '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1;
 SET @sh_vendor_profiles_17 := LAST_INSERT_ID();
 
--- categories (16 rows in this batch)
 SET @sh_match := IF(@sh_bulk_import, (SELECT `id` FROM `categories` WHERE `name` = 'السباكة' AND `is_deleted` = 0 ORDER BY `id` LIMIT 1), NULL);
 INSERT INTO `categories` (`name`, `description`, `image`, `is_deleted`, `created_at`, `updated_at`) SELECT 'السباكة', 'فحص تمديدات المياه وإصلاح الوصلات التالفة.', '', 0, '2026-11-20 13:26:19', '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1 AND @sh_match IS NULL;
 SET @sh_categories_1 := COALESCE(@sh_match, LAST_INSERT_ID());
@@ -196,7 +187,6 @@ SET @sh_match := IF(@sh_bulk_import, (SELECT `id` FROM `categories` WHERE `name`
 INSERT INTO `categories` (`name`, `description`, `image`, `is_deleted`, `created_at`, `updated_at`) SELECT 'الإنارة', 'فحص وحدات الإنارة واستبدال التركيبات المتضررة.', '', 0, '2026-11-20 13:26:19', '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1 AND @sh_match IS NULL;
 SET @sh_categories_16 := COALESCE(@sh_match, LAST_INSERT_ID());
 
--- services (16 rows in this batch)
 SET @sh_match := IF(@sh_bulk_import, (SELECT `id` FROM `services` WHERE `name` = 'كشف وإصلاح تسريبات المياه' AND `category_id` = @sh_categories_1 AND `is_deleted` = 0 AND `approval_status` = 'approved' ORDER BY `id` LIMIT 1), NULL);
 INSERT INTO `services` (`category_id`, `name`, `description`, `image`, `approval_status`, `rejection_reason`, `is_deleted`, `created_at`, `updated_at`) SELECT @sh_categories_1, 'كشف وإصلاح تسريبات المياه', 'فحص تمديدات المياه وإصلاح الوصلات التالفة.', '', 'approved', NULL, 0, '2026-11-20 13:26:19', '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1 AND @sh_match IS NULL;
 SET @sh_services_1 := COALESCE(@sh_match, LAST_INSERT_ID());
@@ -246,7 +236,6 @@ SET @sh_match := IF(@sh_bulk_import, (SELECT `id` FROM `services` WHERE `name` =
 INSERT INTO `services` (`category_id`, `name`, `description`, `image`, `approval_status`, `rejection_reason`, `is_deleted`, `created_at`, `updated_at`) SELECT @sh_categories_16, 'صيانة وحدات الإنارة', 'فحص وحدات الإنارة واستبدال التركيبات المتضررة.', '', 'approved', NULL, 0, '2026-11-20 13:26:19', '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1 AND @sh_match IS NULL;
 SET @sh_services_16 := COALESCE(@sh_match, LAST_INSERT_ID());
 
--- vendor_services (16 rows in this batch)
 INSERT INTO `vendor_services` (`vendor_id`, `service_id`, `description`, `price`, `image`, `status`, `created_at`, `updated_at`, `duration_minutes`, `rejection_reason`) SELECT @sh_users_4, @sh_services_1, 'فحص تمديدات المياه وإصلاح الوصلات التالفة.', 40, '', 'active', '2026-11-20 13:26:19', '2026-11-20 13:26:19', NULL, NULL WHERE @sh_bulk_import = 1;
 SET @sh_vendor_services_1 := LAST_INSERT_ID();
 INSERT INTO `vendor_services` (`vendor_id`, `service_id`, `description`, `price`, `image`, `status`, `created_at`, `updated_at`, `duration_minutes`, `rejection_reason`) SELECT @sh_users_6, @sh_services_2, 'فحص القواطع وتحديد أسباب انقطاع التيار.', 55, '', 'active', '2026-11-20 13:26:19', '2026-11-20 13:26:19', NULL, NULL WHERE @sh_bulk_import = 1;
@@ -280,7 +269,6 @@ SET @sh_vendor_services_15 := LAST_INSERT_ID();
 INSERT INTO `vendor_services` (`vendor_id`, `service_id`, `description`, `price`, `image`, `status`, `created_at`, `updated_at`, `duration_minutes`, `rejection_reason`) SELECT @sh_users_20, @sh_services_16, 'فحص وحدات الإنارة واستبدال التركيبات المتضررة.', 52, '', 'active', '2026-11-20 13:26:19', '2026-11-20 13:26:19', NULL, NULL WHERE @sh_bulk_import = 1;
 SET @sh_vendor_services_16 := LAST_INSERT_ID();
 
--- recurring_availability (17 rows in this batch)
 INSERT INTO `recurring_availability` (`vendor_id`, `day_of_week`, `start_time`, `end_time`, `is_active`, `created_at`, `updated_at`) SELECT @sh_users_4, 1, '09:00:00', '12:00:00', 1, '2026-11-20 13:26:19', '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1;
 SET @sh_recurring_availability_1 := LAST_INSERT_ID();
 INSERT INTO `recurring_availability` (`vendor_id`, `day_of_week`, `start_time`, `end_time`, `is_active`, `created_at`, `updated_at`) SELECT @sh_users_4, 5, '10:00:00', '11:00:00', 1, '2026-11-20 13:26:19', '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1;
@@ -316,7 +304,6 @@ SET @sh_recurring_availability_16 := LAST_INSERT_ID();
 INSERT INTO `recurring_availability` (`vendor_id`, `day_of_week`, `start_time`, `end_time`, `is_active`, `created_at`, `updated_at`) SELECT @sh_users_20, 1, '09:00:00', '12:00:00', 1, '2026-11-20 13:26:19', '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1;
 SET @sh_recurring_availability_17 := LAST_INSERT_ID();
 
--- portfolio_projects (16 rows in this batch)
 INSERT INTO `portfolio_projects` (`vendor_id`, `name`, `description`, `completion_date`, `project_url`, `created_at`, `updated_at`, `project_price`, `is_active`) SELECT @sh_users_4, 'مشروع كشف وإصلاح تسريبات المياه', 'بدأ العمل بمعاينة الرطوبة أسفل حوض المطبخ. تبيّن أن مصدر التسريب هو وصلة التغذية عند محبس المياه.
 
 شمل الإصلاح استبدال المحبس والوصلة التالفة، ثم تشغيل المياه وفحص نقاط الربط للتأكد من توقف التسريب. توضح صور المشروع حالة التمديدات أثناء الفحص وبعد الإصلاح.', '2026-10-20', NULL, '2026-11-20 13:26:19', '2026-11-20 13:26:19', 40, 1 WHERE @sh_bulk_import = 1;
@@ -352,7 +339,6 @@ SET @sh_portfolio_projects_15 := LAST_INSERT_ID();
 INSERT INTO `portfolio_projects` (`vendor_id`, `name`, `description`, `completion_date`, `project_url`, `created_at`, `updated_at`, `project_price`, `is_active`) SELECT @sh_users_20, 'مشروع صيانة وحدات الإنارة', 'فحص وحدات الإنارة واستبدال التركيبات المتضررة.', '2026-10-20', NULL, '2026-11-20 13:26:19', '2026-11-20 13:26:19', 52, 1 WHERE @sh_bulk_import = 1;
 SET @sh_portfolio_projects_16 := LAST_INSERT_ID();
 
--- portfolio_images (17 rows in this batch)
 INSERT INTO `portfolio_images` (`project_id`, `image`, `created_at`, `is_active`) SELECT @sh_portfolio_projects_1, 'demo/portfolio/plumbing.jpg', '2026-11-20 13:26:19', 1 WHERE @sh_bulk_import = 1;
 SET @sh_portfolio_images_1 := LAST_INSERT_ID();
 INSERT INTO `portfolio_images` (`project_id`, `image`, `created_at`, `is_active`) SELECT @sh_portfolio_projects_1, 'demo/portfolio/plumbing-before.jpg', '2026-11-20 13:26:19', 1 WHERE @sh_bulk_import = 1;
@@ -388,7 +374,6 @@ SET @sh_portfolio_images_16 := LAST_INSERT_ID();
 INSERT INTO `portfolio_images` (`project_id`, `image`, `created_at`, `is_active`) SELECT @sh_portfolio_projects_16, 'demo/portfolio/lighting.jpg', '2026-11-20 13:26:19', 1 WHERE @sh_bulk_import = 1;
 SET @sh_portfolio_images_17 := LAST_INSERT_ID();
 
--- bookings (192 rows in this batch)
 INSERT INTO `bookings` (`customer_id`, `vendor_service_id`, `availability_id`, `booking_date`, `start_time`, `end_time`, `service_name`, `service_description`, `original_price`, `status`, `approved_at`, `payment_deadline`, `completed_at`, `objection_deadline`, `cancelled_at`, `cancelled_by`, `cancellation_penalty`, `created_at`, `updated_at`) SELECT @sh_users_2, @sh_vendor_services_1, @sh_recurring_availability_1, '2026-11-02', '09:00:00', '10:00:00', 'كشف وإصلاح تسريبات المياه', 'فحص تمديدات المياه وإصلاح الوصلات التالفة.', 40, 'completed', '2026-10-31 11:00:00', '2026-10-31 11:30:00', '2026-11-02 10:00:00', '2026-11-03 10:00:00', NULL, NULL, 0, '2026-10-31 10:00:00', '2026-11-02 10:00:00' WHERE @sh_bulk_import = 1;
 SET @sh_bookings_1 := LAST_INSERT_ID();
 INSERT INTO `bookings` (`customer_id`, `vendor_service_id`, `availability_id`, `booking_date`, `start_time`, `end_time`, `service_name`, `service_description`, `original_price`, `status`, `approved_at`, `payment_deadline`, `completed_at`, `objection_deadline`, `cancelled_at`, `cancelled_by`, `cancellation_penalty`, `created_at`, `updated_at`) SELECT @sh_users_2, @sh_vendor_services_1, @sh_recurring_availability_1, '2026-11-23', '09:00:00', '10:00:00', 'كشف وإصلاح تسريبات المياه', 'فحص تمديدات المياه وإصلاح الوصلات التالفة.', 40, 'pending', NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-11-20 13:26:19', '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1;
@@ -774,7 +759,6 @@ SET @sh_bookings_191 := LAST_INSERT_ID();
 INSERT INTO `bookings` (`customer_id`, `vendor_service_id`, `availability_id`, `booking_date`, `start_time`, `end_time`, `service_name`, `service_description`, `original_price`, `status`, `approved_at`, `payment_deadline`, `completed_at`, `objection_deadline`, `cancelled_at`, `cancelled_by`, `cancellation_penalty`, `created_at`, `updated_at`) SELECT @sh_users_28, @sh_vendor_services_16, @sh_recurring_availability_17, '2026-11-30', '09:00:00', '10:00:00', 'صيانة وحدات الإنارة', 'فحص وحدات الإنارة واستبدال التركيبات المتضررة.', 52, 'pending', NULL, NULL, NULL, NULL, NULL, NULL, 0, '2026-11-20 13:26:20', '2026-11-20 13:26:20' WHERE @sh_bulk_import = 1;
 SET @sh_bookings_192 := LAST_INSERT_ID();
 
--- payments (144 rows in this batch)
 INSERT INTO `payments` (`booking_id`, `amount`, `payment_method`, `status`, `paid_at`, `created_at`) SELECT @sh_bookings_1, 40, 'card', 'paid', '2026-10-31 11:10:00', '2026-10-31 11:10:00' WHERE @sh_bulk_import = 1;
 SET @sh_payments_1 := LAST_INSERT_ID();
 INSERT INTO `payments` (`booking_id`, `amount`, `payment_method`, `status`, `paid_at`, `created_at`) SELECT @sh_bookings_3, 40, 'card', 'paid', '2026-10-31 11:10:00', '2026-10-31 11:10:00' WHERE @sh_bulk_import = 1;
@@ -1064,7 +1048,6 @@ SET @sh_payments_143 := LAST_INSERT_ID();
 INSERT INTO `payments` (`booking_id`, `amount`, `payment_method`, `status`, `paid_at`, `created_at`) SELECT @sh_bookings_190, 52, 'card', 'paid', '2026-09-19 11:10:00', '2026-09-19 11:10:00' WHERE @sh_bulk_import = 1;
 SET @sh_payments_144 := LAST_INSERT_ID();
 
--- wallet_transactions (127 rows in this batch)
 INSERT INTO `wallet_transactions` (`vendor_id`, `booking_id`, `transaction_type`, `amount`, `description`, `created_at`) SELECT @sh_users_4, @sh_bookings_1, 'credit', 40, 'تحرير كامل مبلغ الحجز', '2026-11-03 10:00:00' WHERE @sh_bulk_import = 1;
 SET @sh_wallet_transactions_1 := LAST_INSERT_ID();
 INSERT INTO `wallet_transactions` (`vendor_id`, `booking_id`, `transaction_type`, `amount`, `description`, `created_at`) SELECT @sh_users_4, @sh_bookings_4, 'credit', 40, 'تحرير كامل مبلغ الحجز', '2026-10-27 10:00:00' WHERE @sh_bulk_import = 1;
@@ -1320,7 +1303,6 @@ SET @sh_wallet_transactions_126 := LAST_INSERT_ID();
 INSERT INTO `wallet_transactions` (`vendor_id`, `booking_id`, `transaction_type`, `amount`, `description`, `created_at`) SELECT @sh_users_20, @sh_bookings_190, 'credit', 52, 'تحرير كامل مبلغ الحجز', '2026-09-22 10:00:00' WHERE @sh_bulk_import = 1;
 SET @sh_wallet_transactions_127 := LAST_INSERT_ID();
 
--- refund_requests (16 rows in this batch)
 INSERT INTO `refund_requests` (`booking_id`, `customer_id`, `reason`, `status`, `admin_response`, `refund_amount`, `reviewed_at`, `created_at`) SELECT @sh_bookings_3, @sh_users_3, 'عاد العطل بعد انتهاء الزيارة وأطلب مراجعة الحجز.', 'pending', NULL, NULL, NULL, '2026-11-02 12:00:00' WHERE @sh_bulk_import = 1;
 SET @sh_refund_requests_1 := LAST_INSERT_ID();
 INSERT INTO `refund_requests` (`booking_id`, `customer_id`, `reason`, `status`, `admin_response`, `refund_amount`, `reviewed_at`, `created_at`) SELECT @sh_bookings_22, @sh_users_3, 'عاد العطل بعد انتهاء الزيارة وأطلب مراجعة الحجز.', 'pending', NULL, NULL, NULL, '2026-11-02 12:00:00' WHERE @sh_bulk_import = 1;
@@ -1354,7 +1336,6 @@ SET @sh_refund_requests_15 := LAST_INSERT_ID();
 INSERT INTO `refund_requests` (`booking_id`, `customer_id`, `reason`, `status`, `admin_response`, `refund_amount`, `reviewed_at`, `created_at`) SELECT @sh_bookings_64, @sh_users_3, 'عاد العطل بعد انتهاء الزيارة وأطلب مراجعة الحجز.', 'pending', NULL, NULL, NULL, '2026-11-02 12:00:00' WHERE @sh_bulk_import = 1;
 SET @sh_refund_requests_16 := LAST_INSERT_ID();
 
--- reviews (143 rows in this batch)
 INSERT INTO `reviews` (`booking_id`, `reviewer_id`, `reviewed_user_id`, `rating`, `comment`, `image`, `created_at`, `is_active`) SELECT @sh_bookings_1, @sh_users_2, @sh_users_4, 5, 'وصل الفني في الموعد وأنجز العمل بعناية.', NULL, '2026-11-03 10:00:00', 1 WHERE @sh_bulk_import = 1;
 SET @sh_reviews_1 := LAST_INSERT_ID();
 INSERT INTO `reviews` (`booking_id`, `reviewer_id`, `reviewed_user_id`, `rating`, `comment`, `image`, `created_at`, `is_active`) SELECT @sh_bookings_1, @sh_users_4, @sh_users_2, 5, 'كان التواصل واضحًا وكان الموقع جاهزًا للعمل.', NULL, '2026-11-03 10:00:00', 1 WHERE @sh_bulk_import = 1;
@@ -1642,7 +1623,6 @@ SET @sh_reviews_142 := LAST_INSERT_ID();
 INSERT INTO `reviews` (`booking_id`, `reviewer_id`, `reviewed_user_id`, `rating`, `comment`, `image`, `created_at`, `is_active`) SELECT @sh_bookings_190, @sh_users_26, @sh_users_20, 5, 'وصل الفني في الموعد وشرح الأعمال المنجزة.', NULL, '2026-09-22 10:00:00', 1 WHERE @sh_bulk_import = 1;
 SET @sh_reviews_143 := LAST_INSERT_ID();
 
--- favorites (16 rows in this batch)
 INSERT INTO `favorites` (`customer_id`, `vendor_service_id`, `created_at`) SELECT @sh_users_2, @sh_vendor_services_1, '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1;
 SET @sh_favorites_1 := LAST_INSERT_ID();
 INSERT INTO `favorites` (`customer_id`, `vendor_service_id`, `created_at`) SELECT @sh_users_2, @sh_vendor_services_2, '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1;
@@ -1676,7 +1656,6 @@ SET @sh_favorites_15 := LAST_INSERT_ID();
 INSERT INTO `favorites` (`customer_id`, `vendor_service_id`, `created_at`) SELECT @sh_users_2, @sh_vendor_services_16, '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1;
 SET @sh_favorites_16 := LAST_INSERT_ID();
 
--- notifications (160 rows in this batch)
 INSERT INTO `notifications` (`user_id`, `title`, `message`, `type`, `is_read`, `created_at`) SELECT @sh_users_2, 'اكتمل حجز كشف وإصلاح تسريبات المياه', 'يمكنك مراجعة تفاصيل الحجز وتقييم الخدمة.', 'booking', 0, '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1;
 SET @sh_notifications_1 := LAST_INSERT_ID();
 INSERT INTO `notifications` (`user_id`, `title`, `message`, `type`, `is_read`, `created_at`) SELECT @sh_users_4, 'تم تحرير مبلغ الحجز', 'أضيف مبلغ الحجز إلى السجل المالي بعد انتهاء مهلة المراجعة.', 'wallet', 0, '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1;
@@ -1998,7 +1977,6 @@ SET @sh_notifications_159 := LAST_INSERT_ID();
 INSERT INTO `notifications` (`user_id`, `title`, `message`, `type`, `is_read`, `created_at`) SELECT @sh_users_28, 'طلب حجز قيد المراجعة', 'راجع تفاصيل الحجز من سجل طلباتك.', 'booking', 0, '2026-11-20 13:26:20' WHERE @sh_bulk_import = 1;
 SET @sh_notifications_160 := LAST_INSERT_ID();
 
--- contact_messages (17 rows in this batch)
 INSERT INTO `contact_messages` (`sender_id`, `subject`, `message`, `status`, `reviewed_at`, `created_at`) SELECT @sh_users_2, 'استفسار عن الحجز', 'كيف يمكنني تغيير موعد زيارة الفني بعد تأكيد الحجز؟', 'pending', NULL, '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1;
 SET @sh_contact_messages_1 := LAST_INSERT_ID();
 INSERT INTO `contact_messages` (`sender_id`, `subject`, `message`, `status`, `reviewed_at`, `created_at`) SELECT @sh_users_2, 'استفسار عن السباكة', 'هل يمكن حجز هذه الخدمة في عطلة نهاية الأسبوع؟', 'pending', NULL, '2026-11-20 13:26:19' WHERE @sh_bulk_import = 1;

@@ -7,9 +7,9 @@ use App\Models\User;
 use App\Models\VendorService;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<VendorService>
- */
+
+
+
 class VendorServiceFactory extends Factory
 {
     public function definition(): array

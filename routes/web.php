@@ -37,20 +37,20 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AdminServiceApprovalController;
 
-/*
-|--------------------------------------------------------------------------
-| Authentication Routes
-|--------------------------------------------------------------------------
-*/
+
+
+
+
+
 
 Auth::routes();
 
 
-/*
-|--------------------------------------------------------------------------
-| Public Routes
-|--------------------------------------------------------------------------
-*/
+
+
+
+
+
 
 Route::get('/', HomeController::class)
     ->name('home');
@@ -58,7 +58,7 @@ Route::get('/', HomeController::class)
 Route::redirect('/index', '/');
 
 
-// Categories
+
 Route::get('/categories', [HomeController::class, 'categories'])
     ->name('categories.index');
 
@@ -66,7 +66,7 @@ Route::get('/categories/{category}', [HomeController::class, 'category'])
     ->name('categories.show');
 
 
-// Vendors
+
 Route::get('/vendors', [HomeController::class, 'vendors'])
     ->name('vendors.index');
 
@@ -77,7 +77,7 @@ Route::get('/providers/{vendor}', function (User $vendor) {
 })->name('provider.show');
 
 
-// Services Marketplace
+
 Route::get('/services', [MarketController::class, 'index'])
     ->name('market.index');
 
@@ -85,7 +85,7 @@ Route::get('/services/{vendorService}', [MarketController::class, 'show'])
     ->name('market.show');
 
 
-// General Pages
+
 Route::view('/faq', 'pages.public.faq')
     ->name('faq');
 Route::view('/about', 'pages.public.about')->name('about');
@@ -103,22 +103,22 @@ Route::get('/profile-pictures/{account}', [AccountPictureController::class, 'sho
     ->name('account.picture.show');
 
 
-// AI Maintenance Assistant
+
 Route::post('/maintenance-assistant', MaintenanceAssistantController::class)
     ->middleware('throttle:8,1')
     ->name('maintenance.assistant');
 
 
-// Vendor Application Page
+
 Route::get('/become-vendor', [VendorApplicationController::class, 'show'])
     ->name('vendor.apply');
 
 
-/*
-|--------------------------------------------------------------------------
-| Public Vendor Pages
-|--------------------------------------------------------------------------
-*/
+
+
+
+
+
 
 Route::name('vendor.')->group(function () {
 
@@ -140,24 +140,24 @@ Route::name('vendor.')->group(function () {
 });
 
 
-/*
-|--------------------------------------------------------------------------
-| Authenticated Routes
-|--------------------------------------------------------------------------
-*/
+
+
+
+
+
 
 Route::middleware('auth')->group(function () {
 
-    // Read-only user profiles for admins and vendors.
+
     Route::get('/users/{user}/profile', [\App\Http\Controllers\UserPublicProfileController::class, 'show'])
         ->name('users.profile.show');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Customer Pages
-    |--------------------------------------------------------------------------
-    */
+
+
+
+
+
 
     Route::name('customer.')->group(function () {
         Route::get('/customer-reviews', [ProfileController::class, 'reviews'])->name('reviews');
@@ -184,11 +184,11 @@ Route::middleware('auth')->group(function () {
     });
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Customer Redirects
-    |--------------------------------------------------------------------------
-    */
+
+
+
+
+
 
     Route::redirect('/customer-dashboard', '/dashboard');
     Route::redirect('/customer-bookings', '/bookings');
@@ -250,21 +250,21 @@ Route::middleware('auth')->group(function () {
     })->name('account.profile');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Vendor Application Submission
-    |--------------------------------------------------------------------------
-    */
+
+
+
+
+
 
     Route::post('/become-vendor', [VendorApplicationController::class, 'store'])
         ->middleware('throttle:10,1');
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Notifications
-    |--------------------------------------------------------------------------
-    */
+
+
+
+
+
 
     Route::prefix('notifications')
         ->name('notifications.')
@@ -279,11 +279,11 @@ Route::middleware('auth')->group(function () {
         });
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Vendor Routes
-    |--------------------------------------------------------------------------
-    */
+
+
+
+
+
 
     Route::middleware(ActiveVendor::class)
         ->name('vendor.')
@@ -299,7 +299,7 @@ Route::middleware('auth')->group(function () {
                 ->name('wallet');
 
 
-            // Reviews
+
             Route::get('/vendor-reviews', [VendorReviewController::class, 'index'])
                 ->name('reviews');
 
@@ -313,7 +313,7 @@ Route::middleware('auth')->group(function () {
                 ->name('reviews.destroy');
 
 
-            // Portfolio
+
             Route::post('/vendor-portfolio', [PortfolioController::class, 'store'])
                 ->middleware('throttle:10,1')
                 ->name('portfolio.store');
@@ -329,7 +329,7 @@ Route::middleware('auth')->group(function () {
                 ->name('portfolio.image.destroy');
 
 
-            // Vendor Service Requests
+
             Route::post('/vendor-service-requests', [VendorServiceRequestController::class, 'store'])
                 ->middleware('throttle:10,1')
                 ->name('service-requests.store');
@@ -349,20 +349,20 @@ Route::middleware('auth')->group(function () {
 
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | Admin Routes
-    |--------------------------------------------------------------------------
-    */
+
+
+
+
+
 
     Route::middleware(ActiveAdmin::class)
         ->name('admin.')
         ->group(function () {
 
-            // Admin Dashboard
-    
 
-            // Admin Management
+
+
+
             Route::prefix('admin')->group(function () {
                 Route::get('/dashboard', [AdminDashboardController::class, 'index'])
                     ->name('dashboard');
@@ -398,12 +398,12 @@ Route::middleware('auth')->group(function () {
                 Route::get('/bookings/{booking}', [AdminBookingController::class, 'show'])->withTrashed()->name('bookings.show');
                 Route::delete('/bookings/{booking}', [AdminBookingController::class, 'destroy'])->name('bookings.destroy');
 
-                // Contact Messages
+
                 Route::get('/messages', [AdminMessageController::class, 'index'])->name('messages.index');
                 Route::get('/messages/{message}', [AdminMessageController::class, 'show'])->name('messages.show');
                 Route::patch('/messages/{message}', [AdminMessageController::class, 'update'])->name('messages.update');
 
-                // Reviews (التقييمات)
+
                 Route::get('/admin-reviews', [AdminReviewController::class, 'index'])
                     ->name('reviews.index');
 
@@ -413,13 +413,13 @@ Route::middleware('auth')->group(function () {
                 Route::delete('/admin-reviews/{id}', [AdminReviewController::class, 'destroy'])
                     ->name('reviews.destroy');
 
-             // Cancellation 
-             Route::get('/admin-cancellations', [AdminCancellationController::class, 'index'])
-            ->name('cancellations.index');
 
-            Route::delete('/admin-cancellations/{id}', [AdminCancellationController::class, 'destroy'])
-            ->name('cancellations.destroy');
-                // Payments (read only)
+                Route::get('/admin-cancellations', [AdminCancellationController::class, 'index'])
+                    ->name('cancellations.index');
+
+                Route::delete('/admin-cancellations/{id}', [AdminCancellationController::class, 'destroy'])
+                    ->name('cancellations.destroy');
+
                 Route::get('/payments', [AdminPaymentController::class, 'index'])->name('payments.index');
                 Route::get('/payments/{payment}', [AdminPaymentController::class, 'show'])->name('payments.show');
 
@@ -447,7 +447,7 @@ Route::middleware('auth')->group(function () {
                     [AdminVendorApplicationController::class, 'rejected']
                 )->name('admin-applications.rejected');
 
-                // Vendor Service Requests
+
                 Route::get(
                     '/vendor-service-requests',
                     [AdminServiceApprovalController::class, 'index']

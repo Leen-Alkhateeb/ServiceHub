@@ -7,9 +7,9 @@ use App\Models\Review;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 
-/**
- * @extends Factory<Review>
- */
+
+
+
 class ReviewFactory extends Factory
 {
     public function definition(): array

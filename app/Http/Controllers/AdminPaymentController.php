@@ -8,7 +8,7 @@ use Illuminate\Validation\Rule;
 
 class AdminPaymentController extends Controller
 {
-    // Values allowed by the payments table (see apply_approved_column_types migration).
+     
     private const STATUSES = [
         'pending' => 'بانتظار الدفع',
         'paid' => 'مدفوعة',
@@ -54,7 +54,7 @@ class AdminPaymentController extends Controller
         $filters = $request->validate($rules);
         $search = trim($filters['q'] ?? '');
 
-        // booking() already includes archived bookings, so their payments stay visible.
+         
         $query = Payment::with(['booking.customer', 'booking.vendorService.vendor']);
 
         if ($search !== '') {

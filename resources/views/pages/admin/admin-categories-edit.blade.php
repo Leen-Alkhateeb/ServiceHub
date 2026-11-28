@@ -20,6 +20,7 @@
                     <h1>تعديل قسم: {{ $category->name }}</h1>
                     <p class="page-intro">اترك حقل الصورة فارغاً إذا لا تريد تغيير الصورة الحالية.</p>
                 </div>
+                @include('components.admin-period')
                 <a href="{{ route('admin.categories') }}" class="btn btn-outline">رجوع للأقسام</a>
             </div>
 

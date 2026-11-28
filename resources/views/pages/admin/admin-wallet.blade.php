@@ -15,6 +15,7 @@
                     <span class="small muted">لوحة الإدارة</span>
                     <h1>حركات المحفظة</h1>
                 </div>
+                @include('components.admin-period')
             </div>
             <div class="panel">
                 @php

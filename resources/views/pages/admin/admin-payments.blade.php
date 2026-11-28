@@ -20,6 +20,7 @@
                     <h1>المدفوعات</h1>
                     <p class="page-intro">متابعة الدفعات التي سجّلها العملاء للحجوزات. هذه الصفحة للعرض فقط.</p>
                 </div>
+                @include('components.admin-period')
             </div>
 
             <div class="stats">

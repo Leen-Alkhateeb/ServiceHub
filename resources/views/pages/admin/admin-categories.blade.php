@@ -20,6 +20,7 @@
                     <h1>الأقسام</h1>
                     <p class="page-intro">إدارة أقسام الخدمات التي تظهر للعملاء في الموقع.</p>
                 </div>
+                @include('components.admin-period')
                 <a href="{{ route('admin.categories.create') }}" class="btn btn-yellow">+ إضافة قسم جديد</a>
             </div>
 

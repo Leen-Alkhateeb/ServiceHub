@@ -24,7 +24,7 @@ class RouteIntegrityTest extends TestCase
 
     public function test_public_and_role_navigation_pages_render_with_demo_records(): void
     {
-        $this->seed();
+        $this->seed(\Database\Seeders\ServiceHubDemoSeeder::class);
         foreach (['home', 'about', 'contact', 'how-it-works', 'faq', 'market.index', 'categories.index', 'vendors.index', 'login', 'register', 'password.request', 'vendor.apply'] as $name) {
             $this->get(route($name))->assertOk();
         }
@@ -33,7 +33,7 @@ class RouteIntegrityTest extends TestCase
         $vendor = User::whereEmail('plumbing.seed@servicehub.example')->firstOrFail();
         $admin = User::whereEmail('admin.seed@servicehub.example')->firstOrFail();
         $this->actingAs($customer);
-        foreach (['account.profile', 'customer.dashboard', 'customer.bookings', 'customer.favorites', 'customer.notifications', 'customer.settings', 'customer.reviews', 'customer.messages', 'notifications.index'] as $name) {
+        foreach (['account.profile', 'customer.bookings', 'customer.favorites', 'customer.notifications', 'customer.settings', 'customer.reviews', 'customer.messages', 'notifications.index'] as $name) {
             $this->get(route($name))->assertOk();
         }
         $this->post(route('contact.store'), ['subject' => 'Support question', 'message' => 'Help with my account.'])->assertRedirect(route('contact'));

@@ -11,7 +11,12 @@
                     <span class="small muted">لوحة الفني</span>
                     <h1>مرحبًا {{ $vendorName }}</h1>
                 </div>
-                <a class="btn btn-outline" href="{{ route('vendor.profile') }}">ملف الفني</a>
+                <div class="booking-tabs">
+                    @if(config('instant.enabled') && $applicationStatus === 'approved')
+                        <a class="btn btn-yellow" href="{{ route('instant.vendor') }}">الطلبات الفورية</a>
+                    @endif
+                    <a class="btn btn-outline" href="{{ route('vendor.profile') }}">ملف الفني</a>
+                </div>
             </header>
 
             @if (in_array($applicationStatus ?? null, ['pending', 'rejected'], true))

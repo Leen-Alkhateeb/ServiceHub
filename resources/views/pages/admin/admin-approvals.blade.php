@@ -8,7 +8,9 @@
             <div class="dash-title">
                 <div><span class="small muted">لوحة الإدارة</span>
                     <h1>اعتماد الخدمات</h1>
-                </div><span class="demo">بيانات تجريبية</span>
+                </div>
+                @include('components.admin-period')
+                <span class="demo">بيانات تجريبية</span>
             </div>
             <div class="panel">
                 <h3>اعتماد الخدمات</h3>

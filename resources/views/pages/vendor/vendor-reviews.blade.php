@@ -42,7 +42,7 @@
                         <dialog class="hub-dialog rating-dialog" id="rate-{{ $booking->id }}" aria-labelledby="rate-title-{{ $booking->id }}" @if ($failedRating) data-auto-dialog @endif>
                             <div class="dialog-head">
                                 <h2 id="rate-title-{{ $booking->id }}">{{ $review ? 'تعديل التقييم' : 'تقييم العميل' }}</h2>
-                                <button class="btn btn-outline btn-sm" type="button" data-close-dialog>إغلاق</button>
+                                <x-modal-close data-close-dialog />
                             </div>
                             <p><a href="{{ route('users.profile.show', $booking->customer) }}">{{ $booking->customer->first_name }} {{ $booking->customer->last_name }}</a> · {{ $booking->service_name }}</p>
                             @if ($failedRating)

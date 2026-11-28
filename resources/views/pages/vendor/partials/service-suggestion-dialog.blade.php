@@ -1,7 +1,7 @@
 <dialog class="hub-dialog" id="suggestion-form" aria-labelledby="suggestion-form-title" @if ($errors->suggestion->any()) data-auto-dialog @endif>
     <div class="dialog-head">
         <h2 id="suggestion-form-title">اقتراح خدمة</h2>
-        <button type="button" class="btn btn-outline btn-sm" data-close-dialog>إغلاق</button>
+        <x-modal-close data-close-dialog />
     </div>
     @if ($errors->suggestion->any())
         <ul class="notice" role="alert">

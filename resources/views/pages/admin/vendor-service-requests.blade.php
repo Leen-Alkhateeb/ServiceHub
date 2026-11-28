@@ -78,7 +78,8 @@
         overflow-y: auto;
         background: #fff;
         border-radius: 16px;
-        padding: 24px;
+        --dialog-padding: 24px;
+        padding: 0 var(--dialog-padding) var(--dialog-padding);
         direction: rtl;
         box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
     }
@@ -144,7 +145,7 @@
         }
 
         .request-modal {
-            padding: 18px;
+            --dialog-padding: 18px;
         }
     }
 </style>
@@ -168,10 +169,11 @@
                     مراجعة خدمات مقدمي الخدمات والموافقة عليها أو رفضها.
                 </p>
             </div>
+            @include('components.admin-period')
         </div>
 
         @if (session('success'))
-            <div class="admin-alert admin-alert-success" role="status">
+            <div class="admin-alert {{ session('decision_rejected') ? 'admin-alert-error' : 'admin-alert-success' }}" role="status">
                 {{ session('success') }}
             </div>
         @endif
@@ -405,14 +407,7 @@
                 مراجعة الطلب
             </h2>
 
-            <button
-                type="button"
-                class="request-modal-close"
-                data-request-close
-                aria-label="إغلاق"
-            >
-                &times;
-            </button>
+            <x-modal-close data-request-close />
 
         </div>
 

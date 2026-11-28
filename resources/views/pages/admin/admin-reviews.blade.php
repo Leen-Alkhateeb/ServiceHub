@@ -16,6 +16,7 @@
                     <span class="small muted">لوحة الإدارة</span>
                     <h1>التقييمات</h1>
                 </div>
+                @include('components.admin-period')
             </div>
 
             @if(session('success'))
@@ -63,8 +64,8 @@
                                     </td>
                                     <td style="padding: 16px 10px; color: #475569; max-width: 260px;">
                                         <div>{{ $review->comment ?? 'لا يوجد تعليق' }}</div>
-                                        @if($review->image)
-                                            <small><a href="{{ asset('storage/' . $review->image) }}" target="_blank" style="color: #0284c7; text-decoration: underline;">عرض الصورة المرفقة</a></small>
+                                        @if($review->attachment)
+                                            <small><a href="{{ asset('storage/' . $review->attachment->path) }}" target="_blank" rel="noopener" style="color: #0284c7; text-decoration: underline;">عرض الصورة المرفقة</a></small>
                                         @endif
                                     </td>
                                     <td style="padding: 16px 10px;">
@@ -111,6 +112,9 @@
           text: 'لن تتمكن من استرجاع هذا التقييم بعد حذفه !',
           icon: 'warning',
           showCancelButton: true,
+          showCloseButton: true,
+          closeButtonHtml: '×',
+          closeButtonAriaLabel: 'إغلاق',
           confirmButtonColor: '#dc2626',
           cancelButtonColor: '#64748b',
           confirmButtonText: 'نعم، احذف',

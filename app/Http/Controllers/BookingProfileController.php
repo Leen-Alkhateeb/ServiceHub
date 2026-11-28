@@ -100,7 +100,10 @@ class BookingProfileController extends Controller
             $endAt,
             $window
         ) {
-            User::query()->lockForUpdate()->findOrFail($vendorService->vendor_id);
+            User::query()->whereKey([$customer->id, $vendorService->vendor_id])->orderBy('id')->lockForUpdate()->get();
+            if (app(\App\Services\InstantFinance::class)->hasDebt($customer->id)) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['slot' => 'سدّد المبلغ المستحق قبل حجز خدمة جديدة.']);
+            }
 
              
             $taken = Booking::query()
@@ -111,9 +114,7 @@ class BookingProfileController extends Controller
                         $vendorService->vendor_id
                     )
                 )
-                ->whereDate('booking_date', $date)
-                ->where('start_time', '<', $endAt->format('H:i:s'))
-                ->where('end_time', '>', $startAt->format('H:i:s'))
+                ->overlappingInterval($startAt, $endAt)
                 ->blockingSlot()
                 ->lockForUpdate()
                 ->exists();
@@ -196,7 +197,7 @@ class BookingProfileController extends Controller
             }
             if ($vendorAmount !== 0) {
                 $booking->walletTransactions()->create([
-                    'vendor_id' => $vendorId,
+                    'user_id' => $vendorId,
                     'transaction_type' => $byCustomer ? 'refund_share' : 'penalty',
                     'amount' => $vendorAmount / 100,
                     'description' => $byCustomer ? 'حصة الفني من غرامة إلغاء العميل' : 'غرامة إلغاء الحجز من الفني',

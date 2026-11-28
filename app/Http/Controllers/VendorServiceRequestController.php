@@ -16,7 +16,7 @@ use Illuminate\View\View;
 class VendorServiceRequestController extends Controller
 {
     private const OFFER_RULES = [
-        'price' => ['required', 'numeric', 'decimal:0,2', 'between:0.01,99999999.99'],
+        'price' => ['required', 'numeric', 'decimal:0,2', 'between:0.01,9999999.99'],
         'description' => ['required', 'string', 'max:3000'],
         'duration_minutes' => ['nullable', 'integer', 'between:5,1440'],
         'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:max_width=5000,max_height=5000'],

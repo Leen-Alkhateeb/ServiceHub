@@ -1,9 +1,9 @@
 <button class="btn btn-outline btn-sm" type="button" data-open-dialog="account-details-form">تعديل البيانات</button>
-@if (session('account_status'))<p role="status">{{ session('account_status') }}</p>@endif
+@if (session('account_status'))<p class="notice" role="status">{{ session('account_status') }}</p>@endif
 <dialog class="hub-dialog" id="account-details-form" aria-labelledby="account-details-title" @if ($errors->accountDetails->any()) data-auto-dialog @endif>
     <div class="dialog-head">
         <h2 id="account-details-title">تعديل بيانات الملف</h2>
-        <button class="btn btn-outline btn-sm" type="button" data-close-dialog>إغلاق</button>
+        <x-modal-close data-close-dialog />
     </div>
     @if ($errors->accountDetails->any())
         <ul class="notice" role="alert">@foreach ($errors->accountDetails->all() as $error)<li>{{ $error }}</li>@endforeach</ul>

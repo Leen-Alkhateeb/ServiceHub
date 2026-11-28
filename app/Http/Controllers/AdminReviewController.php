@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AdminPeriod;
+
 use App\Models\Review;
 use Illuminate\Http\Request;
 
@@ -12,7 +14,7 @@ class AdminReviewController extends Controller
 
     public function index()
     {
-        $reviews = Review::with(['reviewer', 'reviewedUser', 'booking'])
+        $reviews = AdminPeriod::apply(Review::with(['reviewer', 'reviewedUser', 'booking', 'attachment']))
             ->latest('created_at')
             ->paginate(15);
 

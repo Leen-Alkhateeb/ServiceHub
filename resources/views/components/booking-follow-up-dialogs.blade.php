@@ -2,7 +2,7 @@
     <dialog class="hub-dialog booking-follow-up-dialog" id="booking-rating-{{ $booking->id }}" aria-labelledby="booking-rating-title-{{ $booking->id }}">
         <div class="dialog-head">
             <h2 id="booking-rating-title-{{ $booking->id }}">تقييم الفني</h2>
-            <button class="btn btn-outline btn-sm" type="button" data-close-dialog>إغلاق</button>
+            <x-modal-close data-close-dialog />
         </div>
         <p class="muted">{{ $booking->service_name }}</p>
         <form method="POST" action="{{ route('booking.review', $booking) }}">
@@ -29,15 +29,17 @@
         <dialog class="hub-dialog booking-follow-up-dialog" id="booking-objection-{{ $booking->id }}" aria-labelledby="booking-objection-title-{{ $booking->id }}">
             <div class="dialog-head">
                 <h2 id="booking-objection-title-{{ $booking->id }}">إرسال اعتراض</h2>
-                <button class="btn btn-outline btn-sm" type="button" data-close-dialog>إغلاق</button>
+                <x-modal-close data-close-dialog />
             </div>
-            <p class="muted">{{ $booking->service_name }}</p>
-            <form method="POST" action="{{ route('booking.objection', $booking) }}">
+            <p class="muted">الحجز #{{ $booking->id }} · {{ $booking->service_name }}</p>
+            @if($booking->completion_description)<p>إفادة الفني: {{ $booking->completion_description }}</p>@endif
+            <form method="POST" action="{{ route('booking.objection', $booking) }}" enctype="multipart/form-data">
                 @csrf
                 <div class="field">
                     <label for="objection-reason-{{ $booking->id }}">سبب الاعتراض</label>
-                    <textarea id="objection-reason-{{ $booking->id }}" name="reason" rows="4" maxlength="2000" required></textarea>
+                    <textarea id="objection-reason-{{ $booking->id }}" name="reason" rows="4" maxlength="2000" placeholder="مثلاً: الفني حضر وما أكمل الشغل، أو المشكلة لسه موجودة" required>{{ is_string(old('reason')) ? old('reason') : '' }}</textarea>
                 </div>
+                <div class="field"><label for="objection-images-{{ $booking->id }}">صور توضح المشكلة (اختيارية)</label><x-file-picker><input id="objection-images-{{ $booking->id }}" name="evidence[]" type="file" accept="image/jpeg,image/png,image/webp" multiple></x-file-picker><small>حتى 4 صور، 5 ميغابايت لكل صورة.</small></div>
                 <button class="btn btn-yellow" type="submit">إرسال للإدارة</button>
             </form>
         </dialog>

@@ -32,7 +32,7 @@ use Illuminate\Support\Facades\Storage;
 class PresentationSeeder extends Seeder
 {
      
-    private const CATEGORIES = [
+    public const CATEGORIES = [
         'السباكة' => ['plumbing', 'm07', 'تركيب خلاط مطبخ أو حمام', 'تركيب خلاط جديد وفحص الوصلات والتأكد من عدم وجود تسريب.', 25, 60],
         'الكهرباء' => ['electrical', 'm01', 'تركيب مقابس ومفاتيح كهرباء', 'تركيب أو استبدال المقابس والمفاتيح مع فحص سلامة التمديدات.', 20, 60],
         'صيانة المكيفات' => ['cooling', 'm08', 'فحص ضغط غاز المكيف وتعبئته', 'قياس ضغط الغاز وتعبئته عند الحاجة مع فحص أماكن التسريب.', 35, 60],
@@ -310,7 +310,7 @@ class PresentationSeeder extends Seeder
                 if ($status === 'completed' && $n === 1 && in_array($i, [1, 4], true)) {
                     RefundRequest::create([
                         'booking_id' => $booking->id,
-                        'customer_id' => $customer->id,
+                        'submitted_by' => $customer->id,
                         'reason' => $i === 1
                             ? 'رجعت المشكلة بعد يومين من الزيارة وبطلب مراجعة الحجز.'
                             : 'الفني ما أكمل الشغل المتفق عليه.',

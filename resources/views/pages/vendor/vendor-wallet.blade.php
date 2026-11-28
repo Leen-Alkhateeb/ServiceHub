@@ -106,7 +106,7 @@
             <dialog class="hub-dialog" id="wallet-{{ $booking->id }}" aria-labelledby="wallet-title-{{ $booking->id }}">
                 <div class="dialog-head">
                     <h2 id="wallet-title-{{ $booking->id }}">{{ $booking->service_name }} <bdi>#{{ $booking->id }}</bdi></h2>
-                    <button type="button" class="btn btn-outline btn-sm" data-close-dialog>إغلاق</button>
+                    <x-modal-close data-close-dialog />
                 </div>
                 <p>{{ $booking->service_description }}</p>
                 <dl class="booking-details">

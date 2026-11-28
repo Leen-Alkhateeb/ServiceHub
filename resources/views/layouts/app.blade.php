@@ -24,6 +24,10 @@
 
     @auth
         @include('components.archive-dialog')
+        @if(config('instant.enabled') && auth()->user()->role === 'vendor'
+            && auth()->user()->status === 'active' && auth()->user()->vendorProfile?->application_status === 'approved')
+            @include('pages.instant.vendor-bubble')
+        @endif
     @endauth
 
 </body>

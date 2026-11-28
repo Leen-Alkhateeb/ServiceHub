@@ -11,8 +11,6 @@ class FavoriteController extends Controller
      
     public function toggle(Request $request, VendorService $vendorService)
     {
-        abort_unless($request->user()->role === 'customer', 403);
-
         $favorite = Favorite::where('customer_id', $request->user()->id)
             ->where('vendor_service_id', $vendorService->id)
             ->first();

@@ -203,11 +203,11 @@ class SiteAuditRegressionTest extends TestCase
         $customerReview = route('booking.review', $booking);
         $vendorReview = route('vendor.reviews.store', $booking);
         $this->actingAs(User::factory()->create())->post($completion)->assertForbidden();
-        $this->actingAs($customer)->get(route('customer.bookings'))->assertDontSee($completion);
+        $this->actingAs($customer)->get(route('customer.bookings.show', $booking))->assertOk()->assertDontSee($completion);
         $this->post($completion)->assertForbidden();
         $this->actingAs($vendor)->post($completion)->assertForbidden();
         $this->travelTo($booking->scheduledStart()->setTimeFromTimeString($booking->end_time));
-        $this->actingAs($customer)->get(route('customer.bookings'))->assertSee($completion)->assertDontSee($customerReview);
+        $this->actingAs($customer)->get(route('customer.bookings.show', $booking))->assertOk()->assertSee($completion)->assertDontSee($customerReview);
         $this->post($completion)->assertRedirect();
         $this->post($completion)->assertRedirect();
         $this->post($customerReview, ['rating' => 5])->assertForbidden();
@@ -243,7 +243,7 @@ class SiteAuditRegressionTest extends TestCase
         $this->artisan('wallet:release')->assertSuccessful();
         $this->assertSame(0, $disputed->walletTransactions()->count());
         $this->assertSame(1, $booking->walletTransactions()->count());
-        $this->assertDatabaseHas('wallet_transactions', ['booking_id' => $booking->id, 'amount' => 60, 'transaction_type' => 'credit']);
+        $this->assertDatabaseHas('wallet_transactions', ['booking_id' => $booking->id, 'amount' => 51, 'transaction_type' => 'credit']);
     }
 
     public function test_elapsed_booking_cannot_be_approved_or_paid(): void
@@ -270,7 +270,7 @@ class SiteAuditRegressionTest extends TestCase
             ->create(['status' => 'completed', 'completed_at' => now()->subHours(3)]);
         $payment = \App\Models\Payment::factory()->for($booking)->create(['status' => 'paid', 'amount' => 100]);
         $refund = $booking->refundRequest()->create([
-            'customer_id' => $booking->customer_id, 'reason' => 'Test review', 'status' => 'pending',
+            'submitted_by' => $booking->customer_id, 'reason' => 'Test review', 'status' => 'pending',
         ]);
         $this->actingAs(User::factory()->admin()->create())
             ->post(route('admin.refunds.decide', $refund), ['decision' => 'accepted'])->assertRedirect();
@@ -280,6 +280,75 @@ class SiteAuditRegressionTest extends TestCase
         $this->get(route('admin.payments.index'))->assertViewHas('refundedTotal', fn ($amount) => (float) $amount === 70.0);
         $this->actingAs($vendor)->get(route('vendor.wallet'))->assertOk()
             ->assertSee('حصة مقدم الخدمة بعد قبول الاعتراض')->assertSee('15.00');
+    }
+
+    public function test_booking_evidence_is_private_and_objections_open_on_vendor_confirmation(): void
+    {
+        $disk = Storage::fake('local');
+        $vendor = VendorProfile::factory()->create()->user;
+        $booking = Booking::factory()->for(VendorService::factory()->for($vendor, 'vendor'))->create([
+            'status' => 'confirmed', 'completed_at' => null, 'objection_deadline' => null, 'updated_at' => now(),
+        ]);
+        \App\Models\Payment::factory()->for($booking)->create(['status' => 'paid']);
+        $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+Xk4QAAAAASUVORK5CYII=');
+        $image = fn () => UploadedFile::fake()->createWithContent('proof.png', $png);
+        $confirmation = route('booking.completion', $booking);
+        $details = route('customer.bookings.show', $booking);
+        $objection = route('booking.objection', $booking);
+        $customer = $booking->customer;
+
+        $this->actingAs($vendor)->get(route('vendor.vendor-bookings.index'))->assertOk()->assertSee('تأكيد إتمام الخدمة');
+        $this->post($confirmation, ['completion_description' => 'أصلحت الوصلة', 'evidence' => [$image()]])->assertRedirect();
+        $booking->refresh();
+        $this->assertSame('completed', $booking->status);
+        $this->assertEquals($booking->vendor_completed_at->copy()->addHours(24), $booking->objection_deadline);
+        $completion = $booking->evidence()->firstOrFail();
+        $disk->assertExists($completion->path);
+        $download = route('booking.evidence', [$booking, $completion]);
+        $this->post($confirmation, ['evidence' => [$image()]])->assertRedirect();
+        $this->assertSame(1, $booking->evidence()->count());
+
+        $this->actingAs(User::factory()->create())->get($details)->assertNotFound();
+        $this->get($download)->assertNotFound();
+        $this->actingAs($customer)->get(route('customer.bookings', ['tab' => 'action']))->assertOk()->assertSee($details);
+        $this->get($details)->assertOk()->assertSee('أصلحت الوصلة');
+        $this->get($download)->assertOk();
+        $this->assertNull($booking->refresh()->customer_completed_at);
+        $this->get($details)->assertSee('لدي اعتراض على الخدمة');
+        $this->post($objection, ['reason' => 'المشكلة باقية', 'evidence' => [$image()]])->assertRedirect();
+        $this->post($objection, ['reason' => 'اعتراض مكرر'])->assertConflict();
+        $this->actingAs(User::factory()->admin()->create())->get(route('admin.refunds.index'))->assertOk()->assertSee('تحميل صورة الاعتراض');
+    }
+
+    public function test_vendor_confirmation_starts_the_hold_and_customer_acknowledgment_does_not_move_it(): void
+    {
+        $vendor = VendorProfile::factory()->create()->user;
+        $offer = VendorService::factory()->for($vendor, 'vendor')->create();
+        foreach (['acknowledged', 'unanswered', 'rejected'] as $case) {
+            $booking = Booking::factory()->for($offer)->create([
+                'status' => 'confirmed', 'completed_at' => null, 'objection_deadline' => null, 'updated_at' => now(),
+            ]);
+            \App\Models\Payment::factory()->for($booking)->create(['status' => 'paid', 'amount' => '10.07']);
+            $confirmation = route('booking.completion', $booking);
+            $this->actingAs($vendor)->post($confirmation)->assertRedirect();
+            $deadline = $booking->refresh()->objection_deadline;
+            $this->travel(1)->hours();
+            if ($case === 'acknowledged') {
+                $this->actingAs($booking->customer)->post($confirmation)->assertRedirect();
+                $this->assertEquals($deadline, $booking->refresh()->objection_deadline);
+            }
+            if ($case === 'rejected') {
+                $this->actingAs($booking->customer)->post(route('booking.objection', $booking), ['reason' => 'الخدمة غير مكتملة'])->assertRedirect();
+                $this->actingAs(User::factory()->admin()->create())->post(route('admin.refunds.decide', $booking->refundRequest), ['decision' => 'rejected'])->assertRedirect();
+            }
+            $this->artisan('wallet:release')->assertSuccessful();
+            $this->assertSame(0, $booking->walletTransactions()->count());
+            $this->travelTo($deadline);
+            $this->artisan('wallet:release')->assertSuccessful();
+            $this->artisan('wallet:release')->assertSuccessful();
+            $this->assertSame(1, $booking->walletTransactions()->count());
+            $this->assertDatabaseHas('wallet_transactions', ['booking_id' => $booking->id, 'amount' => '8.56', 'transaction_type' => 'credit']);
+        }
     }
 
     public function test_booking_cancellations_record_refund_and_wallet_adjustments(): void
@@ -308,7 +377,7 @@ class SiteAuditRegressionTest extends TestCase
         $wallet = route('vendor.wallet', ['q' => 'no matching booking']);
         $this->get($wallet)->assertOk()->assertViewHas('outstandingPenalty', 15.0);
 
-        foreach ([10 => 5.0, 8 => 0] as $paid => $remainingPenalty) {
+        foreach ([10 => 6.5, 8 => 0] as $paid => $remainingPenalty) {
             $finished = Booking::factory()->for($offer)->create([
                 'status' => 'completed',
                 'completed_at' => now()->subHours(25),
@@ -317,16 +386,16 @@ class SiteAuditRegressionTest extends TestCase
             \App\Models\Payment::factory()->for($finished)->create(['status' => 'paid', 'amount' => $paid]);
             $this->artisan('wallet:release')->assertSuccessful();
             $this->get($wallet)->assertOk()->assertViewHas('outstandingPenalty', $remainingPenalty)
-                ->assertViewHas('summary', fn ($summary) => (float) $summary['released']['amount'] === ($paid === 8 ? 3.0 : 0.0));
+                ->assertViewHas('summary', fn ($summary) => round((float) $summary['released']['amount'], 2) === ($paid === 8 ? 0.30 : 0.0));
         }
 
-        $this->actingAs($customer)->get(route('customer.bookings'))->assertOk()->assertSee(route('booking.cancel', $customerCancellation));
+        $this->actingAs($customer)->get(route('customer.bookings.show', $customerCancellation))->assertOk()->assertSee(route('booking.cancel', $customerCancellation));
         $this->get(route('account.profile', ['tab' => 'bookings']))->assertOk()
             ->assertSee('data-open-dialog="cancel-booking-'.$customerCancellation->id.'"', false)
             ->assertSee('تأكيد إلغاء الحجز')->assertSee('ستُخصم غرامة 30٪');
         $this->post(route('booking.cancel', $customerCancellation))->assertRedirect();
         $this->post(route('booking.cancel', $customerCancellation))->assertForbidden();
-        $this->get(route('customer.bookings'))->assertOk()->assertDontSee(route('booking.cancel', $expiredCancellation));
+        $this->get(route('customer.bookings.show', $expiredCancellation))->assertOk()->assertDontSee(route('booking.cancel', $expiredCancellation));
         $this->post(route('booking.cancel', $expiredCancellation))->assertForbidden();
 
         $this->assertDatabaseHas('bookings', [
@@ -334,14 +403,14 @@ class SiteAuditRegressionTest extends TestCase
             'cancellation_penalty' => 30, 'cancellation_refund_amount' => 70, 'cancellation_platform_share' => 15,
         ]);
         $this->assertDatabaseHas('wallet_transactions', [
-            'booking_id' => $customerCancellation->id, 'vendor_id' => $vendor->id, 'transaction_type' => 'refund_share', 'amount' => 15,
+            'booking_id' => $customerCancellation->id, 'user_id' => $vendor->id, 'transaction_type' => 'refund_share', 'amount' => 15,
         ]);
         $this->assertDatabaseHas('bookings', [
             'id' => $vendorCancellation->id, 'cancelled_by' => $vendor->id,
             'cancellation_penalty' => 15, 'cancellation_refund_amount' => 100, 'cancellation_platform_share' => 0,
         ]);
         $this->assertDatabaseHas('wallet_transactions', [
-            'booking_id' => $vendorCancellation->id, 'vendor_id' => $vendor->id, 'transaction_type' => 'penalty', 'amount' => -15,
+            'booking_id' => $vendorCancellation->id, 'user_id' => $vendor->id, 'transaction_type' => 'penalty', 'amount' => -15,
         ]);
         $this->assertSame('confirmed', $expiredCancellation->refresh()->status);
         $this->assertSame('refunded', $vendorCancellation->payment()->firstOrFail()->status);
@@ -353,7 +422,7 @@ class SiteAuditRegressionTest extends TestCase
             ->assertDontSee(route('admin.cancellations.destroy', $customerCancellation));
         $this->get(route('admin.bookings.show', $customerCancellation))->assertOk()
             ->assertSee('استرداد الإلغاء للعميل')->assertSee('70.00')->assertSee('حصة المنصة من الإلغاء')
-            ->assertSee('تسوية محفظة الفني')->assertSee('حذف الحجز');
+            ->assertSee('تسوية محفظة الفني')->assertSee('تأكيد الارشفة');
     }
 
     public function test_admin_wallet_displays_archived_booking_transactions_and_rejects_other_roles(): void
@@ -366,7 +435,7 @@ class SiteAuditRegressionTest extends TestCase
         $booking = Booking::factory()->create();
         WalletTransaction::factory()->create([
             'booking_id' => $booking->id,
-            'vendor_id' => $booking->vendorService->vendor_id,
+            'user_id' => $booking->vendorService->vendor_id,
             'transaction_type' => 'credit',
             'amount' => 42.75,
         ]);

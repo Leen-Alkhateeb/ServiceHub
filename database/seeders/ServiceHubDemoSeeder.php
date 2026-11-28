@@ -147,13 +147,13 @@ class ServiceHubDemoSeeder extends Seeder
 
                 $this->seed(PortfolioImage::factory(), [
                     'project_id' => $project->id,
-                    'image' => "demo/portfolio/$key.jpg",
+                    'path' => "demo/portfolio/$key.jpg",
                 ]);
 
                 if ($key === 'plumbing') {
                     $this->seed(PortfolioImage::factory(), [
                         'project_id' => $project->id,
-                        'image' => 'demo/portfolio/plumbing-before.jpg',
+                        'path' => 'demo/portfolio/plumbing-before.jpg',
                     ]);
 
                     if ($project->description === $description) {
@@ -299,7 +299,7 @@ private function seedServiceSuggestions(): void
 
         $this->seed(WalletTransaction::factory(), [
             'booking_id' => $booking->id,
-            'vendor_id' => $offer->vendor_id,
+            'user_id' => $offer->vendor_id,
             'transaction_type' => 'credit',
         ], [
             'amount' => $booking->original_price,

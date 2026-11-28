@@ -1,7 +1,7 @@
 <dialog class="hub-dialog" id="history-{{ $booking->id }}" aria-labelledby="history-title-{{ $booking->id }}">
     <div class="dialog-head">
         <h2 id="history-title-{{ $booking->id }}">{{ $tab === 'payments' ? 'تفاصيل الدفعة' : 'تفاصيل الطلب' }} <bdi>#{{ $booking->id }}</bdi></h2>
-        <button class="btn btn-outline btn-sm" type="button" data-close-dialog>إغلاق</button>
+        <x-modal-close data-close-dialog />
     </div>
     <h3>{{ $booking->service_name }}</h3>
     <p>{{ $booking->service_description }}</p>

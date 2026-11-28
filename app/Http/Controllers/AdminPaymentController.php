@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AdminPeriod;
+
 use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -55,7 +57,7 @@ class AdminPaymentController extends Controller
         $search = trim($filters['q'] ?? '');
 
          
-        $query = Payment::with(['booking.customer', 'booking.vendorService.vendor']);
+        $query = AdminPeriod::apply(Payment::with(['booking.customer', 'booking.vendorService.vendor']));
 
         if ($search !== '') {
             $query->where(function ($payments) use ($search) {
@@ -97,10 +99,10 @@ class AdminPaymentController extends Controller
             'statuses' => self::STATUSES,
             'statusColors' => self::STATUS_COLORS,
             'methods' => self::METHODS,
-            'paidTotal' => Payment::where('status', 'paid')->sum('amount'),
-            'paidCount' => Payment::where('status', 'paid')->count(),
-            'pendingCount' => Payment::where('status', 'pending')->count(),
-            'refundedTotal' => Payment::where('payments.status', 'refunded')
+            'paidTotal' => AdminPeriod::apply(Payment::where('status', 'paid'))->sum('amount'),
+            'paidCount' => AdminPeriod::apply(Payment::where('status', 'paid'))->count(),
+            'pendingCount' => AdminPeriod::apply(Payment::where('status', 'pending'))->count(),
+            'refundedTotal' => AdminPeriod::apply(Payment::where('payments.status', 'refunded'))
                 ->leftJoin('refund_requests', 'refund_requests.booking_id', '=', 'payments.booking_id')
                 ->sum(\Illuminate\Support\Facades\DB::raw('COALESCE(refund_requests.refund_amount, payments.amount)')),
         ]);
@@ -108,6 +110,7 @@ class AdminPaymentController extends Controller
 
     public function show(Payment $payment)
     {
+        abort_unless(AdminPeriod::includes($payment), 404);
         $payment->load([
             'booking.customer',
             'booking.vendorService.vendor',

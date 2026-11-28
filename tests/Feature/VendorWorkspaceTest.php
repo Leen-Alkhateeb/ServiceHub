@@ -25,6 +25,25 @@ class VendorWorkspaceTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_shared_portfolio_paths_preserve_independent_ownership_and_file_access(): void
+    {
+        $disk = \Illuminate\Support\Facades\Storage::fake('public');
+        $disk->put('portfolio/shared.webp', 'sample image');
+        $firstProject = PortfolioProject::factory()->create(['vendor_id' => VendorProfile::factory()->create()->user_id]);
+        $secondProject = PortfolioProject::factory()->create(['vendor_id' => VendorProfile::factory()->create()->user_id]);
+        $first = $firstProject->images()->create(['image' => 'portfolio/shared.webp']);
+        $second = $secondProject->images()->create(['image' => 'portfolio/shared.webp']);
+        $first->forceFill(['legacy_portfolio_id' => 92])->save();
+
+        $this->get(route('vendor.portfolio.image', $first))->assertOk();
+        $this->get(route('vendor.portfolio.image', $second))->assertOk();
+        $this->actingAs($first->project->vendor)->delete(route('vendor.portfolio.image.destroy', $second))->assertNotFound();
+        $this->delete(route('vendor.portfolio.image.destroy', $first))->assertRedirect();
+        $this->get(route('vendor.portfolio.image', $first))->assertNotFound();
+        $this->get(route('vendor.portfolio.image', $second))->assertOk();
+        $disk->assertExists('portfolio/shared.webp');
+    }
+
     public function test_vendor_dashboard_chart_counts_only_own_bookings_and_nav_has_one_dashboard_link(): void
     {
         $vendor = VendorProfile::factory()->create()->user;
@@ -64,12 +83,12 @@ class VendorWorkspaceTest extends TestCase
     {
         $tables = [
             'users', 'vendor_profiles', 'categories', 'services', 'vendor_services', 'recurring_availability',
-            'portfolio_projects', 'portfolio_images', 'bookings', 'payments', 'wallet_transactions',
+            'portfolio_projects', 'images', 'bookings', 'payments', 'wallet_transactions',
             'refund_requests', 'reviews', 'favorites', 'notifications', 'contact_messages',
         ];
-        $this->seed();
+        $this->seed(\Database\Seeders\ServiceHubDemoSeeder::class);
         $counts = array_map(fn ($table) => DB::table($table)->count(), $tables);
-        $this->seed();
+        $this->seed(\Database\Seeders\ServiceHubDemoSeeder::class);
         foreach ($tables as $index => $table) {
             $this->assertGreaterThanOrEqual(15, $counts[$index], $table);
             $this->assertDatabaseCount($table, $counts[$index]);
@@ -82,7 +101,8 @@ class VendorWorkspaceTest extends TestCase
 
         $this->actingAs($vendor)->get(route('home'))->assertOk()->assertSee(route('account.profile'))
             ->assertSee(route('logout'))->assertDontSee(route('register'))
-            ->assertSee('notification-dropdown')->assertSee('عرض المزيد')->assertSee('تم تحرير مبلغ الحجز');
+            ->assertSee('notification-dropdown')->assertSee('عرض المزيد');
+        $this->get(route('notifications.index'))->assertOk()->assertSee('تم تحرير مبلغ الحجز');
         $this->get(route('account.profile'))->assertRedirect(route('vendor.profile'));
         $this->get(route('vendor.profile'))->assertOk()->assertSee(route('vendor.service.reviews', $offer))
             ->assertSeeInOrder([$vendor->first_name.' '.$vendor->last_name, $vendor->vendorProfile->work_type])
@@ -143,7 +163,7 @@ class VendorWorkspaceTest extends TestCase
 
     public function test_landing_previews_link_to_directories_and_category_details(): void
     {
-        $this->seed();
+        $this->seed(\Database\Seeders\ServiceHubDemoSeeder::class);
         $this->get(route('home'))->assertOk()
             ->assertViewHas('categories', fn ($categories) => $categories->count() === 5)
             ->assertViewHas('vendors', fn ($vendors) => $vendors->count() === 3)
@@ -161,7 +181,7 @@ class VendorWorkspaceTest extends TestCase
     public function test_wallet_releases_only_after_the_hold_without_an_open_complaint_and_notifies(): void
     {
         $this->travelTo(now()->startOfMinute());
-        $ready = Booking::factory()->paid()->create(['completed_at' => now()->subHours(24)]);
+        $ready = Booking::factory()->paid()->create(['completed_at' => now()->subHours(24), 'original_price' => '116.300']);
         $held = Booking::factory()->paid()->create(['completed_at' => now()->subHours(23)]);
         $disputed = Booking::factory()->paid()->create(['completed_at' => now()->subHours(25)]);
         RefundRequest::factory()->for($disputed)->create();
@@ -172,7 +192,7 @@ class VendorWorkspaceTest extends TestCase
         $this->actingAs($vendor)->get(route('vendor.wallet'))->assertOk()->assertSee('جاهز للتحرير');
         $this->artisan('wallet:release')->expectsOutput('1 bookings credited.')->assertSuccessful();
         $this->artisan('wallet:release')->expectsOutput('0 bookings credited.')->assertSuccessful();
-        $this->assertDatabaseHas('wallet_transactions', ['booking_id' => $ready->id, 'amount' => $ready->payment->amount]);
+        $this->assertDatabaseHas('wallet_transactions', ['booking_id' => $ready->id, 'amount' => '98.860']);
         $this->assertDatabaseMissing('wallet_transactions', ['booking_id' => $held->id]);
         $this->assertDatabaseMissing('wallet_transactions', ['booking_id' => $disputed->id]);
         $notification = $vendor->notifications()->latest('id')->firstOrFail();
@@ -207,7 +227,7 @@ class VendorWorkspaceTest extends TestCase
     public function test_vendor_can_publish_a_project_with_multiple_images(): void
     {
         $disk = Storage::fake('public');
-        $this->seed();
+        $this->seed(\Database\Seeders\ServiceHubDemoSeeder::class);
         $vendor = User::whereEmail('plumbing.seed@servicehub.example')->firstOrFail();
         $png = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+Xk4QAAAAASUVORK5CYII=');
         $this->actingAs($vendor)->post(route('vendor.portfolio.store'), [
@@ -251,8 +271,8 @@ class VendorWorkspaceTest extends TestCase
         $this->patch($url, $data + ['remove_images' => [$unrelated->id]])->assertSessionHasErrorsIn('portfolioEdit', 'remove_images');
         $this->patch($url, $data + ['remove_images' => [$existing->first()->id], 'images' => [$image()]])
             ->assertRedirect(route('vendor.portfolio.show', $project));
-        $this->assertDatabaseHas('portfolio_images', ['id' => $existing->first()->id, 'is_active' => false]);
-        $this->assertDatabaseHas('portfolio_images', ['id' => $unrelated->id, 'is_active' => true]);
+        $this->assertDatabaseHas('images', ['id' => $existing->first()->id, 'is_active' => false]);
+        $this->assertDatabaseHas('images', ['id' => $unrelated->id, 'is_active' => true]);
         $this->assertSame(8, $project->images()->where('is_active', true)->count());
         Storage::disk('public')->assertExists($project->images()->latest('id')->firstOrFail()->image);
     }
@@ -377,7 +397,7 @@ class VendorWorkspaceTest extends TestCase
         $booking = Booking::factory()->create();
         $vendor = $booking->vendorService->vendor;
         $this->actingAs($vendor)->post(route('vendor.reviews.store', $booking), ['rating' => 2])->assertRedirect();
-        $this->get(route('vendor.reviews'))->assertOk()->assertSee('تعديل التقييم')->assertSee('تأكيد الحذف');
+        $this->get(route('vendor.reviews'))->assertOk()->assertSee('تعديل التقييم')->assertSee('تأكيد الارشفة');
         $update = route('vendor.reviews.update', $booking);
         $this->actingAs(User::factory()->vendor()->create())->patch($update, ['rating' => 5])->assertNotFound();
         $this->actingAs($vendor)->patch($update, ['rating' => 4, 'comment' => 'Corrected'])->assertRedirect();
@@ -404,7 +424,7 @@ class VendorWorkspaceTest extends TestCase
         $this->assertSame('Updated', $vendor->fresh()->first_name);
         $this->assertEquals(7, $profile->fresh()->experience_years);
         $this->patch(route('vendor.service-requests.update', $offer), ['price' => '53.70', 'description' => 'Updated offer'])->assertRedirect();
-        $this->assertEquals('53.70', $offer->fresh()->price);
+        $this->assertSame('53.700', $offer->fresh()->price);
         $this->delete(route('vendor.service-requests.destroy', $offer))->assertRedirect();
         $this->assertSame('inactive', $offer->fresh()->status);
         $this->get(route('vendor.service.reviews', $offer))->assertNotFound();
@@ -412,7 +432,7 @@ class VendorWorkspaceTest extends TestCase
         $this->patch(route('vendor.portfolio.update', $project), ['name' => 'Updated project', 'description' => 'Updated work'])->assertRedirect();
         $this->get(route('vendor.portfolio.show', $project))->assertOk()->assertSee('Updated project')->assertSee('plumbing.jpg');
         $this->delete(route('vendor.portfolio.image.destroy', $photo))->assertRedirect();
-        $this->assertDatabaseHas('portfolio_images', ['id' => $photo->id, 'is_active' => false]);
+        $this->assertDatabaseHas('images', ['id' => $photo->id, 'is_active' => false]);
         $this->get(route('vendor.portfolio.show', $project))->assertOk()->assertDontSee('plumbing.jpg');
         $this->delete(route('vendor.portfolio.destroy', $project))->assertRedirect();
         $this->assertDatabaseHas('portfolio_projects', ['id' => $project->id, 'is_active' => false]);

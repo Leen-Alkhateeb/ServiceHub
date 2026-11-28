@@ -52,6 +52,47 @@ function initializePage() {
     const { signal } = pageEvents;
     document.querySelectorAll('[data-file-picker] input[type="file"]').forEach(updateFilePicker);
 
+    for (const info of document.querySelectorAll('.booking-info')) {
+        const trigger = info.querySelector('.booking-info-trigger');
+        const popup = info.querySelector('.booking-info-popup');
+        if (!popup.showPopover) continue;
+
+        let hideTimer;
+        const place = () => {
+            if (!popup.matches(':popover-open')) return;
+            const anchor = trigger.getBoundingClientRect();
+            const bounds = popup.getBoundingClientRect();
+            const left = Math.max(12, Math.min(anchor.left + (anchor.width - bounds.width) / 2, document.documentElement.clientWidth - bounds.width - 12));
+            const below = anchor.bottom + 6;
+            const top = below + bounds.height > window.innerHeight - 12 ? Math.max(12, anchor.top - bounds.height - 6) : below;
+            popup.style.left = `${left}px`;
+            popup.style.top = `${top}px`;
+        };
+        const show = () => {
+            clearTimeout(hideTimer);
+            if (!popup.matches(':popover-open')) popup.showPopover();
+            place();
+        };
+        const hide = () => {
+            clearTimeout(hideTimer);
+            if (popup.matches(':popover-open')) popup.hidePopover();
+        };
+        const leave = event => {
+            if (event.pointerType === 'mouse' && !trigger.matches(':focus-visible')) hideTimer = setTimeout(hide, 120);
+        };
+
+        trigger.addEventListener('pointerenter', event => { if (event.pointerType === 'mouse') show(); }, { signal });
+        trigger.addEventListener('pointerleave', leave, { signal });
+        popup.addEventListener('pointerenter', () => clearTimeout(hideTimer), { signal });
+        popup.addEventListener('pointerleave', leave, { signal });
+        trigger.addEventListener('focus', () => { if (trigger.matches(':focus-visible')) show(); }, { signal });
+        trigger.addEventListener('blur', hide, { signal });
+        popup.addEventListener('toggle', place, { signal });
+        document.addEventListener('scroll', place, { capture: true, passive: true, signal });
+        window.addEventListener('resize', place, { signal });
+        signal.addEventListener('abort', () => clearTimeout(hideTimer), { once: true });
+    }
+
     const registrationPassword = document.querySelector('[data-registration-password]');
     if (registrationPassword) {
         const checklist = document.getElementById('password-requirements');
@@ -302,6 +343,89 @@ function initializePage() {
         });
         rows.querySelector('[data-remove-image-field]')?.removeAttribute('hidden');
         update();
+    }
+
+    const joinForm = document.querySelector('[data-join-form]');
+    const joinDialog = document.querySelector('[data-join-dialog]');
+    if (joinForm && joinDialog && typeof joinDialog.showModal === 'function') {
+        const open = document.querySelector('[data-join-open]');
+        const panels = [...joinForm.querySelectorAll('[data-join-panel]')];
+        const progress = joinDialog.querySelector('[data-join-progress]');
+        const previous = joinForm.querySelector('[data-join-back]');
+        const next = joinForm.querySelector('[data-join-next]');
+        const submit = joinForm.querySelector('[data-join-submit]');
+        const discard = joinForm.querySelector('[data-join-discard]');
+        const summary = joinForm.querySelector('[data-join-summary]');
+        let step = 0;
+        let dirty = joinForm.hasAttribute('data-join-errors');
+
+        joinDialog.append(joinForm);
+        open.hidden = progress.hidden = false;
+        joinForm.noValidate = true;
+        const fields = panel => [...panel.querySelectorAll('input, textarea, select')];
+        const showStep = index => {
+            step = index;
+            panels.forEach((panel, position) => { panel.hidden = position !== index; });
+            progress.querySelector('[data-join-step]').textContent = `الخطوة ${index + 1} من ${panels.length}`;
+            progress.querySelector('progress').value = index + 1;
+            previous.hidden = index === 0;
+            next.hidden = index === panels.length - 1;
+            submit.hidden = !next.hidden;
+            if (next.hidden) {
+                summary.replaceChildren();
+                for (const field of panels.flatMap(fields)) {
+                    const term = document.createElement('dt');
+                    const definition = document.createElement('dd');
+                    term.textContent = field.labels[0]?.textContent;
+                    definition.textContent = field.type === 'file' ? field.files[0]?.name ?? '—' : field.value;
+                    summary.append(term, definition);
+                }
+            }
+            panels[index].querySelector('legend').focus();
+        };
+        const advance = () => {
+            const invalid = fields(panels[step]).find(field => !field.validity.valid);
+            if (invalid) invalid.reportValidity();
+            else showStep(step + 1);
+        };
+        const requestClose = () => {
+            if (!dirty) return joinDialog.close();
+            discard.hidden = false;
+            discard.querySelector('[data-join-keep]').focus();
+        };
+        open.addEventListener('click', () => { joinDialog.showModal(); showStep(step); }, { signal });
+        next.addEventListener('click', advance, { signal });
+        previous.addEventListener('click', () => showStep(step - 1), { signal });
+        joinForm.addEventListener('input', () => { dirty = true; }, { signal });
+        joinForm.addEventListener('submit', event => {
+            if (!next.hidden) { event.preventDefault(); advance(); return; }
+            const invalidStep = panels.findIndex(panel => fields(panel).some(field => !field.validity.valid));
+            if (invalidStep >= 0) {
+                event.preventDefault();
+                showStep(invalidStep);
+                fields(panels[invalidStep]).find(field => !field.validity.valid).reportValidity();
+                return;
+            }
+            if (submit.disabled) { event.preventDefault(); return; }
+            submit.disabled = true;
+            submit.textContent = 'جارٍ إرسال الطلب…';
+        }, { signal });
+        joinDialog.querySelector('[data-join-close]').addEventListener('click', requestClose, { signal });
+        joinDialog.addEventListener('cancel', event => { event.preventDefault(); requestClose(); }, { signal });
+        joinDialog.addEventListener('close', () => open.focus(), { signal });
+        discard.querySelector('[data-join-keep]').addEventListener('click', () => { discard.hidden = true; showStep(step); }, { signal });
+        discard.querySelector('[data-join-cancel]').addEventListener('click', () => {
+            for (const field of panels.flatMap(fields)) field.value = '';
+            joinForm.querySelector('input[type=file]').dispatchEvent(new Event('change', { bubbles: true }));
+            dirty = false;
+            discard.hidden = true;
+            step = 0;
+            joinDialog.close();
+        }, { signal });
+        if (dirty) {
+            joinDialog.showModal();
+            showStep(Math.max(1, panels.findIndex(panel => panel.querySelector('[role="alert"]'))));
+        }
     }
 
     const assistant = document.querySelector('[data-maintenance-assistant]');

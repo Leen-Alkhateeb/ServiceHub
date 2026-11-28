@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AdminPeriod;
+
 use App\Models\ContactMessage;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -28,7 +30,7 @@ class AdminMessageController extends Controller
 
         $search = trim($filters['q'] ?? '');
 
-        $query = ContactMessage::with('sender');
+        $query = AdminPeriod::apply(ContactMessage::with('sender'));
 
         if ($search !== '') {
             $query->where(function ($messages) use ($search) {
@@ -52,14 +54,15 @@ class AdminMessageController extends Controller
             'filters' => $filters,
             'statuses' => self::STATUSES,
             'roles' => self::ROLES,
-            'totalCount' => ContactMessage::count(),
-            'pendingCount' => ContactMessage::where('status', 'pending')->count(),
-            'reviewedCount' => ContactMessage::where('status', 'reviewed')->count(),
+            'totalCount' => AdminPeriod::apply(ContactMessage::query())->count(),
+            'pendingCount' => AdminPeriod::apply(ContactMessage::where('status', 'pending'))->count(),
+            'reviewedCount' => AdminPeriod::apply(ContactMessage::where('status', 'reviewed'))->count(),
         ]);
     }
 
     public function show(ContactMessage $message)
     {
+        abort_unless(AdminPeriod::includes($message), 404);
         $message->load('sender');
 
         return view('pages.admin.admin-messages-show', [

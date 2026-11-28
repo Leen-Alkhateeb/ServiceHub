@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ContactMessage;
+use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -57,12 +58,38 @@ class ProfileController extends Controller
     public function bookings(Request $request)
     {
         $user = $this->customer($request);
-        $base = fn () => $user->bookingsAsCustomer()->with(['vendorService.vendor', 'payment', 'refundRequest'])->latest('id');
+        $tabs = ['all' => 'الكل', 'pending' => 'طلبات معلقة', 'active' => 'الحجوزات النشطة', 'completed' => 'المكتملة', 'cancelled' => 'الملغاة والمنتهية', 'action' => 'تحتاج إجراء'];
+        $filters = $request->validate(['tab' => ['nullable', Rule::in(array_keys($tabs))], 'q' => ['nullable', 'string', 'max:100']]);
+        $tab = $filters['tab'] ?? 'all';
+        $query = $user->bookingsAsCustomer()->with(['vendorService.vendor', 'vendorService.service.category', 'payment', 'refundRequest']);
+        match ($tab) {
+            'pending' => $query->where('status', 'pending'),
+            'active' => $query->whereIn('status', ['approved', 'awaiting_payment', 'confirmed', 'paid', 'in_progress', 'objection_pending']),
+            'completed' => $query->where('status', 'completed'),
+            'cancelled' => $query->whereIn('status', ['cancelled', 'rejected', 'expired', 'closed', 'refunded']),
+            'action' => $query->where(fn ($rows) => $rows
+                ->where(fn ($payment) => $payment->whereIn('status', ['approved', 'awaiting_payment'])->where('payment_deadline', '>', now()))
+                ->orWhere(fn ($completion) => $completion->whereIn('status', ['confirmed', 'paid', 'in_progress', 'completed'])
+                    ->whereNotNull('vendor_completed_at')->whereNull('customer_completed_at')
+                    ->whereDoesntHave('refundRequest', fn ($refund) => $refund->where('status', 'pending')))),
+            default => null,
+        };
+        if ($search = trim($filters['q'] ?? '')) {
+            $query->where(fn ($rows) => $rows->where('service_name', 'like', '%'.$search.'%')
+                ->when(ctype_digit($search), fn ($matches) => $matches->orWhere('id', $search)));
+        }
+        $bookings = $query->latest('id')->paginate(9)->withQueryString();
+        $visibleOffers = \App\Models\VendorService::publiclyVisible()->whereIn('id', $bookings->pluck('vendor_service_id'))->pluck('id')->all();
 
-        return view('pages.customer.customer-bookings', [
-            'current' => $base()->whereIn('status', ['pending', 'approved', 'awaiting_payment', 'confirmed', 'paid', 'in_progress', 'objection_pending'])->get(),
-            'past'    => $base()->whereIn('status', ['completed', 'rejected', 'cancelled', 'expired', 'closed', 'refunded'])->get(),
-        ]);
+        return view('pages.customer.customer-bookings', compact('bookings', 'tab', 'tabs', 'filters', 'visibleOffers'));
+    }
+
+    public function booking(Request $request, Booking $booking)
+    {
+        abort_unless((int) $booking->customer_id === (int) $this->customer($request)->id, 404);
+        $booking->load(['vendorService.vendor.vendorProfile', 'payment', 'refundRequest', 'evidence']);
+
+        return view('pages.customer.booking-details', compact('booking'));
     }
 
     public function favorites(Request $request)

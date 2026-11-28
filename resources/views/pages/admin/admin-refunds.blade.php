@@ -21,7 +21,7 @@
 
         <div class="refunds-page">
             @if (session('status'))
-                <p class="notice" role="status">{{ session('status') }}</p>
+                <p class="notice {{ session('decision_rejected') ? 'notice-error' : '' }}" role="status">{{ session('status') }}</p>
             @endif
 
             @if ($errors->any())
@@ -41,6 +41,7 @@
                         24 ساعة من إكمال الخدمة.
                     </p>
                 </div>
+                @include('components.admin-period')
             </div>
 
             
@@ -254,10 +255,10 @@
 
                 <dialog
                     id="refund-details-{{ $refund->id }}"
-                    class="panel refund-dialog"
+                    class="panel refund-dialog refund-details-dialog"
                     aria-labelledby="refund-title-{{ $refund->id }}"
                 >
-                    <div class="section-head">
+                    <div class="section-head dialog-head">
                         <div>
                             <span class="small muted">
                                 تفاصيل طلب الاسترداد
@@ -268,16 +269,10 @@
                             </h2>
                         </div>
 
-                        <button
-                            type="button"
-                            class="btn btn-outline"
-                            data-close-refund
-                        >
-                            إغلاق
-                        </button>
+                        <x-modal-close data-close-refund />
                     </div>
 
-                    <div class="refund-details-content">
+                    <div class="refund-details-content" role="region" aria-label="محتوى طلب الاسترداد" tabindex="0">
 
                         
                         <section>
@@ -354,24 +349,7 @@
                         </section>
 
                         
-                        <section>
-                            <h3>الإثباتات المرفقة</h3>
-
-                            @if ($refund->evidence_path)
-                                <a
-                                    href="{{ asset('storage/' . $refund->evidence_path) }}"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="btn btn-outline"
-                                >
-                                    عرض الإثبات المرفق
-                                </a>
-                            @else
-                                <p class="muted">
-                                    لا توجد إثباتات مرفقة بهذا الطلب.
-                                </p>
-                            @endif
-                        </section>
+                        @if($booking)@include('components.booking-evidence', ['showObjection' => true])@endif
 
                         <hr>
 
@@ -477,9 +455,10 @@
                         class="panel refund-dialog refund-confirm-dialog"
                         aria-labelledby="refund-confirm-title-{{ $refund->id }}"
                     >
-                        <h2 id="refund-confirm-title-{{ $refund->id }}">
-                            تأكيد القرار
-                        </h2>
+                        <div class="dialog-head">
+                            <h2 id="refund-confirm-title-{{ $refund->id }}">تأكيد القرار</h2>
+                            <x-modal-close data-close-refund />
+                        </div>
 
                         <p data-confirm-message>
                             هل أنت متأكد من اتخاذ هذا القرار؟
@@ -568,7 +547,7 @@
             input.value = decision;
             message.textContent = decision === 'accepted'
                 ? 'هل أنت متأكد من قبول الاعتراض؟ سيتم اعتماد توزيع 70% للعميل، و15% لمقدم الخدمة، و15% للمنصة.'
-                : 'هل أنت متأكد من رفض الاعتراض؟ سيتم اعتماد التوزيع الطبيعي: 85% لمقدم الخدمة و15% للمنصة.';
+                : 'هل أنت متأكد من رفض الاعتراض؟ سيتم اعتماد 85% لمقدم الخدمة و15% للمنصة. يُصرف المبلغ للفني بعد انتهاء المهلة.';
 
             closeDialogs();
             dialog.showModal();

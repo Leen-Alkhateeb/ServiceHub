@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AdminPeriod;
+use App\Services\InstantFinance;
+
+use App\Models\Booking;
 use App\Models\RefundRequest;
+use App\Models\User;
 use App\Models\WalletTransaction;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -24,11 +28,13 @@ class AdminRefundsController extends Controller
 
         $search = trim($data['search'] ?? '');
 
-        $query = RefundRequest::query()
+        $scheduled = RefundRequest::where('case_type', 'objection')->whereHas('booking', fn ($rows) => $rows->where('booking_type', 'scheduled'));
+        $query = AdminPeriod::apply(clone $scheduled)
             ->with([
                 'customer',
                 'booking.vendorService.vendor',
                 'booking.vendorService.service',
+                'booking.evidence',
             ]);
 
         if ($search !== '') {
@@ -68,7 +74,7 @@ class AdminRefundsController extends Controller
             ->paginate(6)
             ->withQueryString();
 
-        $counts = RefundRequest::query()
+        $counts = AdminPeriod::apply(clone $scheduled)
             ->selectRaw('COUNT(*) AS total')
             ->selectRaw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending")
             ->selectRaw("SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) AS accepted")
@@ -96,16 +102,19 @@ class AdminRefundsController extends Controller
             ],
         ]);
 
-        DB::transaction(function () use ($refund, $data) {
+        $source = $refund->booking;
+        $vendor = $source?->vendorService?->vendor_id;
+        abort_unless($source?->booking_type === 'scheduled' && $vendor, 409);
+        $finance = app(InstantFinance::class);
+        $finance->withPlatformLock(function () use ($refund, $data, $source, $vendor, $finance) {
+            User::query()->whereKey([$source->customer_id, $vendor])->orderBy('id')->lockForUpdate()->get();
+            $booking = Booking::withTrashed()->lockForUpdate()->findOrFail($source->id);
             $current = RefundRequest::query()
+                ->where('case_type', 'objection')
                 ->lockForUpdate()
                 ->findOrFail($refund->id);
 
             abort_unless($current->status === 'pending', 409);
-
-            $booking = $current->booking()
-                ->lockForUpdate()
-                ->firstOrFail();
 
             $offer = $booking->vendorService;
 
@@ -127,7 +136,7 @@ class AdminRefundsController extends Controller
              
             $hasPayout = WalletTransaction::query()
                 ->where('booking_id', $booking->id)
-                ->where('vendor_id', $vendorId)
+                ->where('user_id', $vendorId)
                 ->whereIn('transaction_type', [
                     'payout',
                     'refund_share',
@@ -154,10 +163,10 @@ class AdminRefundsController extends Controller
 
 
                 WalletTransaction::create([
-                    'vendor_id' => $vendorId,
+                    'user_id' => $vendorId,
                     'booking_id' => $booking->id,
                     'transaction_type' => 'refund_share',
-                    'amount' => round($amount * 0.15, 2),
+                    'amount' => $finance->scheduledNetEntitlement($booking, $vendorId, number_format(round($amount * 0.15, 2), 2, '.', '')),
                     'description' => 'حصة مقدم الخدمة بعد قبول الاعتراض',
                 ]);
 
@@ -170,13 +179,16 @@ class AdminRefundsController extends Controller
 
 
 
-                WalletTransaction::create([
-                    'vendor_id' => $vendorId,
-                    'booking_id' => $booking->id,
-                    'transaction_type' => 'payout',
-                    'amount' => round($amount * 0.85, 2),
-                    'description' => 'تحرير مستحقات مقدم الخدمة بعد رفض الاعتراض',
-                ]);
+                $deadline = $booking->objection_deadline ?? $booking->completed_at->copy()->addHours(24);
+                if (! $deadline->isFuture()) {
+                    WalletTransaction::create([
+                        'user_id' => $vendorId,
+                        'booking_id' => $booking->id,
+                        'transaction_type' => 'payout',
+                        'amount' => $finance->scheduledNetEntitlement($booking, $vendorId, \App\Services\VendorSettlement::vendorShare((string) $payment->amount)),
+                        'description' => 'تحرير مستحقات مقدم الخدمة بعد رفض الاعتراض',
+                    ]);
+                }
 
                 $booking->update([
                     'status' => 'completed',
@@ -207,10 +219,11 @@ class AdminRefundsController extends Controller
                         . $booking->id . '.',
                 'type' => 'refund',
             ]);
-        }, 3);
+        });
 
         return redirect()
             ->route('admin.refunds.index')
+            ->with('decision_rejected', $data['decision'] !== 'accepted')
             ->with(
                 'status',
                 $data['decision'] === 'accepted'

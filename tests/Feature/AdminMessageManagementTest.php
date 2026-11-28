@@ -15,8 +15,9 @@ class AdminMessageManagementTest extends TestCase
     {
         $sender = User::factory()->create(['first_name' => 'Lina', 'last_name' => 'Saleh']);
         ContactMessage::factory()->create(['sender_id' => $sender->id, 'subject' => 'Booking question']);
-        ContactMessage::factory()->create(['subject' => 'Payment issue', 'status' => 'reviewed', 'reviewed_at' => now()]);
-        ContactMessage::factory()->count(16)->create();
+        $other = User::factory()->create(['first_name' => 'Omar', 'last_name' => 'Haddad', 'email' => 'other-sender@example.test']);
+        ContactMessage::factory()->create(['sender_id' => $other->id, 'subject' => 'Payment issue', 'status' => 'reviewed', 'reviewed_at' => now()]);
+        ContactMessage::factory()->count(16)->create(['sender_id' => $other->id, 'subject' => 'General question']);
 
         $this->actingAs(User::factory()->admin()->create());
 

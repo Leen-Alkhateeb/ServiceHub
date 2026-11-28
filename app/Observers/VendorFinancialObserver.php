@@ -38,6 +38,7 @@ class VendorFinancialObserver
     private function notify(Model $record): void
     {
         $booking = $record instanceof Booking ? $record : $record->booking;
+        if ($booking?->booking_type === 'instant') return;
         $message = match (true) {
             $record instanceof Booking => 'اكتمل الحجز وبدأت مهلة احتجاز المبلغ لمدة 24 ساعة.',
             $record instanceof WalletTransaction => 'تم تحديث السجل المالي بمبلغ '.$record->amount.' د.أ.',

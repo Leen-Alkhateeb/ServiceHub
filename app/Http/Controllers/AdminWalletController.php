@@ -12,7 +12,7 @@ class AdminWalletController extends Controller
 
     public function index()
     {
-         $transactions = WalletTransaction::with(['vendor', 'booking'])
+         $transactions = WalletTransaction::with(['vendor', 'booking'])->whereNotNull('booking_id')
             ->latest()
             ->paginate(10);
 
@@ -65,6 +65,7 @@ class AdminWalletController extends Controller
     public function destroy(string $id)
     {
          $transaction = WalletTransaction::findOrFail($id);
+        abort_if($transaction->idempotency_key !== null, 403);
         $transaction->delete();
 
         return redirect()->route('admin.wallet.index')

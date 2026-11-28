@@ -5,6 +5,7 @@
     <dialog class="hub-dialog booking-follow-up-dialog" id="cancel-booking-{{ $booking->id }}" aria-labelledby="cancel-booking-title-{{ $booking->id }}">
         <div class="dialog-head">
             <h2 id="cancel-booking-title-{{ $booking->id }}">تأكيد إلغاء الحجز</h2>
+            <x-modal-close data-close-dialog />
         </div>
         <p>هل تريد إلغاء حجز «{{ $booking->service_name }}»؟</p>
         @if ($booking->payment?->status === 'paid')

@@ -168,10 +168,11 @@
                     مراجعة خدمات مقدمي الخدمات والموافقة عليها أو رفضها.
                 </p>
             </div>
+            @include('components.admin-period')
         </div>
 
         @if (session('success'))
-            <div class="admin-alert admin-alert-success" role="status">
+            <div class="admin-alert {{ session('decision_rejected') ? 'admin-alert-error' : 'admin-alert-success' }}" role="status">
                 {{ session('success') }}
             </div>
         @endif
@@ -405,14 +406,7 @@
                 مراجعة الطلب
             </h2>
 
-            <button
-                type="button"
-                class="request-modal-close"
-                data-request-close
-                aria-label="إغلاق"
-            >
-                &times;
-            </button>
+            <x-modal-close data-request-close />
 
         </div>
 

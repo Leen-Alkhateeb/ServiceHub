@@ -15,7 +15,7 @@ class WalletTransactionFactory extends Factory
     {
         return [
             'booking_id' => Booking::factory()->paid(),
-            'vendor_id' => fn (array $attributes) => Booking::findOrFail($attributes['booking_id'])->vendorService->vendor_id,
+            'user_id' => fn (array $attributes) => Booking::findOrFail($attributes['booking_id'])->vendorService->vendor_id,
             'transaction_type' => 'credit',
             'amount' => fn (array $attributes) => Booking::findOrFail($attributes['booking_id'])->original_price,
             'description' => 'تحرير كامل مبلغ الحجز',

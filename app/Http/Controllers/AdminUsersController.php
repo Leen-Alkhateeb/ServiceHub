@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AdminPeriod;
+
 use App\Models\Service;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -13,7 +15,7 @@ class AdminUsersController extends Controller
 public function index(Request $request)
 {
     $request->validate(['search' => ['nullable', 'string']]);
-    $query = User::query();
+    $query = AdminPeriod::apply(User::query());
 
     if ($request->filled('search')) {
 

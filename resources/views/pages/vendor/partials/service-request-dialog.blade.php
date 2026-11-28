@@ -1,7 +1,7 @@
 <dialog class="hub-dialog" id="offer-form" aria-labelledby="offer-form-title" @if ($errors->offer->any()) data-auto-dialog @endif>
     <div class="dialog-head">
         <h2 id="offer-form-title">إضافة خدمة</h2>
-        <button type="button" class="btn btn-outline btn-sm" data-close-dialog>إغلاق</button>
+        <x-modal-close data-close-dialog />
     </div>
     @if ($errors->offer->any())
         <ul class="notice" role="alert">

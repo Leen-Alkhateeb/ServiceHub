@@ -26,6 +26,7 @@
                         @endif
                     </p>
                 </div>
+                @include('components.admin-period')
                 @if ($showArchived)
                     <a class="btn btn-outline" href="{{ route('admin.bookings.index') }}">الحجوزات الحالية ({{ $activeCount }})</a>
                 @else
@@ -40,6 +41,10 @@
                 'placeholder' => 'رقم الحجز، الخدمة، العميل أو المزوّد',
                 'labels' => $statuses,
                 'statusLabel' => 'حالة الحجز',
+                'extraFilters' => [
+                    'payment_status' => ['حالة الدفع', ['pending' => 'معلق', 'paid' => 'مدفوع', 'failed' => 'فشل', 'refunded' => 'مسترد']],
+                    'objection_status' => ['حالة الاعتراض', ['pending' => 'قيد المراجعة', 'accepted' => 'مقبول', 'rejected' => 'مرفوض']],
+                ],
             ])
 
             <div class="panel">
@@ -76,6 +81,7 @@
                                     <td class="nowrap">{{ number_format($booking->original_price, 2) }} د.أ</td>
                                     <td>
                                         <span class="pill {{ $statusColors[$booking->status] ?? '' }}">{{ $statuses[$booking->status] ?? $booking->status }}</span>
+                                        <x-booking-info :status="$booking->status" />
                                     </td>
                                     <td>
                                         <a class="btn btn-outline btn-sm" href="{{ route('admin.bookings.show', $booking) }}">التفاصيل</a>

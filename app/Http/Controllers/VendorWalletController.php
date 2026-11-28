@@ -36,7 +36,7 @@ class VendorWalletController extends Controller
             });
 
         $query = (clone $matchingBookings)->whereIn('id', $settlement->completed()->select('id'));
-        $adjustments = WalletTransaction::query()->where('vendor_id', $vendorId)
+        $adjustments = WalletTransaction::query()->where('user_id', $vendorId)->where('account_type', 'vendor')
             ->whereIn('booking_id', (clone $matchingBookings)->whereIn('status', ['cancelled', 'refunded'])->select('id'))
             ->whereIn('transaction_type', ['penalty', 'refund_share']);
         $cancellationEntries = ($filters['status'] ?? null) && $filters['status'] !== 'released'
@@ -44,7 +44,9 @@ class VendorWalletController extends Controller
             : $adjustments->with('booking')->latest('id')->paginate(6, ['*'], 'cancellations_page')->withQueryString();
 
         $labels = ['released' => 'مُتاح', 'held' => 'قيد الحجز', 'ready' => 'جاهز للتحرير', 'issue' => 'يتطلب متابعة'];
-        $netBalance = (float) WalletTransaction::where('vendor_id', $vendorId)->sum('amount');
+        $netBalance = (float) WalletTransaction::where('user_id', $vendorId)->where('account_type', 'vendor')
+            ->where(fn ($rows) => $rows->whereNull('status')->orWhere('status', 'posted'))
+            ->whereNotIn('transaction_type', ['debt', 'debt_repayment'])->sum('amount');
         $outstandingPenalty = max(0, -$netBalance);
         $summary = ['released' => ['label' => 'الرصيد المتاح', 'amount' => max(0, $netBalance)]];
         foreach (array_diff_key($labels, $summary) as $status => $label) {

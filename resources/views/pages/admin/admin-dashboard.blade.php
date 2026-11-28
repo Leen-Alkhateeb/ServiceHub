@@ -17,14 +17,15 @@
                 <h1>إحصائيات المنصة</h1>
                 <p class="muted">متابعة نشاط {{ config('app.site_name') }} وآخر التحديثات.</p>
             </div>
+            @include('components.admin-period')
         </div>
 
         
         <section class="admin-stat-grid">
-             <div class="admin-stat">
-                <span>إجمالي الارباح المسجلة</span>
-                <strong>{{ number_format($stats['paidAmount']*0.15, 2) }}</strong>
-                <small>صافي ربح المنصة</small>
+             <div class="admin-stat admin-stat-money">
+                <span><b class="finance-icon" aria-hidden="true">$</b> حصة المنصة المحسوبة</span>
+                <strong><bdi>{{ number_format($stats['paidAmount']*0.15, 2) }}</bdi> د.أ</strong>
+                <small>15٪ من المدفوعات المسجلة <x-booking-info text="تقدير محسوب من الدفعات بحالة مدفوعة. لا يمثل مبالغ عمولات محصّلة." /></small>
                 <a href="{{ route('admin.payments.index') }}" class="admin-card-link">عرض المدفوعات <span aria-hidden="true">←</span></a>
             </div>
 
@@ -68,7 +69,7 @@
         <section class="admin-chart-grid">
             <div class="panel">
                 <div class="admin-section-heading">
-                    <h3>الحجوزات خلال آخر 7 أيام</h3>
+                    <h3>{{ $period ? 'الحجوزات خلال الفترة المختارة' : 'الحجوزات خلال آخر 7 أيام' }}</h3>
                 </div>
                 <p class="muted">عدد الحجوزات الجديدة يوميًا</p>
                 <div class="chart-container">

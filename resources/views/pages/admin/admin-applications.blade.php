@@ -17,10 +17,11 @@
                     <h1>طلبات انضمام الفنيين</h1>
                     <p class="muted">راجع بيانات الفنيين وتصاريح العمل قبل الموافقة أو الرفض.</p>
                 </div>
+                @include('components.admin-period')
             </div>
 
             @if (session('success'))
-                <div class="admin-alert admin-alert-success" role="status">
+                <div class="admin-alert {{ session('decision_rejected') ? 'admin-alert-error' : 'admin-alert-success' }}" role="status">
                     {{ session('success') }}
                 </div>
             @endif
@@ -60,6 +61,9 @@
                         @endforeach
                     </select>
                 </div>
+                <details class="vendor-join-wide" @if(collect($filters)->only(['experience_from','experience_to','applied_from','applied_to','permit_from','permit_to'])->filter(fn ($value) => $value !== null)->isNotEmpty()) open @endif>
+                <summary>فلاتر إضافية</summary>
+                <div class="hub-filters">
                 @foreach ([
                     'experience_from' => 'الخبرة من (سنوات)',
                     'experience_to' => 'الخبرة إلى (سنوات)',
@@ -74,6 +78,8 @@
                             type="{{ str_starts_with($key, 'experience') ? 'number' : 'date' }}" @if (str_starts_with($key, 'experience')) min="0" @endif>
                     </div>
                 @endforeach
+                </div>
+                </details>
                 <div class="filter-actions">
                     <button class="btn btn-yellow" type="submit">تصفية</button>
                     <a class="btn btn-outline" href="{{ route('admin.admin-applications') }}">مسح</a>
@@ -126,6 +132,7 @@
                                     <dialog class="hub-dialog application-decision-dialog" id="{{ $dialogId }}" aria-labelledby="{{ $dialogId }}-title" aria-describedby="{{ $dialogId }}-message">
                                         <div class="dialog-head">
                                             <h2 id="{{ $dialogId }}-title">{{ $title }}</h2>
+                                            <x-modal-close data-close-dialog />
                                         </div>
                                         <p id="{{ $dialogId }}-message">{{ $question }} <strong>{{ $application->user?->first_name }} {{ $application->user?->last_name }}</strong>؟</p>
                                         <form class="moderation-actions" action="{{ route('admin.admin-applications.'.$decision, $application) }}" method="POST" data-turbo="false">

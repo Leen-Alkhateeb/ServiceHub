@@ -31,6 +31,7 @@
                     <span class="muted">الحجز <bdi>#{{ $booking->id }}</bdi></span>
                     <h1>{{ $booking->service_name }}</h1>
                 </div>
+                @include('components.admin-period')
                 <a class="btn btn-outline" href="{{ route('admin.bookings.index', $booking->trashed() ? ['archived' => 1] : []) }}">رجوع للحجوزات</a>
             </div>
 
@@ -46,7 +47,7 @@
             <dl class="booking-inspect-summary">
                 <div>
                     <dt>حالة الحجز</dt>
-                    <dd><span class="pill {{ $statusColor }}">{{ $statusLabel }}</span></dd>
+                    <dd><span class="pill {{ $statusColor }}">{{ $statusLabel }}</span> <x-booking-info :status="$booking->status" /></dd>
                 </div>
                 <div>
                     <dt>موعد الخدمة</dt>
@@ -100,7 +101,7 @@
                         @endif
                         <div><dt>طلب الاسترداد</dt><dd>{{ $refund ? $refundStatusLabel : 'لا يوجد.' }}</dd></div>
                         @if ($refund?->refund_amount !== null)
-                            <div><dt>مبلغ الاسترداد</dt><dd><bdi>{{ number_format($refund->refund_amount, 2) }}</bdi> د.أ</dd></div>
+                            <div><dt>مبلغ الاسترداد <x-booking-info text="المبلغ المسجّل للعميل بعد قبول الاعتراض." /></dt><dd><bdi>{{ number_format($refund->refund_amount, 2) }}</bdi> د.أ</dd></div>
                         @endif
                         @if ($booking->objection_deadline)
                             <div><dt>نهاية مهلة الاعتراض</dt><dd><x-dialog-date-time :value="$booking->objection_deadline" /></dd></div>
@@ -137,11 +138,14 @@
                             <p class="page-intro">يختفي الحجز من القائمة الحالية وينتقل إلى الأرشيف، ولا تُحذف بيانات الدفع.</p>
                         </div>
                         <x-archive-button :action="route('admin.bookings.destroy', $booking)"
-                            :message="'هل تريد حذف الحجز #' . $booking->id . '؟ سيبقى الحجز في الأرشيف وتُحفظ بيانات الدفع المرتبطة به.'"
-                            label="حذف الحجز" />
+                            :message="'هل تريد ارشفة الحجز #' . $booking->id . '؟ سيبقى الحجز في الأرشيف وتُحفظ بيانات الدفع المرتبطة به.'"
+                            label="ارشفة الحجز" />
                     </div>
                 </div>
             @endunless
+            @if($booking->vendor_completed_at || $booking->refundRequest)
+                <div class="panel stack">@include('components.booking-evidence', ['showObjection' => true])</div>
+            @endif
         </main>
     </div>
 

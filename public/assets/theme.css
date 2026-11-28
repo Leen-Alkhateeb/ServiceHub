@@ -595,6 +595,35 @@ table tbody tr:last-child td {
     border-radius: var(--radius);
 }
 
+.notice:not(.card),
+.alert,
+.admin-alert,
+#admin-services .services-alert,
+.sd-container .sd-error,
+.checkout-page :is(.errors, .expired) {
+    box-sizing: border-box;
+    inline-size: fit-content;
+    max-inline-size: 100%;
+    align-self: flex-start;
+    justify-self: start;
+    padding: .45rem .75rem;
+    overflow-wrap: anywhere;
+}
+
+.admin-alert > * { min-inline-size: 0; }
+
+.notice[role="status"], .notice-success {
+    background: #edf7ef;
+    border-color: #a6d3b1;
+    color: #175638;
+}
+
+.notice[role="alert"], .notice.notice-error {
+    background: #fdf0ef;
+    border-color: #e5aaa6;
+    color: #882623;
+}
+
 
 
 .hero {

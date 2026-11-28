@@ -6,6 +6,7 @@ use App\Models\Booking;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Review extends Model
 {
@@ -19,7 +20,6 @@ class Review extends Model
         'reviewed_user_id',
         'rating',
         'comment',
-        'image',
         'is_active',
     ];
 
@@ -36,5 +36,10 @@ class Review extends Model
     public function reviewedUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'reviewed_user_id');
+    }
+
+    public function attachment(): HasOne
+    {
+        return $this->hasOne(BookingEvidence::class)->where('kind', 'review')->oldest('id');
     }
 }

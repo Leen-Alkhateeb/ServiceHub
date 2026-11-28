@@ -54,7 +54,7 @@ class PortfolioController extends Controller
         $data = $request->validateWithBag($bag, [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string', 'max:5000'],
-            'project_price' => ['nullable', 'numeric', 'decimal:0,2', 'between:0,99999999.99'],
+            'project_price' => ['nullable', 'numeric', 'decimal:0,2', 'between:0,9999999.99'],
             'completion_date' => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today', 'after_or_equal:1900-01-01'],
             'images' => [$project ? 'nullable' : 'required', 'array', 'min:1', 'max:8'],
             'images.*' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120', 'dimensions:max_width=5000,max_height=5000'],

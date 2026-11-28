@@ -20,6 +20,7 @@
                     <h1>الدفعة #{{ $payment->id }}</h1>
                     <p class="page-intro">{{ $booking?->service_name }}</p>
                 </div>
+                @include('components.admin-period')
                 <a class="btn btn-outline" href="{{ route('admin.payments.index') }}">رجوع للمدفوعات</a>
             </div>
 

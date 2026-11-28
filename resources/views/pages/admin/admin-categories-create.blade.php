@@ -20,6 +20,7 @@
                     <h1>إضافة قسم جديد</h1>
                     <p class="page-intro">سيظهر القسم للعملاء مباشرة بعد الحفظ.</p>
                 </div>
+                @include('components.admin-period')
                 <a href="{{ route('admin.categories') }}" class="btn btn-outline">رجوع للأقسام</a>
             </div>
 

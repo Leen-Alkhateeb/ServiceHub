@@ -20,6 +20,7 @@
                     <h1>الرسالة #{{ $message->id }}</h1>
                     <p class="page-intro">{{ $message->subject }}</p>
                 </div>
+                @include('components.admin-period')
                 <a class="btn btn-outline" href="{{ route('admin.messages.index') }}">رجوع للرسائل</a>
             </div>
 

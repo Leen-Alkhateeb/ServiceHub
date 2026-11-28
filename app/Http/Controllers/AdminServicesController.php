@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AdminPeriod;
+
 use App\Models\Category;
 use App\Models\Service;
 use App\Models\VendorService;
@@ -21,7 +23,7 @@ class AdminServicesController extends Controller
             'category_id' => ['nullable', 'integer'],
         ]);
 
-        $services = Service::with('category')
+        $services = AdminPeriod::apply(Service::with('category'))
             ->where('is_deleted', false)
 
             ->when($request->filled('search'), function ($query) use ($request) {

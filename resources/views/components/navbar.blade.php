@@ -10,6 +10,9 @@
             <a href="{{ route('home') }}">الرئيسية</a>
             <a href="{{ route('categories.index') }}">أقسام الصيانة</a>
             <a href="{{ route('market.index') }}">خدمات</a>
+            @if(config('instant.enabled'))
+                <a href="{{ route('instant.index') }}">صلّحها الآن</a>
+            @endif
             <a href="{{ route('home') }}#how-it-works">كيف تعمل المنصة</a>
             @auth
                 @if (auth()->user()->status === 'active' && auth()->user()->role === 'admin')

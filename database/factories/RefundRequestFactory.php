@@ -16,7 +16,7 @@ class RefundRequestFactory extends Factory
     {
         return [
             'booking_id' => Booking::factory()->paid(),
-            'customer_id' => fn (array $attributes) => Booking::findOrFail($attributes['booking_id'])->customer_id,
+            'submitted_by' => fn (array $attributes) => Booking::findOrFail($attributes['booking_id'])->customer_id,
             'reason' => fake()->sentence(),
             'status' => 'pending',
             'created_at' => fn (array $attributes) => Carbon::parse(Booking::findOrFail($attributes['booking_id'])->completed_at)->addHour(),

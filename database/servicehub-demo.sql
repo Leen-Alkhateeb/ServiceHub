@@ -38,7 +38,7 @@ INSERT INTO bookings (customer_id, vendor_service_id, availability_id, booking_d
 VALUES (@demo_customer_id, @demo_offer_id, @demo_availability_id, '2026-11-09', '09:00:00', '10:00:00', 'كشف وإصلاح تسريبات المياه', 'فحص وإصلاح تمديدات المياه.', 40.00, 'completed', '2026-11-09 10:00:00', '2026-11-07 15:00:00', '2026-11-09 10:00:00');
 SET @demo_booking_id = LAST_INSERT_ID();
 
-INSERT INTO wallet_transactions (vendor_id, booking_id, transaction_type, amount, description, created_at)
+INSERT INTO wallet_transactions (user_id, booking_id, transaction_type, amount, description, created_at)
 VALUES (@demo_vendor_id, @demo_booking_id, 'credit', 40.00, 'تحرير كامل مبلغ الحجز بعد مرور 24 ساعة', '2026-11-10 10:00:00');
 
 INSERT INTO reviews (booking_id, reviewer_id, reviewed_user_id, rating, comment, created_at)

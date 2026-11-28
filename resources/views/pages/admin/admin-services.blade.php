@@ -17,9 +17,7 @@
                     <h1>كتالوج الخدمات</h1>
                     <p class="muted">إدارة الخدمات وصورها وأقسامها وحالة ظهورها على الموقع.</p>
                 </div>
-                <button type="button" class="services-btn services-btn-primary" data-service-open="create">
-                    + إضافة خدمة جديدة
-                </button>
+                @include('components.admin-period', ['showCreateService' => true])
             </div>
 
             @if (session('success'))
@@ -110,7 +108,7 @@
         <section class="service-modal" role="dialog" aria-modal="true" aria-labelledby="service-create-title">
             <div class="service-modal-header">
                 <h2 id="service-create-title">إضافة خدمة جديدة</h2>
-                <button type="button" class="service-modal-close" data-service-close aria-label="إغلاق">&times;</button>
+                <x-modal-close data-service-close />
             </div>
             <form id="service-create-form" class="service-modal-form" action="{{ route('admin.addServices') }}" method="POST" enctype="multipart/form-data" data-turbo="false">
               @csrf
@@ -138,7 +136,7 @@
         <section class="service-modal" role="dialog" aria-modal="true" aria-labelledby="service-edit-title">
             <div class="service-modal-header">
                 <h2 id="service-edit-title">تعديل الخدمة</h2>
-                <button type="button" class="service-modal-close" data-service-close aria-label="إغلاق">&times;</button>
+                <x-modal-close data-service-close />
             </div>
             <form id="service-edit-form" class="service-modal-form" method="POST" enctype="multipart/form-data" data-turbo="false">
                 @csrf
@@ -172,7 +170,7 @@
         <section class="service-modal service-modal-small" role="dialog" aria-modal="true" aria-labelledby="service-toggle-title">
             <div class="service-modal-header">
                 <h2 id="service-toggle-title">تغيير حالة الخدمة</h2>
-                <button type="button" class="service-modal-close" data-service-close aria-label="إغلاق">&times;</button>
+                <x-modal-close data-service-close />
             </div>
             <p id="service-toggle-message"></p>
             <form id="service-toggle-form" method="POST" data-turbo="false">
@@ -191,7 +189,7 @@
         <section class="service-modal service-modal-small" role="dialog" aria-modal="true" aria-labelledby="service-delete-title">
             <div class="service-modal-header">
                 <h2 id="service-delete-title">تأكيد حذف الخدمة</h2>
-                <button type="button" class="service-modal-close" data-service-close aria-label="إغلاق">&times;</button>
+                <x-modal-close data-service-close />
             </div>
             <p id="service-delete-message"></p>
             <form id="service-delete-form" method="POST" data-turbo="false">

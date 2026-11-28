@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AdminPeriod;
+
 use App\Models\Booking;
 use Illuminate\Http\Request;
 
@@ -12,7 +14,7 @@ class AdminCancellationController extends Controller
 
     public function index()
     {
-         $cancellations = Booking::with(['customer', 'cancelledByUser'])
+         $cancellations = AdminPeriod::apply(Booking::with(['customer', 'cancelledByUser']), 'cancelled_at')
             ->where(fn ($query) => $query->whereNotNull('cancelled_at')->orWhere('status', 'cancelled'))
             ->latest('cancelled_at')
             ->paginate(10);

@@ -171,12 +171,16 @@ class MarketController extends Controller
                 'vendorService',
                 fn ($q) => $q->where('vendor_id', $vendorService->vendor_id)
             )
-            ->whereBetween('booking_date', [$firstDate, $lastDate])
+            ->whereBetween('booking_date', [$firstDate->copy()->subDay(), $lastDate])
             ->blockingSlot()
             ->get()
-            ->groupBy(fn ($booking) =>
-                Carbon::parse($booking->booking_date)->toDateString()
-            );
+            ->groupBy(function ($booking) {
+                $date = Carbon::parse($booking->booking_date, Booking::SCHEDULE_TIMEZONE);
+
+                return $booking->booking_type === 'instant' && $booking->end_time <= $booking->start_time
+                    ? [$date->toDateString(), $date->copy()->addDay()->toDateString()]
+                    : [$date->toDateString()];
+            });
 
         $days = [];
 
@@ -203,17 +207,17 @@ class MarketController extends Controller
                     $isTaken = $taken
                         ->get($date->toDateString(), collect())
                         ->contains(function ($booking) use (
-                            $date,
                             $slotStart,
                             $slotEnd
                         ) {
                             $bookingStart = Carbon::parse(
-                                $date->toDateString() . ' ' . $booking->start_time, Booking::SCHEDULE_TIMEZONE
+                                substr((string) $booking->booking_date, 0, 10) . ' ' . $booking->start_time, Booking::SCHEDULE_TIMEZONE
                             );
 
-                            $bookingEnd = Carbon::parse(
-                                $date->toDateString() . ' ' . $booking->end_time, Booking::SCHEDULE_TIMEZONE
-                            );
+                            $bookingEnd = $bookingStart->copy()->setTimeFromTimeString($booking->end_time);
+                            if ($booking->booking_type === 'instant' && $bookingEnd->lte($bookingStart)) {
+                                $bookingEnd->addDay();
+                            }
 
                             return $slotStart->lt($bookingEnd)
                                 && $slotEnd->gt($bookingStart);

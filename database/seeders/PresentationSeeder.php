@@ -310,7 +310,7 @@ class PresentationSeeder extends Seeder
                 if ($status === 'completed' && $n === 1 && in_array($i, [1, 4], true)) {
                     RefundRequest::create([
                         'booking_id' => $booking->id,
-                        'customer_id' => $customer->id,
+                        'submitted_by' => $customer->id,
                         'reason' => $i === 1
                             ? 'رجعت المشكلة بعد يومين من الزيارة وبطلب مراجعة الحجز.'
                             : 'الفني ما أكمل الشغل المتفق عليه.',

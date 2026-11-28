@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AdminPeriod;
+
 use App\Models\Service;
 use App\Models\User;
 use App\Models\VendorService;
@@ -17,10 +19,10 @@ class AdminServiceApprovalController extends Controller
     {
         $request->validate(['search' => ['nullable', 'string']]);
 
-        $requests = VendorService::with([
+        $requests = AdminPeriod::apply(VendorService::with([
             'vendor',
             'service.category',
-        ])
+        ]))
 
              
             ->whereHas('service', function ($query) {
@@ -191,6 +193,7 @@ class AdminServiceApprovalController extends Controller
 
         return redirect()
             ->route('admin.service-requests.index')
+            ->with('decision_rejected', $data['decision'] !== 'active')
             ->with(
                 'success',
                 $data['decision'] === 'active'

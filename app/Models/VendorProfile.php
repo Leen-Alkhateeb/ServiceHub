@@ -10,6 +10,8 @@ class VendorProfile extends Model
 {
     use HasFactory;
 
+    protected $hidden = ['latitude', 'longitude', 'location_updated_at', 'last_seen_at'];
+
     protected $fillable = [
         'user_id',
         'experience_years',

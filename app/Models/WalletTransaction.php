@@ -14,7 +14,7 @@ class WalletTransaction extends Model
     public const UPDATED_AT = null;
 
     protected $fillable = [
-        'vendor_id',
+        'user_id',
         'booking_id',
         'transaction_type',
         'amount',
@@ -23,11 +23,16 @@ class WalletTransaction extends Model
 
     public function vendor(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'vendor_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function booking(): BelongsTo
     {
         return $this->belongsTo(Booking::class, 'booking_id')->withTrashed();
+    }
+
+    public function corrections(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(self::class, 'related_transaction_id')->where('transaction_type', 'adjustment')->orderBy('id');
     }
 }

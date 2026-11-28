@@ -11,7 +11,7 @@
     <header class="technician-hero">
         <x-account-picture :account="$profile" class="technician-avatar" aria-hidden="true" />
         <div class="technician-heading">
-            @if ($profile->application_status === 'approved')<span class="pill yellow">فني معتمد</span>@endif
+            @if ($profile->application_status === 'approved')<span class="pill yellow">طلب الانضمام معتمد</span>@endif
             <h1>{{ $profile->first_name }} {{ $profile->last_name }}</h1>
             <p class="technician-trade">{{ $profile->work_type }}</p>
             @if ($ownProfile && $profile->application_status !== 'approved')
@@ -136,7 +136,7 @@
 <dialog class="hub-dialog" id="service-details-dialog" aria-labelledby="service-dialog-title">
     <div class="dialog-head">
         <h2 id="service-dialog-title"></h2>
-        <button type="button" class="btn btn-outline btn-sm" data-close-dialog>إغلاق</button>
+        <x-modal-close data-close-dialog />
     </div>
     <img class="offer-image" alt="" width="480" height="270" data-service-image data-optional-image hidden>
     <p data-service-description></p>
@@ -158,7 +158,7 @@
     <dialog class="hub-dialog" id="project-form" aria-labelledby="project-form-title" @if ($errors->portfolio->any()) data-auto-dialog @endif>
         <div class="dialog-head">
             <h2 id="project-form-title">إضافة مشروع إلى معرض الأعمال</h2>
-            <button type="button" class="btn btn-outline btn-sm" data-close-dialog>إغلاق</button>
+            <x-modal-close data-close-dialog />
         </div>
         @if ($errors->portfolio->any())
             <ul class="notice" role="alert">
@@ -169,7 +169,7 @@
             @csrf
             <div class="field"><label for="project-name">اسم المشروع</label><input id="project-name" name="name" maxlength="255" value="{{ is_string(old('name')) ? old('name') : '' }}" required></div>
             <div class="field"><label for="project-description">وصف المشروع</label><textarea id="project-description" name="description" rows="4" maxlength="5000" required>{{ is_string(old('description')) ? old('description') : '' }}</textarea></div>
-            <div class="field"><label for="project-price">قيمة المشروع (د.أ)</label><input id="project-price" name="project_price" type="number" min="0" max="99999999.99" step="0.01" value="{{ is_scalar(old('project_price')) ? old('project_price') : '' }}"></div>
+            <div class="field"><label for="project-price">قيمة المشروع (د.أ)</label><input id="project-price" name="project_price" type="number" min="0" max="9999999.99" step="0.01" value="{{ is_scalar(old('project_price')) ? old('project_price') : '' }}"></div>
             <div class="field"><label for="project-date">تاريخ الإنجاز</label><input type="date" id="project-date" name="completion_date" min="1900-01-01" max="{{ now()->toDateString() }}" value="{{ is_string(old('completion_date')) ? old('completion_date') : '' }}"></div>
             @include('pages.vendor.partials.project-image-fields', ['projectImages' => collect(), 'requiresImage' => true])
             <button class="btn btn-yellow" type="submit">حفظ المشروع</button>

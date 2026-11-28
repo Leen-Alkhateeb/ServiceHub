@@ -6,7 +6,7 @@
     <dialog class="hub-dialog offer-edit-dialog" id="edit-offer-{{ $offer->id }}" aria-labelledby="edit-offer-title-{{ $offer->id }}" @if ($showOfferErrors) data-auto-dialog @endif>
         <div class="dialog-head">
             <h2 id="edit-offer-title-{{ $offer->id }}">تعديل العرض</h2>
-            <button class="btn btn-outline btn-sm" type="button" data-close-dialog>إغلاق</button>
+            <x-modal-close data-close-dialog />
         </div>
         @if ($showOfferErrors)
             <ul class="notice" role="alert">@foreach ($errors->offerEdit->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
@@ -18,7 +18,7 @@
             <div class="offer-fields">
                 <div class="field">
                     <label for="edit-offer-price-{{ $offer->id }}">السعر (د.أ)</label>
-                    <input id="edit-offer-price-{{ $offer->id }}" name="price" type="number" min="0.01" max="99999999.99" step="0.01" value="{{ $showOfferErrors ? old('price') : $offer->price }}" required>
+                    <input id="edit-offer-price-{{ $offer->id }}" name="price" type="number" min="0.01" max="9999999.99" step="0.01" value="{{ $showOfferErrors ? old('price') : $offer->price }}" required>
                 </div>
                 <div class="field">
                     <label for="edit-offer-duration-{{ $offer->id }}">المدة التقريبية (دقيقة)</label>

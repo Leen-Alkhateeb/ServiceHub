@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AdminPeriod;
+
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -14,9 +16,9 @@ class CategoryController extends Controller
         $request->validate(['q' => ['nullable', 'string']]);
         $search = trim((string) $request->query('q', ''));
 
-        $query = Category::where('is_deleted', false)
+        $query = AdminPeriod::apply(Category::where('is_deleted', false))
             ->withCount(['services' => function ($services) {
-                $services->where('is_deleted', false);
+                AdminPeriod::apply($services)->where('is_deleted', false);
             }]);
 
         if ($search !== '') {
@@ -25,7 +27,7 @@ class CategoryController extends Controller
 
         $categories = $query->latest('id')->paginate(10)->withQueryString();
 
-        $totalCategories = Category::where('is_deleted', false)->count();
+        $totalCategories = AdminPeriod::apply(Category::where('is_deleted', false))->count();
 
         return view('pages.admin.admin-categories', compact('categories', 'search', 'totalCategories'));
     }
@@ -59,7 +61,7 @@ class CategoryController extends Controller
 
     public function edit(Category $category)
     {
-        abort_if($category->is_deleted, 404);
+        abort_if($category->is_deleted || ! AdminPeriod::includes($category), 404);
 
         return view('pages.admin.admin-categories-edit', compact('category'));
     }

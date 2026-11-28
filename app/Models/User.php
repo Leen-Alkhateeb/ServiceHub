@@ -19,14 +19,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
      
     use HasFactory, Notifiable;
-
+    use HasApiTokens;
     
-
 
 
 
@@ -98,12 +98,12 @@ class User extends Authenticatable
 
     public function walletTransactions(): HasMany
     {
-        return $this->hasMany(WalletTransaction::class, 'vendor_id');
+        return $this->hasMany(WalletTransaction::class, 'user_id')->where('account_type', 'vendor');
     }
 
     public function refundRequests(): HasMany
     {
-        return $this->hasMany(RefundRequest::class, 'customer_id');
+        return $this->hasMany(RefundRequest::class, 'submitted_by');
     }
 
     public function reviewsGiven(): HasMany

@@ -4,11 +4,14 @@ use App\Http\Controllers\AccountPictureController;
 use App\Http\Controllers\AdminBookingController;
 use App\Http\Controllers\AdminCancellationController;
 use App\Http\Controllers\AdminDashboardController;
-use App\Http\Controllers\AdminUsersController;
+use App\Http\Controllers\InstantMarketplaceController;
+use App\Http\Controllers\InstantBookingController;
 use App\Http\Controllers\AdminMessageController;
 use App\Http\Controllers\AdminPaymentController;
 use App\Http\Controllers\AdminReviewController;
+use App\Http\Controllers\AdminServiceApprovalController;
 use App\Http\Controllers\AdminServicesController;
+use App\Http\Controllers\AdminUsersController;
 use App\Http\Controllers\AdminVendorApplicationController;
 use App\Http\Controllers\AdminWalletController;
 use App\Http\Controllers\BookingController;
@@ -22,6 +25,7 @@ use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PortfolioController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\UserPublicProfileController;
 use App\Http\Controllers\VendorApplicationController;
 use App\Http\Controllers\VendorAvailabilityController;
 use App\Http\Controllers\VendorPagesController;
@@ -35,7 +39,6 @@ use App\Services\AccountHistory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AdminServiceApprovalController;
 
 
 
@@ -86,8 +89,7 @@ Route::get('/services/{vendorService}', [MarketController::class, 'show'])
 
 
 
-Route::view('/faq', 'pages.public.faq')
-    ->name('faq');
+Route::view('/faq', 'pages.public.faq')->name('faq');
 Route::view('/about', 'pages.public.about')->name('about');
 Route::view('/how-it-works', 'pages.public.how-it-works')->name('how-it-works');
 Route::view('/contact', 'pages.public.contact')->name('contact');
@@ -149,25 +151,14 @@ Route::name('vendor.')->group(function () {
 Route::middleware('auth')->group(function () {
 
 
-    Route::get('/users/{user}/profile', [\App\Http\Controllers\UserPublicProfileController::class, 'show'])
-        ->name('users.profile.show');
-
-
-
-
-
-
-
-
+    Route::get('/users/{user}/profile', [UserPublicProfileController::class, 'show'])->name('users.profile.show');
     Route::name('customer.')->group(function () {
         Route::get('/customer-reviews', [ProfileController::class, 'reviews'])->name('reviews');
         Route::get('/customer-messages', [ProfileController::class, 'messages'])->name('messages');
 
-        Route::get('/dashboard', [ProfileController::class, 'dashboard'])
-            ->name('dashboard');
-
         Route::get('/bookings', [ProfileController::class, 'bookings'])
             ->name('bookings');
+        Route::get('/bookings/{booking}', [ProfileController::class, 'booking'])->name('bookings.show');
 
         Route::get('/favorites', [ProfileController::class, 'favorites'])
             ->name('favorites');
@@ -190,14 +181,37 @@ Route::middleware('auth')->group(function () {
 
 
 
-    Route::redirect('/customer-dashboard', '/dashboard');
     Route::redirect('/customer-bookings', '/bookings');
     Route::redirect('/customer-favorites', '/favorites');
     Route::redirect('/customer-settings', '/settings');
     Route::post('/services/{vendorService}/favorite', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
     Route::post('/services/{vendorService}/book', [BookingProfileController::class, 'store'])->name('booking.store');
+    Route::prefix('now')->name('instant.')->group(function () {
+        Route::get('/', [InstantMarketplaceController::class, 'index'])->name('index');
+        Route::post('/suggest', [InstantMarketplaceController::class, 'suggestion'])->middleware('throttle:8,1')->name('suggest');
+        Route::post('/requests', [InstantMarketplaceController::class, 'start'])->middleware('throttle:12,1')->name('create');
+        Route::get('/requests/{instantRequest}', [InstantMarketplaceController::class, 'search'])->name('search');
+        Route::get('/requests/{instantRequest}/images/{image}', [InstantMarketplaceController::class, 'image'])->name('image');
+        Route::post('/requests/{instantRequest}/cancel', [InstantMarketplaceController::class, 'cancelSearch'])->name('cancel-search');
+        Route::post('/requests/{instantRequest}/offers', [InstantMarketplaceController::class, 'offer'])->name('offer');
+        Route::post('/requests/{instantRequest}/offers/{offer}/accept', [InstantMarketplaceController::class, 'accept'])->name('accept');
+        Route::post('/offers/{offer}/withdraw', [InstantMarketplaceController::class, 'withdraw'])->name('withdraw');
+        Route::get('/vendor', [InstantMarketplaceController::class, 'vendor'])->name('vendor');
+        Route::post('/vendor/availability', [InstantMarketplaceController::class, 'availability'])->name('availability');
+        Route::post('/vendor/services/{offer}', [InstantMarketplaceController::class, 'vendorService'])->name('vendor-service');
+        Route::get('/bookings/{booking}', [InstantBookingController::class, 'show'])->name('booking');
+        Route::get('/bookings/{booking}/images/{image}', [InstantBookingController::class, 'image'])->name('booking-image');
+        Route::post('/bookings/{booking}/payment', [InstantBookingController::class, 'pay'])->name('pay');
+        Route::post('/debts/{debt}/repay', [InstantBookingController::class, 'repayOverpayment'])->whereNumber('debt')->name('debts.repay');
+        Route::post('/bookings/{booking}/objection', [InstantBookingController::class, 'object'])->name('object');
+        Route::post('/bookings/{booking}/no-show', [InstantBookingController::class, 'noShow'])->name('no-show');
+        Route::post('/bookings/{booking}/cases', [InstantBookingController::class, 'reportCase'])->name('cases');
+        Route::post('/bookings/{booking}/transition', [InstantBookingController::class, 'transition'])->name('transition');
+        Route::post('/bookings/{booking}/adjustment', [InstantBookingController::class, 'adjust'])->name('adjust');
+    });
     Route::post('/bookings/{booking}/cancel', [BookingProfileController::class, 'cancel'])->name('booking.cancel');
     Route::post('/bookings/{booking}/completion', [\App\Http\Controllers\BookingCompletionController::class, 'confirm'])->name('booking.completion');
+    Route::get('/bookings/{booking}/evidence/{evidence}', [\App\Http\Controllers\BookingCompletionController::class, 'evidence'])->withTrashed()->name('booking.evidence');
     Route::post('/bookings/{booking}/review', [\App\Http\Controllers\BookingCompletionController::class, 'review'])->name('booking.review');
     Route::post('/bookings/{booking}/objection', [\App\Http\Controllers\BookingCompletionController::class, 'object'])->name('booking.objection');
     Route::post('/bookings/{booking}/payment', [PaymentController::class, 'store'])->name('payment.store');
@@ -366,6 +380,16 @@ Route::middleware('auth')->group(function () {
             Route::prefix('admin')->group(function () {
                 Route::get('/dashboard', [AdminDashboardController::class, 'index'])
                     ->name('dashboard');
+                Route::post('/period', [AdminDashboardController::class, 'period'])->name('period');
+                Route::get('/now', [InstantMarketplaceController::class, 'admin'])->name('instant.index');
+                Route::post('/now/ledger/{entry}/correction', [InstantMarketplaceController::class, 'correctCommission'])->whereNumber('entry')->name('instant.correct-commission');
+                Route::post('/now/services/{service}', [InstantMarketplaceController::class, 'eligibility'])->name('instant.eligibility');
+                Route::post('/now/bookings/{booking}/decision', [InstantBookingController::class, 'decide'])->name('instant.decide');
+                Route::post('/now/bookings/{booking}/ledger/{entry}/overpayment', [InstantBookingController::class, 'correctOverpayment'])
+                    ->whereNumber('entry')->name('instant.correct-overpayment');
+                Route::post('/now/bookings/{booking}/operational-decision', [InstantBookingController::class, 'decideOperationalCase'])->name('instant.operational-decision');
+                Route::post('/now/bookings/{booking}/fund', [InstantBookingController::class, 'fund'])->name('instant.fund');
+                Route::post('/now/bookings/{booking}/fund-compensation', [InstantBookingController::class, 'fundCompensation'])->name('instant.fund-compensation');
 
                 Route::get('/Users', [AdminUsersController::class, 'index'])
                     ->name('admin.Users');

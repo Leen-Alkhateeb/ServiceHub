@@ -17,6 +17,7 @@
                     <span class="small muted">لوحة الإدارة</span>
                     <h1>المستخدمون</h1>
                 </div>
+                @include('components.admin-period')
 
                 <span class="demo">بيانات تجريبية</span>
             </div>
@@ -230,8 +231,7 @@
                     <div class="user-modal-content">
                         <div class="user-modal-header">
                             <h3 id="statusUserTitle">تأكيد تغيير حالة المستخدم</h3>
-                            <button type="button" class="modal-close" aria-label="إغلاق"
-                                data-user-close="statusUserModal">&times;</button>
+                            <x-modal-close data-user-close="statusUserModal" />
                         </div>
                         <p>هل أنت متأكد من <strong id="statusUserAction"></strong> المستخدم
                             <strong id="statusUserName"></strong>؟
@@ -261,10 +261,7 @@
                         <div class="user-modal-header">
                             <h3 id="deleteUserTitle">تأكيد حذف المستخدم</h3>
 
-                            <button type="button" class="modal-close" aria-label="إغلاق"
-                                data-user-close="deleteUserModal">
-                                &times;
-                            </button>
+                            <x-modal-close data-user-close="deleteUserModal" />
                         </div>
 
                         <p>

@@ -26,6 +26,68 @@ a.btn-dark, .btn-dark { color: #fff; background: #202124; }
 .hub-dialog { box-sizing: border-box; width: min(680px, calc(100% - 24px)); max-height: 90dvh; margin: auto; padding: clamp(1rem, 4vw, 2rem); overflow: auto; overscroll-behavior: contain; overflow-wrap: anywhere; border: 1px solid var(--line); border-radius: 18px; background: #fff; color: #202124; }
 .hub-dialog .field, .hub-dialog fieldset { min-width: 0; max-width: 100%; }
 .hub-dialog::backdrop { background: #101b20b5; }
+
+:is(.hub-dialog, .refund-dialog) > .dialog-head,
+.user-modal-content > .user-modal-header,
+.request-modal > .request-modal-header,
+.service-modal > .service-modal-header {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 5;
+    background: #fff;
+}
+
+:is(.hub-dialog, .refund-dialog) > .dialog-head,
+.user-modal-content > .user-modal-header,
+.request-modal > .request-modal-header {
+    padding-block: .35rem;
+    box-shadow: 0 -.5rem 0 #fff;
+}
+
+.dialog-close-button {
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    inline-size: 44px;
+    block-size: 44px;
+    margin-inline-start: auto;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--ink);
+    font: 1.6rem/1 Arial, sans-serif;
+    cursor: pointer;
+}
+
+.dialog-close-button:hover { background: var(--teal-soft); }
+
+.refunds-page .refund-details-dialog[open] {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    max-height: 85dvh;
+    padding: 0;
+    overflow: hidden;
+}
+
+.refunds-page .refund-details-dialog > .dialog-head {
+    position: static;
+    align-items: flex-start;
+    margin: 0;
+    padding: .65rem clamp(.75rem, 3vw, 1.5rem);
+    border-block-end: 1px solid var(--line);
+    box-shadow: none;
+}
+
+.refunds-page .refund-details-dialog > .dialog-head h2 { margin: 0; }
+
+.refunds-page .refund-details-dialog > .refund-details-content {
+    min-height: 0;
+    margin: 0;
+    padding: 1rem clamp(.75rem, 3vw, 1.5rem);
+    overflow: auto;
+    overscroll-behavior: contain;
+}
 .booking-follow-up-dialog { width: min(480px, calc(100% - 24px)); }
 .booking-follow-up-dialog::backdrop { background: #101b2080; }
 .booking-follow-up-actions { display: flex; flex-wrap: wrap; gap: .65rem; margin-block: 1rem .5rem; }
@@ -481,3 +543,65 @@ a.btn-dark, .btn-dark { color: #fff; background: #202124; }
 .hub-error-panel { width: min(100%, 610px); padding: clamp(1.35rem, 5vw, 3.5rem); }
 .hub-error-code { margin: .85rem 0 0; color: #215c52; font-size: clamp(3rem, 11vw, 6rem); font-weight: 850; line-height: 1.1; }
 .hub-error-panel h1 { font-size: clamp(1.5rem, 6vw, 2.55rem); }
+.customer-booking-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 1rem; }
+.customer-booking-card { display: flex; flex-direction: column; gap: .65rem; min-width: 0; overflow-wrap: anywhere; }
+.customer-booking-card :is(h3,p) { margin: 0; }
+.booking-card-title, .booking-card-vendor { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.booking-card-title { justify-content: space-between; }
+.booking-cover { width: 100%; aspect-ratio: 3 / 1; object-fit: cover; border-radius: 10px; }
+.booking-tabs { display: flex; flex-wrap: wrap; gap: .5rem; }
+.booking-tabs input { flex: 1; min-width: 0; }
+.customer-booking-card .booking-tabs { margin-block-start: auto; }
+.booking-info-trigger { padding: 0 .2em; border: 0; background: transparent; color: var(--teal); cursor: pointer; font: inherit; }
+.booking-info-popup {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    inline-size: max-content;
+    max-inline-size: min(14rem, calc(100vw - 24px));
+    padding: .45rem .65rem;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ink);
+    box-shadow: 0 4px 14px #101b2026;
+    font-size: .8rem;
+    line-height: 1.55;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+@supports not selector(:popover-open) {
+    .booking-info-popup { display: none; }
+    .booking-info:is(:hover, :focus-within) .booking-info-popup { display: block; position: absolute; z-index: 10; }
+}
+.admin-stat-money .finance-icon { display: inline-grid; place-items: center; background: var(--teal-soft); color: var(--teal); border-radius: 50%; inline-size: 1.5em; block-size: 1.5em; }
+.join-wizard [hidden], .vendor-join [data-join-open][hidden], .vendor-join-form [hidden] { display: none; }
+.join-wizard progress { display: block; width: 100%; margin-block: .5rem 1rem; accent-color: var(--teal); }
+.vendor-join-form fieldset { min-width: 0; margin: 0; padding: .6rem 0 0; border: 0; }
+.vendor-join-form fieldset .field { margin-block-end: .75rem; }
+.join-summary { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .5rem 1rem; }
+.join-summary dd { margin: 0; overflow-wrap: anywhere; }
+.vendor-join-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.admin-period { display: flex; flex-wrap: wrap; align-items: end; gap: .4rem .6rem; max-width: 100%; margin-inline-start: auto; }
+:is(.dash-title, .requests-heading, .booking-inspect-header):has(> .admin-period) { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem 1rem; }
+:is(.dash-title, .requests-heading, .booking-inspect-header):has(> .admin-period) > div:first-child { min-width: 0; }
+.admin-period-fields { display: flex; flex-wrap: wrap; align-items: end; gap: .4rem; }
+.admin-period-fields .field { min-width: 0; margin: 0; }
+.admin-period-fields label { font-size: .8rem; }
+.admin-period-fields .field input { min-width: 0; max-width: 100%; min-height: 38px; padding: .35rem .5rem; font-size: .9rem; }
+.admin-period .btn { min-height: 38px; }
+.admin-period-with-action :is(.btn, .services-btn, input[type="date"]) {
+    box-sizing: border-box;
+    block-size: 44px;
+    min-block-size: 44px;
+}
+.admin-period-feedback { flex: 0 0 100%; min-width: 0; order: 2; text-align: start; }
+.admin-period-feedback .notice { display: inline-block; width: fit-content; max-width: 100%; padding: .4rem .7rem; }
+
+.admin-period input[aria-invalid="true"] { border-color: var(--danger, #a52828); }
+
+@media (max-width: 480px) {
+    .admin-period { width: 100%; margin-inline-start: 0; order: 1; }
+    .admin-period-fields { width: 100%; }
+    .admin-period-fields .field { flex: 1 1 105px; }
+}

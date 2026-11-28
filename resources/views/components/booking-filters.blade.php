@@ -1,4 +1,4 @@
-@if ($errors->hasAny(['q', 'from', 'to', 'status']))
+@if ($errors->hasAny(['q', 'from', 'to', 'status', ...array_keys($extraFilters ?? [])]))
     <p class="notice" role="alert">تحقق من قيمة البحث والتواريخ المختارة. يجب أن يكون تاريخ النهاية مساويًا لتاريخ البداية أو بعده.</p>
 @endif
 <form method="GET" action="{{ $action }}" class="panel hub-filters">
@@ -19,6 +19,13 @@
             </select>
         </div>
     @endisset
+    @foreach($extraFilters ?? [] as $key => [$title, $choices])
+        <div class="field"><label for="booking-{{ $key }}">{{ $title }}</label>
+            <select id="booking-{{ $key }}" name="{{ $key }}"><option value="">الكل</option>
+                @foreach($choices as $value => $label)<option value="{{ $value }}" @selected(($filters[$key] ?? '') === $value)>{{ $label }}</option>@endforeach
+            </select>
+        </div>
+    @endforeach
     <div class="filter-actions">
         <button class="btn btn-yellow" type="submit">تصفية</button>
         <a class="btn btn-outline" href="{{ $action }}">مسح</a>

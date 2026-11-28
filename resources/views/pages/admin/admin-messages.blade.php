@@ -20,6 +20,7 @@
                     <h1>رسائل التواصل</h1>
                     <p class="page-intro">رسائل العملاء والمزوّدين الواردة لإدارة المنصة. الرد يتم خارج المنصة.</p>
                 </div>
+                @include('components.admin-period')
             </div>
 
             @include('pages.admin.partials.flash-messages')

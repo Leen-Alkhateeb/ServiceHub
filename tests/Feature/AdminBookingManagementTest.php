@@ -59,7 +59,7 @@ class AdminBookingManagementTest extends TestCase
         $this->get(route('admin.bookings.show', $paid))->assertOk()->assertSee('مدفوعة')->assertDontSee('data-archive-action', false);
         $this->assertTrue(Payment::findOrFail($payment->id)->booking->is($paid));
         $this->assertSame(1, app(VendorSettlement::class)->release());
-        $this->assertSame($payment->amount, $paid->walletTransactions()->sole()->amount);
+        $this->assertSame(number_format(round((float) $payment->amount * 0.85, 2), 3, '.', ''), $paid->walletTransactions()->sole()->amount);
 
         $this->actingAs($paid->customer);
         $history = app(AccountHistory::class)->forTab($paid->customer, 'payments', Request::create('/my-profile'));

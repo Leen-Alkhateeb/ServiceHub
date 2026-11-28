@@ -15,6 +15,7 @@ class PaymentController extends Controller
 
     public function store(Request $request, Booking $booking)
     {
+        abort_if($booking->booking_type === 'instant', 404);
         abort_unless(
             $booking->customer_id === $request->user()->id
             && in_array($booking->status, ['approved', 'awaiting_payment'], true)
@@ -106,6 +107,7 @@ class PaymentController extends Controller
 
     public function checkout(Request $request, Booking $booking)
     {
+        abort_if($booking->booking_type === 'instant', 404);
         abort_unless($booking->customer_id === $request->user()->id, 403);
 
         if (
@@ -136,6 +138,7 @@ class PaymentController extends Controller
 
     public function invoice(Request $request, Booking $booking)
     {
+        abort_if($booking->booking_type === 'instant', 404);
         abort_unless(
             $booking->customer_id === $request->user()->id
             && $booking->payment()->exists(),

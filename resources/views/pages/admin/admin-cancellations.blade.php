@@ -14,6 +14,7 @@
                     <span class="small muted">لوحة الإدارة</span>
                     <h1>الإلغاءات</h1>
                 </div>
+                @include('components.admin-period')
             </div>
 
             @if(session('success'))

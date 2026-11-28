@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AdminPeriod;
+
 use App\Models\VendorProfile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -24,7 +26,7 @@ class AdminVendorApplicationController extends Controller
             'permit_to' => ['nullable', 'date_format:Y-m-d', ...($request->filled('permit_from') ? ['after_or_equal:permit_from'] : [])],
         ]);
 
-        $query = VendorProfile::with('user');
+        $query = AdminPeriod::apply(VendorProfile::with('user'), 'applied_at');
         if ($search = $filters['search'] ?? null) {
             $query->where(function ($rows) use ($search) {
                 $rows->where('bio', 'like', '%'.$search.'%')
@@ -60,7 +62,7 @@ class AdminVendorApplicationController extends Controller
             ->orderByRaw("CASE WHEN application_status = 'pending' THEN 0 ELSE 1 END")
             ->orderByRaw("CASE WHEN application_status = 'pending' THEN COALESCE(applied_at, created_at) ELSE updated_at END DESC")
             ->latest('id')->paginate(5)->withQueryString();
-        $workTypes = VendorProfile::query()->whereNotNull('work_type')->where('work_type', '!=', '')
+        $workTypes = AdminPeriod::apply(VendorProfile::query(), 'applied_at')->whereNotNull('work_type')->where('work_type', '!=', '')
             ->distinct()->orderBy('work_type')->pluck('work_type');
 
         return view('pages.admin.admin-applications', compact('applications', 'filters', 'workTypes'));
@@ -98,7 +100,8 @@ class AdminVendorApplicationController extends Controller
 
         return redirect()
             ->route('admin.admin-applications')
-            ->with('success', 'تم رفض طلب انضمام الفني.');
+            ->with('success', 'تم رفض طلب انضمام الفني.')
+            ->with('decision_rejected', true);
     }
 
     public function permit(VendorProfile $application)

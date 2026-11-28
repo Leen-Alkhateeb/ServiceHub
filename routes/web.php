@@ -197,6 +197,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/requests/{instantRequest}/offers/{offer}/accept', [InstantMarketplaceController::class, 'accept'])->name('accept');
         Route::post('/offers/{offer}/withdraw', [InstantMarketplaceController::class, 'withdraw'])->name('withdraw');
         Route::get('/vendor', [InstantMarketplaceController::class, 'vendor'])->name('vendor');
+        Route::get('/vendor/inbox-count', [InstantMarketplaceController::class, 'vendorInboxCount'])->name('vendor.inbox-count');
         Route::post('/vendor/availability', [InstantMarketplaceController::class, 'availability'])->name('availability');
         Route::post('/vendor/services/{offer}', [InstantMarketplaceController::class, 'vendorService'])->name('vendor-service');
         Route::get('/bookings/{booking}', [InstantBookingController::class, 'show'])->name('booking');
@@ -383,7 +384,6 @@ Route::middleware('auth')->group(function () {
                 Route::post('/period', [AdminDashboardController::class, 'period'])->name('period');
                 Route::get('/now', [InstantMarketplaceController::class, 'admin'])->name('instant.index');
                 Route::post('/now/ledger/{entry}/correction', [InstantMarketplaceController::class, 'correctCommission'])->whereNumber('entry')->name('instant.correct-commission');
-                Route::post('/now/services/{service}', [InstantMarketplaceController::class, 'eligibility'])->name('instant.eligibility');
                 Route::post('/now/bookings/{booking}/decision', [InstantBookingController::class, 'decide'])->name('instant.decide');
                 Route::post('/now/bookings/{booking}/ledger/{entry}/overpayment', [InstantBookingController::class, 'correctOverpayment'])
                     ->whereNumber('entry')->name('instant.correct-overpayment');

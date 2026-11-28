@@ -1,12 +1,15 @@
 @extends('layouts.app')
 @section('title', 'تفاصيل الحجز الفوري')
+@include('pages.instant.styles')
 @section('content')
 @include('components.navbar')
-<main class="container page-head stack">
+<main class="container page-head stack instant-page">
     @php($readOnly = $admin && (int) auth()->id() !== (int) $booking->customer_id)
-    <h1>{{ $booking->service_name }} · #{{ $booking->id }}</h1>
+    @include('pages.instant.hero', ['heading' => $booking->service_name.' · #'.$booking->id, 'description' => 'متابعة الخدمة وإجراءات الحجز'])
+    @include('pages.instant.steps', ['currentStep' => $booking->completed_at ? 3 : 2])
     @include('pages.instant.feedback')
-    <div class="stack" data-instant-live>
+    <div class="instant-columns" data-instant-live>
+    <div class="instant-column">
     <section class="panel stack">
         <h2>{{ ['confirmed' => 'تم اختيار الفني', 'on_the_way' => 'الفني بالطريق', 'arrived' => 'الفني وصل', 'in_progress' => 'جاري تنفيذ الخدمة', 'completed' => 'تم تنفيذ الخدمة', 'cancelled' => 'ملغي'][$booking->status] ?? $booking->status }}</h2>
         <p>العرض الأصلي {{ $offer->offered_price }} د.أ · السعر المتفق عليه {{ $booking->agreed_price }} د.أ</p>
@@ -127,7 +130,7 @@
                     @if($next === 'complete')
                         <div class="field"><label for="now-completion">وصف العمل المنجَز</label><textarea id="now-completion" name="completion_description" maxlength="2000" required>{{ old('completion_description') }}</textarea></div>
                         @foreach(['before' => 'صور قبل العمل', 'after' => 'صور بعد العمل'] as $kind => $label)
-                            <div class="field"><label for="now-{{ $kind }}">{{ $label }} (اختيارية)</label><x-file-picker><input id="now-{{ $kind }}" type="file" name="{{ $kind }}_images[]" multiple accept="image/jpeg,image/png,image/webp"></x-file-picker><small>حتى 5 صور، 5 ميغابايت للصورة.</small></div>
+                            <div class="field instant-upload"><label for="now-{{ $kind }}">{{ $label }} (اختيارية)</label><x-file-picker><input id="now-{{ $kind }}" type="file" name="{{ $kind }}_images[]" multiple accept="image/jpeg,image/png,image/webp"></x-file-picker><small>حتى 5 صور، 5 ميغابايت للصورة.</small></div>
                         @endforeach
                     @endif
                     <div><button class="btn btn-yellow">{{ ['depart' => 'تأكيد المغادرة', 'arrive' => 'تسجيل الوصول', 'start' => 'بدء الخدمة', 'complete' => 'تأكيد الإنجاز', 'verify' => 'تحقق من الرمز', 'reissue' => 'إصدار رمز جديد', 'cancel' => 'إلغاء الحجز مجانًا'][$next] }}</button></div>
@@ -181,15 +184,25 @@
             @else<p>ما في تعديل سعر معلّق.</p>@endif
         </section>
     @endif
+    </div>
+    <div class="instant-column">
+    <section class="panel">
+        <h2>ملخص الحجز</h2>
+        <div class="instant-row"><span>العرض الأصلي</span><strong class="instant-price">{{ $offer->offered_price }} د.أ</strong></div>
+        <div class="instant-row"><span>السعر المتفق عليه</span><strong class="instant-price">{{ $booking->agreed_price }} د.أ</strong></div>
+    </section>
     <section class="panel"><h2>سجل الحجز</h2>
+        <div class="instant-timeline">
         @foreach($events as $event)
             <p>{{ $event->created_at }} · {{ ['status_change' => 'تحديث الحالة', 'arrival_recorded' => 'تسجيل الوصول', 'arrival_verified' => 'التحقق من الوصول', 'price_adjustment' => 'تعديل السعر', 'cancellation' => 'إلغاء'][$event->event_type] ?? 'تحديث' }}
                 @if($event->proposed_price) · {{ $event->proposed_price }} د.أ · {{ ['pending' => 'معلّق', 'accepted' => 'مقبول', 'rejected' => 'مرفوض', 'withdrawn' => 'مسحوب'][$event->adjustment_status] ?? '' }} @endif
                 @if($event->new_status === 'duration_overrun' && ($vendor || $admin)) · {{ $event->description }} @endif
             </p>
         @endforeach
+        </div>
         {{ $events->links('components.pager') }}
     </section>
+    </div>
     </div>
     <p class="muted" data-instant-live-status role="status"></p>
 </main>

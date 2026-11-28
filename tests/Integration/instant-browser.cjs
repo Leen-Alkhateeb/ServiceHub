@@ -24,8 +24,10 @@ const button = (page, name) => page.getByRole('button', { name, exact: true });
 async function run() {
     const browser = await chromium.launch(browserOptions);
     try {
-        const customer = await signIn(browser, 'customer', { geolocation, permissions: ['geolocation'] });
-        const vendor = await signIn(browser, 'vendor', { geolocation, permissions: ['geolocation'] });
+        const localDefault = process.env.SERVICEHUB_BROWSER_AMMAN_DEFAULT === '1';
+        const locationOptions = localDefault ? {} : { geolocation, permissions: ['geolocation'] };
+        const customer = await signIn(browser, 'customer', locationOptions);
+        const vendor = await signIn(browser, 'vendor', locationOptions);
         const admin = await signIn(browser, 'admin');
         const errors = [];
         for (const { page } of [customer, vendor, admin]) page.on('pageerror', error => errors.push(error.message));
@@ -36,8 +38,15 @@ async function run() {
         await a.goto('/admin/now');
         await a.getByText(/الرصيد التجريبي المتاح/).waitFor();
         await v.goto('/now/vendor');
-        await button(v, 'استخدم موقعي الحالي').click();
-        await v.getByText('تم تحديد الموقع.', { exact: true }).waitFor();
+        const prepareLocation = async (page) => {
+            if (localDefault) {
+                await page.locator('[data-instant-location-default]').waitFor();
+            } else {
+                await button(page, 'استخدم موقعي الحالي').click();
+                await page.getByText('تم تحديد الموقع.', { exact: true }).waitFor();
+            }
+        };
+        await prepareLocation(v);
         await button(v, 'تفعيل استقبال الطلبات').click();
         await button(v, 'إيقاف التوفّر ومشاركة الموقع').waitFor();
 
@@ -51,8 +60,7 @@ async function run() {
         await c.getByLabel('الخدمة', { exact: true }).selectOption({ label: 'فحص تجريبي للمرحلة الرابعة' });
         await c.getByLabel('وصف المشكلة').fill('مشكلة تجريبية في خدمة الصيانة');
         await c.getByLabel('العنوان').fill('عنوان تجريبي غير حقيقي');
-        await button(c, 'استخدم موقعي الحالي').click();
-        await c.getByText('تم تحديد الموقع.', { exact: true }).waitFor();
+        await prepareLocation(c);
         await button(c, 'ابحث عن فني').click();
         await c.getByRole('heading', { name: /عروض الطلب/ }).waitFor();
         await v.getByRole('heading', { name: /فحص تجريبي للمرحلة الرابعة/ }).waitFor({ timeout: 15000 });
@@ -65,8 +73,7 @@ async function run() {
         await c.waitForURL(/\/now\/bookings\/\d+$/);
         await v.goto(c.url());
         await button(v, 'تأكيد المغادرة').click();
-        await button(v, 'استخدم موقعي الحالي').click();
-        await v.getByText('تم تحديد الموقع.', { exact: true }).waitFor();
+        await prepareLocation(v);
         await button(v, 'تسجيل الوصول').click();
         await v.locator('strong bdi').waitFor();
         const code = await v.locator('strong bdi').innerText();

@@ -2,8 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Booking;
 use App\Models\Y;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class YSeeder extends Seeder
@@ -13,6 +13,10 @@ class YSeeder extends Seeder
      */
     public function run(): void
     {
-        Y::factory()->count(10)->create();
+        $start = now(Booking::SCHEDULE_TIMEZONE)->startOfDay();
+        foreach (range(0, 29) as $day) {
+            $date = $start->copy()->addDays($day);
+            Y::factory()->create(['created_at' => $date, 'updated_at' => $date]);
+        }
     }
 }

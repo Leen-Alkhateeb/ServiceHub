@@ -136,6 +136,7 @@ class InstantFinance
             if ($debt) DB::table('wallet_transactions')->where('id', $debt->id)->update(['status' => 'repaid']);
             $current->forceFill(['settlement_status' => 'on_hold'])->save();
             app(InstantMarketplace::class)->notify($current->vendorService->vendor_id, 'تم تسجيل الدفع التجريبي لحجزك الفوري.');
+            app(InstantMarketplace::class)->notify($customer, 'تم تسجيل دفعتك التجريبية للحجز الفوري.');
         }, 3);
     }
 
@@ -158,6 +159,7 @@ class InstantFinance
             $market = app(InstantMarketplace::class);
             $market->event($current, $admin, ['event_type' => 'admin_decision', 'description' => $reason, 'new_status' => $decision]);
             $market->notify($current->customer_id, 'تم اتخاذ قرار بشأن اعتراض الحجز الفوري رقم '.$current->id.'.');
+            $market->notify($current->vendorService->vendor_id, 'تم اتخاذ قرار بشأن اعتراض الحجز الفوري رقم '.$current->id.'.');
         }, 3);
     }
 
@@ -309,6 +311,7 @@ class InstantFinance
             }
             $current->forceFill(['settlement_status' => 'settled', 'settled_at' => now()])->save();
             app(InstantMarketplace::class)->notify($vendor, 'تم تحرير مستحقات الحجز الفوري.');
+            app(InstantMarketplace::class)->notify($current->customer_id, 'تمت تسوية الحجز الفوري رقم '.$current->id.'.');
         });
     }
 

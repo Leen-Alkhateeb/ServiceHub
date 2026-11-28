@@ -78,7 +78,8 @@
         overflow-y: auto;
         background: #fff;
         border-radius: 16px;
-        padding: 24px;
+        --dialog-padding: 24px;
+        padding: 0 var(--dialog-padding) var(--dialog-padding);
         direction: rtl;
         box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
     }
@@ -144,7 +145,7 @@
         }
 
         .request-modal {
-            padding: 18px;
+            --dialog-padding: 18px;
         }
     }
 </style>

@@ -14,6 +14,7 @@
             @if ($photoUrls->isNotEmpty())
                 <a class="project-stage" data-project-stage href="{{ $photoUrls->first() }}" target="_blank" rel="noopener">
                     <img src="{{ $photoUrls->first() }}" alt="{{ $project->name }} · صورة المشروع 1" width="1600" height="1200" data-project-main>
+                    <span class="project-stage-action">عرض بالحجم الكامل <span aria-hidden="true">↗</span></span>
                 </a>
                 @if ($photoUrls->count() > 1)
                     <div class="project-thumbnails">

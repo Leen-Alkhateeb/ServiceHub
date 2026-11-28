@@ -192,10 +192,50 @@ class InstantMarketplaceTest extends TestCase
             'instant_available' => true, 'latitude' => 31.9500, 'longitude' => 35.9100,
             'last_seen_at' => now(), 'location_updated_at' => now(),
         ]);
-        $service = Service::factory()->create(['supports_instant' => true]);
+        $service = Service::factory()->create();
         $offer = VendorService::factory()->for($profile->user, 'vendor')->for($service)->create(['instant_enabled' => true]);
 
         return [$customer, $profile->user, $offer];
+    }
+
+    public function test_active_approved_services_are_instant_by_default_and_admin_tabs_render(): void
+    {
+        [$customer, , $offer] = $this->fixture();
+        $inactive = Service::factory()->create(['is_active' => false]);
+
+        $this->actingAs($customer)->get(route('instant.index'))->assertOk()
+            ->assertSee($offer->service->name)->assertDontSee($inactive->name);
+
+        $this->actingAs(User::factory()->admin()->create())->get(route('admin.instant.index'))->assertOk()
+            ->assertSee('الطلبات الفورية')->assertDontSee('تفعيل الفوري');
+        $this->get(route('admin.instant.index', ['section' => 'reviews']))->assertOk()
+            ->assertSee('مستحقات الفنيين');
+        $this->get(route('admin.instant.index', ['section' => 'finance']))->assertOk()
+            ->assertSee('تصحيح العمولات التجريبية');
+    }
+
+    public function test_instant_suggestion_requests_details_and_only_accepts_ids_from_the_instant_catalog(): void
+    {
+        [$customer, , $offer] = $this->fixture();
+        config(['services.gemini.key' => 'test-key', 'instant.suggestion_model' => 'test-model']);
+        $route = route('instant.suggest');
+        $response = fn ($result) => ['candidates' => [['content' => ['parts' => [['text' => json_encode($result)]]]]]];
+        \Illuminate\Support\Facades\Http::fake([
+            'https://generativelanguage.googleapis.com/*' => \Illuminate\Support\Facades\Http::sequence()
+                ->push($response(['status' => 'clarify', 'question' => 'من وين بتنقط المي؟']))
+                ->push($response(['status' => 'matched', 'service_id' => $offer->service_id]))
+                ->push($response(['status' => 'matched', 'service_id' => 999999]))
+                ->push($response(['status' => 'unsupported'])),
+        ]);
+
+        $this->actingAs($customer)->postJson($route, ['problem' => 'المي بتنقط'])
+            ->assertOk()->assertJsonPath('status', 'clarify')->assertJsonPath('message', 'من وين بتنقط المي؟');
+        $this->postJson($route, ['problem' => "المي بتنقط\nمن تحت حوض المطبخ"])
+            ->assertOk()->assertJsonPath('service_id', $offer->service_id);
+        $this->postJson($route, ['problem' => 'طلب غير معروف'])
+            ->assertOk()->assertJsonPath('status', 'unavailable')->assertJsonMissingPath('service_id');
+        $this->postJson($route, ['problem' => 'المكيف ما ببرد'])
+            ->assertOk()->assertJsonPath('status', 'unsupported')->assertJsonMissingPath('service_id');
     }
 
     public function test_instant_offer_booking_arrival_price_and_settlement_are_isolated_and_idempotent(): void
@@ -241,6 +281,10 @@ class InstantMarketplaceTest extends TestCase
         $event = \Illuminate\Support\Facades\DB::table('booking_events')->where('event_type', 'price_adjustment')->sole();
         $this->actingAs($customer)->post($adjust, ['decision' => 'accepted', 'adjustment_id' => $event->id])->assertRedirect();
         $this->actingAs($vendor)->post($transition, ['action' => 'complete', 'completion_description' => 'تم الإصلاح'])->assertRedirect();
+        $this->post($transition, ['action' => 'complete', 'completion_description' => 'طلب مكرر'])->assertRedirect();
+        $this->assertSame('تم الإصلاح', $booking->fresh()->completion_description);
+        $this->assertSame(1, \Illuminate\Support\Facades\DB::table('booking_events')->where('booking_id', $booking->id)
+            ->where('new_status', 'completed')->count());
         $this->assertSame('150.000', $booking->refresh()->agreed_price);
         $this->assertSame('100.000', $booking->original_price);
         $this->actingAs($customer)->post(route('instant.pay', $booking), ['amount' => 1])->assertRedirect();
@@ -259,7 +303,7 @@ class InstantMarketplaceTest extends TestCase
         $this->assertDatabaseMissing('wallet_transactions', ['booking_id' => $booking->id]);
     }
 
-    public function test_radius_expands_without_restarting_timer_and_stale_vendor_is_excluded(): void
+    public function test_radius_expands_and_search_remains_open_until_customer_stops_it(): void
     {
         [$customer, $vendor, $service] = $this->fixture();
         $this->actingAs($customer)->post(route('instant.create'), ['service_id' => $service->service_id, 'description' => 'عطل', 'address' => 'عنوان', 'latitude' => 31.985, 'longitude' => 35.91]);
@@ -272,9 +316,17 @@ class InstantMarketplaceTest extends TestCase
         $this->assertTrue($market->eligible($request, $service));
         $this->travel(1)->seconds();
         $this->assertFalse($market->eligible($request, $service));
-        $this->travelTo($request->expires_at);
-        $market->expire();
-        $this->assertSame('expired', $request->refresh()->status);
+        $this->travel(10)->minutes();
+        $vendor->vendorProfile->forceFill(['location_updated_at' => now(), 'last_seen_at' => now()])->save();
+        $this->assertTrue($market->eligible($request, $service->fresh()));
+        $this->assertNull($request->refresh()->expires_at);
+        $this->actingAs($vendor)->post(route('instant.offer', $request), ['vendor_service_id' => $service->id,
+            'offered_price' => '40.000', 'arrival_minutes' => 10, 'duration_minutes' => 30])->assertRedirect();
+        $this->actingAs($customer)->get(route('instant.search', $request))->assertOk()->assertSee('البحث شغّال لحد ما تختار عرض أو توقفه.');
+        $this->post(route('instant.cancel-search', $request))->assertRedirect();
+        $this->assertSame('cancelled', $request->refresh()->status);
+        $this->assertSame('invalidated', $request->offers()->sole()->status);
+        $this->assertDatabaseHas('notifications', ['user_id' => $vendor->id, 'message' => 'أوقف العميل البحث عن فني للطلب رقم '.$request->id.'.']);
     }
 
     public function test_request_images_are_private_and_limited_to_five(): void
@@ -295,6 +347,36 @@ class InstantMarketplaceTest extends TestCase
         $this->actingAs(User::factory()->create())->get($route)->assertNotFound();
         $this->actingAs($vendor)->get($route)->assertOk();
         $this->actingAs($customer)->get($route)->assertOk();
+    }
+
+    public function test_vendor_bubble_counts_nearby_requests_until_the_vendor_offers(): void
+    {
+        \Illuminate\Support\Facades\Http::fake([
+            config('instant.routing_url').'/table/*' => \Illuminate\Support\Facades\Http::response([
+                'code' => 'Ok', 'distances' => [[2400]], 'durations' => [[420]],
+            ]),
+        ]);
+        [$customer, $vendor, $service] = $this->fixture();
+        $this->actingAs($customer)->post(route('instant.create'), [
+            'service_id' => $service->service_id, 'description' => 'عطل', 'address' => 'عنوان العميل الخاص', 'latitude' => 31.951234, 'longitude' => 35.912345,
+        ])->assertRedirect();
+        $count = route('instant.vendor.inbox-count');
+        $this->getJson($count)->assertForbidden();
+        $this->get(route('home'))->assertOk()->assertDontSee('data-instant-inbox', false);
+        $this->actingAs($vendor)->get(route('vendor.dashboard'))->assertOk()->assertSee('data-instant-inbox', false);
+        $this->get(route('home'))->assertOk()->assertSee('data-instant-inbox', false);
+        $this->getJson($count)->assertOk()->assertJsonPath('count', 1);
+        $this->get(route('instant.vendor'))->assertOk()
+            ->assertSee('marker=31.95%2C35.91', false)
+            ->assertSee('2.4 كم')
+            ->assertSee('حوالي 7 د')
+            ->assertDontSee('31.951234')
+            ->assertDontSee('35.912345')
+            ->assertDontSee('عنوان العميل الخاص');
+        $this->post(route('instant.offer', InstantRequest::sole()), [
+            'vendor_service_id' => $service->id, 'offered_price' => '40.000', 'arrival_minutes' => 10, 'duration_minutes' => 30,
+        ])->assertRedirect();
+        $this->getJson($count)->assertOk()->assertJsonPath('count', 0);
     }
 
     public function test_paid_objection_waits_for_deadline_and_allocates_the_agreed_price(): void

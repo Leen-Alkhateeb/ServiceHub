@@ -14,6 +14,7 @@
             ['/admin/vendor-service-requests', 'اعتماد الخدمات', 'M12 3l7 4v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V7zM9 12l2 2 4-4'],
         ]],
         ['العمليات', [
+            ...(config('instant.enabled') ? [[route('admin.instant.index'), 'الخدمات الفورية', 'M13 2L4 14h7l-1 8 10-12h-7l1-8z']] : []),
             [route('admin.bookings.index'), 'الحجوزات', 'M8 3v4M16 3v4M4 9h16M5 5h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z'],
             ['/admin/admin-cancellations', 'الإلغاءات', 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM15 9l-6 6M9 9l6 6'],
             ['/admin/admin-refunds', 'طلبات الاسترداد', 'M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5'],

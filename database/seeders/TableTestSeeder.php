@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Booking;
 use Illuminate\Database\Seeder;
 use App\Models\Table_Test;
 
@@ -13,7 +13,10 @@ class TableTestSeeder extends Seeder
      */
     public function run(): void
     {
-                Table_Test::factory()->count(10)->create();
-
+        $start = now(Booking::SCHEDULE_TIMEZONE)->startOfDay();
+        foreach (range(0, 29) as $day) {
+            $date = $start->copy()->addDays($day);
+            Table_Test::factory()->create(['created_at' => $date, 'updated_at' => $date]);
+        }
     }
 }

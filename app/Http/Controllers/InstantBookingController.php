@@ -97,6 +97,7 @@ class InstantBookingController extends Controller
                 $case = $current->refundRequest()->create(['reason' => $data['reason'], 'submitted_by' => $current->customer_id, 'status' => 'pending']);
                 app(InstantImages::class)->save($data['images'] ?? [], 'objection', 'refund_request_id', $case->id, $current->customer_id, $paths);
                 $this->market->notify($current->vendorService->vendor_id, 'العميل قدّم اعتراض على الحجز الفوري.');
+                $this->market->notify($current->customer_id, 'تم تسجيل اعتراضك على الحجز الفوري.');
             });
         } catch (Throwable $exception) {
             Storage::disk('local')->delete($paths);
@@ -132,6 +133,7 @@ class InstantBookingController extends Controller
                 $case->forceFill(['case_type' => 'customer_no_show', 'submitted_by' => $request->user()->id])->save();
                 $images->save($data['images'] ?? [], 'exceptional_case', 'refund_request_id', $case->id, $request->user()->id, $paths);
                 $this->market->notify($current->customer_id, 'رفع الفني طلب مراجعة عدم الحضور للإدارة.');
+                $this->market->notify($request->user()->id, 'تم تسجيل طلب مراجعة عدم الحضور.');
             });
         } catch (Throwable $exception) {
             Storage::disk('local')->delete($paths);
@@ -219,6 +221,8 @@ class InstantBookingController extends Controller
                 $case = $current->cases()->make(['reason' => $data['reason'], 'submitted_by' => $request->user()->id, 'status' => 'pending']);
                 $case->forceFill(['case_type' => $data['case_type'], 'submitted_by' => $actor])->save();
                 $images->save($data['images'] ?? [], 'exceptional_case', 'refund_request_id', $case->id, $actor, $paths);
+                $this->market->notify($current->customer_id, 'تم تسجيل حالة جديدة على الحجز الفوري رقم '.$current->id.'.');
+                $this->market->notify($current->vendorService->vendor_id, 'تم تسجيل حالة جديدة على الحجز الفوري رقم '.$current->id.'.');
             });
         } catch (Throwable $exception) {
             Storage::disk('local')->delete($paths);
@@ -284,6 +288,9 @@ class InstantBookingController extends Controller
             }
             $current = Booking::query()->lockForUpdate()->findOrFail($booking->id);
             $vendor = $this->participant($request, $current);
+            if ($action === 'complete' && $vendor && $current->status === 'completed' && $current->vendor_completed_at) {
+                return;
+            }
             abort_if($current->pendingCases()->exists(), 409);
             $actor = $request->user()->id;
             $event = ['event_type' => 'status_change', 'status_type' => 'operational', 'previous_status' => $current->status];
@@ -301,6 +308,7 @@ class InstantBookingController extends Controller
             }
             $this->market->event($current, $actor, $event + ['new_status' => $current->status]);
             $this->market->notify($vendor ? $current->customer_id : $current->vendorService->vendor_id, 'تحدّثت حالة حجزك الفوري رقم '.$current->id.'.');
+            $this->market->notify($actor, 'تم تسجيل تحديث الحجز الفوري رقم '.$current->id.'.');
             });
         } catch (Throwable $exception) {
             Storage::disk('local')->delete($paths);
@@ -336,6 +344,7 @@ class InstantBookingController extends Controller
                 }
             }
             $this->market->notify($vendor ? $current->customer_id : $current->vendorService->vendor_id, 'تحديث على تعديل سعر حجزك الفوري رقم '.$current->id.'.');
+            $this->market->notify($actor, 'تم تسجيل إجراء تعديل السعر للحجز الفوري رقم '.$current->id.'.');
         }, 3);
 
         return back()->with('success', 'تم تسجيل تحديث السعر.');
@@ -403,6 +412,7 @@ class InstantBookingController extends Controller
                 'arrival_code_failed_attempts' => 0, 'arrival_code_locked_until' => null, 'arrival_code_expires_at' => null])->save();
             $this->market->event($current, $request->user()->id, ['event_type' => 'arrival_verified']);
             $this->market->notify($current->vendorService->vendor_id, 'تم التحقق من الوصول لحجزك الفوري.');
+            $this->market->notify($current->customer_id, 'تم تأكيد وصول الفني لحجزك الفوري.');
 
             return true;
         }, 3);

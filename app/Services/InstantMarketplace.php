@@ -21,7 +21,7 @@ class InstantMarketplace
 
     public function catalog(): Builder
     {
-        return Service::query()->where('supports_instant', true)->where('is_active', true)
+        return Service::query()->where('is_active', true)
             ->where('is_deleted', false)->where('approval_status', 'approved')
             ->whereHas('category', fn ($rows) => $rows->where('is_deleted', false));
     }
@@ -34,8 +34,9 @@ class InstantMarketplace
             abort_unless(User::query()->lockForUpdate()->findOrFail($customer->id)->status === 'active', 403);
             $this->checkCustomer($customer->id);
             abort_unless($this->catalog()->whereKey($data['service_id'])->exists(), 422);
-            $request = InstantRequest::create($data + ['customer_id' => $customer->id, 'status' => 'searching', 'expires_at' => now()->addMinutes(5)]);
+            $request = InstantRequest::create($data + ['customer_id' => $customer->id, 'status' => 'searching']);
             app(InstantImages::class)->save($uploads, 'problem', 'instant_request_id', $request->id, $customer->id, $paths);
+            $this->notify($customer->id, 'بدأ البحث عن فني للطلب رقم '.$request->id.'.');
             $this->notifyMatches($request);
 
             return $request;
@@ -51,7 +52,7 @@ class InstantMarketplace
         $vendor = $offer->vendor;
         $profile = $vendor?->vendorProfile;
         $age = (int) config('instant.location_max_age_seconds');
-        if ($age < 1 || $request->status !== 'searching' || ! $request->expires_at->isFuture()
+        if ($age < 1 || $request->status !== 'searching'
             || (int) $offer->vendor_id === (int) $request->customer_id || (int) $offer->service_id !== (int) $request->service_id
             || ! $offer->instant_enabled || $offer->status !== 'active'
             || $vendor?->role !== 'vendor' || $vendor->status !== 'active' || $profile?->application_status !== 'approved'
@@ -70,10 +71,7 @@ class InstantMarketplace
             && (int) $stages[10] > (int) $stages[5] && (int) $stages[10] < 300) {
             $radius = $elapsed >= (int) $stages[10] ? 10 : ($elapsed >= (int) $stages[5] ? 5 : 3);
         }
-        $customerLat = deg2rad((float) $request->latitude);
-        $vendorLat = deg2rad((float) $profile->latitude);
-        $longitude = deg2rad((float) $request->longitude - (float) $profile->longitude);
-        $distance = 12742 * asin(sqrt(min(1, sin(($customerLat - $vendorLat) / 2) ** 2 + cos($customerLat) * cos($vendorLat) * sin($longitude / 2) ** 2)));
+        $distance = $this->distanceInKm((float) $request->latitude, (float) $request->longitude, (float) $profile->latitude, (float) $profile->longitude);
         if ($distance > $radius) {
             return false;
         }
@@ -86,6 +84,15 @@ class InstantMarketplace
             && ! $bookings->where('booking_type', 'scheduled')->blockingSlot()->overlappingInterval($start, $end)->exists();
     }
 
+    public function distanceInKm(float $customerLatitude, float $customerLongitude, float $vendorLatitude, float $vendorLongitude): float
+    {
+        $customerLat = deg2rad($customerLatitude);
+        $vendorLat = deg2rad($vendorLatitude);
+        $longitude = deg2rad($customerLongitude - $vendorLongitude);
+
+        return 12742 * asin(sqrt(min(1, sin(($customerLat - $vendorLat) / 2) ** 2 + cos($customerLat) * cos($vendorLat) * sin($longitude / 2) ** 2)));
+    }
+
     public function offer(User $vendor, InstantRequest $request, array $data): void
     {
         DB::transaction(function () use ($vendor, $request, $data) {
@@ -95,6 +102,7 @@ class InstantMarketplace
             abort_unless($this->eligible($current, $offer, $data['arrival_minutes'], $data['duration_minutes']), 409);
             $current->offers()->updateOrCreate(['vendor_service_id' => $offer->id], $data + ['status' => 'pending']);
             $this->notify($current->customer_id, 'وصلك عرض لخدمة فورية');
+            $this->notify($vendor->id, 'تم إرسال عرضك على الطلب رقم '.$current->id.'.');
         }, 3);
     }
 
@@ -129,40 +137,33 @@ class InstantMarketplace
             ])->save();
             $offer->update(['status' => 'accepted']);
             $request->update(['status' => 'assigned']);
-            InstantOffer::query()->where('status', 'pending')->where(fn ($rows) => $rows
+            $invalidated = InstantOffer::query()->where('status', 'pending')->where(fn ($rows) => $rows
                 ->where('instant_request_id', $request->id)
-                ->orWhereHas('vendorService', fn ($services) => $services->where('vendor_id', $vendorId)))
-                ->update(['status' => 'invalidated']);
+                ->orWhereHas('vendorService', fn ($services) => $services->where('vendor_id', $vendorId)));
+            $otherOffers = (clone $invalidated)->with(['vendorService', 'instantRequest'])->lockForUpdate()->get();
+            $invalidated->whereKey($otherOffers->modelKeys())->update(['status' => 'invalidated']);
+            foreach ($otherOffers as $other) {
+                if ($other->instant_request_id === $request->id) {
+                    $this->notify($other->vendorService->vendor_id, 'اختار العميل عرضًا آخر للطلب رقم '.$request->id.'.');
+                } else {
+                    $this->notify($other->instantRequest->customer_id, 'أصبح أحد عروض الطلب رقم '.$other->instant_request_id.' غير متاح.');
+                }
+            }
             $this->event($booking, $customer->id, ['event_type' => 'status_change', 'status_type' => 'operational', 'new_status' => 'confirmed']);
             $this->notify($vendorId, 'العميل اختار عرضك لخدمة فورية');
+            $this->notify($customer->id, 'تم قبول العرض وإنشاء الحجز الفوري رقم '.$booking->id.'.');
 
             return $booking;
         }, 3);
     }
 
-    public function expire(): void
-    {
-        InstantRequest::where('status', 'searching')->where('expires_at', '<=', now())->chunkById(100, function ($requests) {
-            foreach ($requests as $candidate) {
-                DB::transaction(function () use ($candidate) {
-                    $request = InstantRequest::query()->lockForUpdate()->find($candidate->id);
-                    if ($request?->status === 'searching' && ! $request->expires_at->isFuture()) {
-                        $request->update(['status' => 'expired']);
-                        $request->offers()->where('status', 'pending')->update(['status' => 'expired']);
-                        $this->notify($request->customer_id, 'انتهت مهلة البحث عن فني');
-                    }
-                }, 3);
-            }
-        });
-    }
-
     public function notifyActiveMatches(): void
     {
-        InstantRequest::where('status', 'searching')->where('expires_at', '>', now())->chunkById(100, function ($requests) {
+        InstantRequest::where('status', 'searching')->chunkById(100, function ($requests) {
             foreach ($requests as $candidate) {
                 DB::transaction(function () use ($candidate) {
                     $request = InstantRequest::query()->lockForUpdate()->find($candidate->id);
-                    if ($request?->status === 'searching' && $request->expires_at->isFuture()) {
+                    if ($request?->status === 'searching') {
                         $this->notifyMatches($request);
                     }
                 }, 3);
@@ -190,7 +191,7 @@ class InstantMarketplace
         if (app(InstantFinance::class)->hasDebt($id)) {
             throw ValidationException::withMessages(['service_id' => 'سدّد المبلغ المستحق قبل طلب حجز جديد.']);
         }
-        $busy = InstantRequest::where('customer_id', $id)->where('status', 'searching')->where('expires_at', '>', now())
+        $busy = InstantRequest::where('customer_id', $id)->where('status', 'searching')
             ->when($exceptRequest, fn ($rows) => $rows->whereKeyNot($exceptRequest))->exists()
             || Booking::where('customer_id', $id)->where('booking_type', 'instant')->whereIn('status', self::ACTIVE_BOOKINGS)->exists();
         if ($busy) {

@@ -1711,6 +1711,102 @@ body[data-page^="admin"] .topbar {
     grid-template-columns: minmax(0, 1fr);
     gap: 1rem;
 }
+
+:where(a[href], button, summary, select, input:is([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"]), label:has(input:is([type="checkbox"], [type="radio"]):enabled)),
+input::file-selector-button {
+    cursor: pointer;
+}
+
+:is(button, select, input):disabled,
+[aria-disabled="true"] {
+    cursor: not-allowed;
+}
+
+a[href]:where(:not([class], .navlinks *, .sidebar *, .mobile-nav *, .hub-pager *, .booking-tabs *, .account-tabs *, .instant-admin-tabs *, .account-menu *, .notification-menu *),
+    .vendor-link, .service-details-link, .checkout-back, .project-back, .invoice-back, .admin-card-link, .admin-section-link, .instant-nearby-link),
+.btn.btn-link {
+    text-decoration-line: underline;
+    text-decoration-thickness: .08em;
+    text-underline-offset: .2em;
+}
+
+:where(main, dialog, .dashboard-content, .footer) :where(a[href]:not(.btn, .card, .project-stage)):hover {
+    text-decoration-line: underline;
+    text-decoration-thickness: .12em;
+    text-underline-offset: .2em;
+}
+
+:where(.instant-admin-tabs, .account-tabs, .hub-pager) a:hover {
+    text-decoration: none;
+}
+
+.footer a:hover,
+.footer a:focus-visible {
+    color: #fff;
+    text-decoration: underline;
+    text-underline-offset: .2em;
+}
+
+summary:where(:not([class])) {
+    padding: .35rem .5rem;
+    border-radius: 8px;
+    font-weight: 700;
+}
+
+summary:where(:not([class])):hover,
+details[open] > summary:where(:not([class])) {
+    background: var(--teal-soft);
+    color: var(--ink);
+}
+
+:where(.account-dropdown, .notification-dropdown) > summary:hover,
+:where(.account-dropdown, .notification-dropdown)[open] > summary {
+    box-shadow: 0 0 0 2px var(--teal);
+}
+
+.directory-card:is(:hover, :focus-visible) .directory-arrow {
+    background: var(--teal);
+    color: #fff;
+}
+
+.directory-card:is(:hover, :focus-visible) h3 {
+    text-decoration: underline;
+    text-underline-offset: .2em;
+}
+
+a.project-stage { position: relative; cursor: zoom-in; }
+.project-stage-action {
+    position: absolute;
+    inset-block-end: 12px;
+    inset-inline-end: 12px;
+    padding: 5px 10px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--ink);
+    font-size: .86rem;
+    font-weight: 700;
+}
+
+a.project-stage:is(:hover, :focus-visible) .project-stage-action {
+    border-color: var(--teal);
+    background: var(--teal-soft);
+}
+
+.btn:focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+}
+
+button:where(:not(.btn, [aria-pressed="true"], :focus-visible)):enabled:hover {
+    outline: 1px solid currentColor;
+    outline-offset: -1px;
+}
+
+.footer a:focus-visible,
+.sidebar a:focus-visible {
+    outline-color: var(--yellow);
+}
 .offer-edit-form .field { min-width: 0; margin: 0; }
 .offer-edit-form textarea { width: 100%; resize: vertical; }
 .offer-edit-actions {
